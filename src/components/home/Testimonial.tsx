@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Quotes } from "phosphor-react";
 
 const Testimonial = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -90,9 +91,7 @@ const Testimonial = () => {
         <div className="max-w-4xl mx-auto">
           {/* Quote mark */}
           <div className="text-center mb-8">
-            <span className="text-6xl md:text-8xl font-['Times_New_Roman',serif] text-black/5">
-              "
-            </span>
+            <Quotes size={72} className="text-black/20 text-center mx-auto" />
           </div>
 
           {/* Testimonial Text */}
@@ -105,7 +104,10 @@ const Testimonial = () => {
           {/* Rating */}
           <div className="flex justify-center gap-1 mb-6">
             {[...Array(current.rating)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 fill-pink-400 text-pink-400" />
+              <Star
+                key={i}
+                className="w-4 h-4 fill-yellow-500 text-yellow-500"
+              />
             ))}
           </div>
 
@@ -139,7 +141,7 @@ const Testimonial = () => {
                   }}
                   className={`h-[1px] transition-all duration-300 ${
                     currentIndex === idx
-                      ? "w-8 bg-pink-400"
+                      ? "w-8 bg-blue-800"
                       : "w-4 bg-black/20 hover:bg-black/40"
                   }`}
                 />
@@ -151,20 +153,6 @@ const Testimonial = () => {
             >
               <ChevronRight className="w-4 h-4 text-black/40 group-hover:text-black transition-colors" />
             </button>
-          </div>
-        </div>
-
-        {/* Client Logos / Brands - Optional */}
-        <div className="mt-20 pt-12 border-t border-black/5">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-12 opacity-40">
-            {["VOGUE", "BAZAAR", "ELLE", "GLAMOUR", "WWD"].map((brand, idx) => (
-              <span
-                key={idx}
-                className="text-[10px] tracking-[0.3em] uppercase text-black/40 font-['Times_New_Roman',serif]"
-              >
-                {brand}
-              </span>
-            ))}
           </div>
         </div>
       </div>

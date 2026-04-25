@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Heart } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import {
   FacebookLogo,
   InstagramLogo,
@@ -7,6 +7,7 @@ import {
   YoutubeLogo,
   LinkedinLogo,
 } from "phosphor-react";
+import { email } from "../../data/contact";
 
 const Footer = () => {
   //   const [email, setEmail] = useState("");
@@ -164,10 +165,10 @@ const Footer = () => {
             <div className="flex items-center justify-center gap-3">
               <Mail className="w-4 h-4 text-white/60" />
               <a
-                href="mailto:hello@velvetnoir.com"
+                href={`mailto:${email}`}
                 className="text-sm text-white/40 hover:text-white transition-colors"
               >
-                hello@velvetnoir.com
+                {email}
               </a>
             </div>
             <div className="flex items-center justify-center gap-3">
@@ -176,13 +177,13 @@ const Footer = () => {
                 href="tel:+442012345678"
                 className="text-sm text-white/40 hover:text-white transition-colors"
               >
-                +44 (0) 20 1234 5678
+                +234 (0) 816 152 5506
               </a>
             </div>
             <div className="flex items-center justify-center gap-3">
               <MapPin className="w-4 h-4 text-white/60" />
               <span className="text-sm text-white/40">
-                123 Fashion Avenue, London, UK
+                123 Fashion Avenue, Lagos, NG
               </span>
             </div>
           </div>
@@ -191,7 +192,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[10px] text-white/30 tracking-[0.1em] uppercase">
-            © 2024. All rights reserved.
+            © 2026. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link
@@ -215,11 +216,7 @@ const Footer = () => {
           </div>
           <div className="flex items-center gap-1">
             <span className="text-[9px] text-white/20 tracking-[0.15em] uppercase">
-              Made with
-            </span>
-            <Heart className="w-3 h-3 text-white/60" />
-            <span className="text-[9px] text-white/20 tracking-[0.15em] uppercase">
-              in London
+              Made In Lagos
             </span>
           </div>
         </div>
