@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Heart, Sparkles, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { Mail, Phone, MapPin, Heart } from "lucide-react";
 import {
   FacebookLogo,
   InstagramLogo,
@@ -10,17 +9,17 @@ import {
 } from "phosphor-react";
 
 const Footer = () => {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
+  //   const [email, setEmail] = useState("");
+  //   const [, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setEmail("");
-      setTimeout(() => setSubscribed(false), 3000);
-    }
-  };
+  //   const handleSubscribe = (e) => {
+  //     e.preventDefault();
+  //     if (email) {
+  //       setSubscribed(true);
+  //       setEmail("");
+  //       setTimeout(() => setSubscribed(false), 3000);
+  //     }
+  //   };
 
   const footerLinks = {
     shop: [

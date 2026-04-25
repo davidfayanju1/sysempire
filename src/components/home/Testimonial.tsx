@@ -45,7 +45,7 @@ const Testimonial = () => {
   ];
 
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval>;
     if (isAutoPlaying) {
       interval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % testimonials.length);

@@ -2,14 +2,16 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 const Hero = () => {
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     // Ensure video plays properly
     if (videoRef.current) {
-      videoRef.current.play().catch((error) => {
-        console.log("Video autoplay failed:", error);
-      });
+      videoRef.current
+        .play()
+        .catch((error: { message: string; name: string; stack: string }) => {
+          console.log("Video autoplay failed:", error);
+        });
     }
   }, []);
 
