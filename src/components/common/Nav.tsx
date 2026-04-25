@@ -38,7 +38,7 @@ const Nav = () => {
     { to: "/", label: "HOME" },
     { to: "/about", label: "ABOUT" },
     { to: "/collection", label: "COLLECTION" },
-    { to: "/lookbook", label: "LOOKBOOK" },
+    // { to: "/lookbook", label: "LOOKBOOK" },
     { to: "/contact", label: "CONTACT" },
   ];
 

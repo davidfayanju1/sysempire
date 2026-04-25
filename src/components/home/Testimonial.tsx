@@ -72,10 +72,10 @@ const Testimonial = () => {
   const current = testimonials[currentIndex];
 
   return (
-    <section className="bg-white py-24 md:py-32">
+    <section className="bg-white py-14 md:py-32">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center md:mb-16 mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 border border-black/10 mb-6">
             <span className="text-[9px] tracking-[0.2em] uppercase text-black/50 font-['Times_New_Roman',serif]">
               Testimonials
@@ -90,7 +90,7 @@ const Testimonial = () => {
         {/* Main Testimonial */}
         <div className="max-w-4xl mx-auto">
           {/* Quote mark */}
-          <div className="text-center mb-8">
+          <div className="text-center md:mb-8">
             <Quotes size={72} className="text-black/20 text-center mx-auto" />
           </div>
 
