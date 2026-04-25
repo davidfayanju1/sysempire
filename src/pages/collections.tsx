@@ -1,9 +1,14 @@
+import UnderConstruction from "../components/common/UnderConstruction";
 import DefaultLayout from "../layout/DefaultLayout";
 
 const Collections = () => {
   return (
     <DefaultLayout>
-      <div className="page-container"></div>
+      <UnderConstruction
+        pageName="Collection"
+        returnPath="/"
+        returnLabel="Explore Home"
+      />
     </DefaultLayout>
   );
 };

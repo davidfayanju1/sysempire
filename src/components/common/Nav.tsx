@@ -115,7 +115,7 @@ const Nav = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`
-              hidden md:flex items-center gap-2 transition-all duration-300 px-5 py-2.5 text-xs font-medium tracking-wide
+              hidden md:flex items-center gap-2 transition-all duration-300 px-5 py-2.5 text-xs font-[400] tracking-wide
               ${
                 isScrolled
                   ? "bg-black text-white hover:bg-black/90 shadow-sm"
@@ -124,7 +124,6 @@ const Nav = () => {
             `}
           >
             Shop Now
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </motion.button>
 
           {/* Mobile Menu Button */}
