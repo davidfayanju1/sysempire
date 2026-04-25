@@ -1,0 +1,55 @@
+/* Add to your global CSS file */
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0b292b;
+  --color-secondary: #e7b473;
+  --color-background: #f9f0e9;
+  --color-pink: #ec4899;
+}
+
+/* Vogue-inspired fonts */
+/* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"); */
+
+body {
+  font-family: "Inter", sans-serif;
+}
+
+.font-new-roman {
+  font-family: "Times New Roman", serif;
+}
+
+/* For headings and fashion statements */
+.font-serif {
+  font-family: "Playfair Display", serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Minimalist scrollbar */
+::-webkit-scrollbar {
+  width: 1px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ec4899;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #be185d;
+}
+
+/* Vogue-inspired divider */
+.vogue-divider {
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+  margin: 0 auto;
+}
