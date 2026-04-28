@@ -72,7 +72,7 @@ const Nav = () => {
                 isScrolled ? "/images/logo_dark.png" : "/images/logo_light.png"
               }
               alt="Logo"
-              className={`transition-all duration-300 object-contain ${
+              className={`transition-all md:ml-[-1.3rem] duration-300 object-contain ${
                 isScrolled ? "w-24 h-16" : "w-16 h-16"
               }`}
               whileHover={{ scale: 1.02 }}

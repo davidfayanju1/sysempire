@@ -28,7 +28,7 @@ export const VideoStorySection = () => {
   return (
     <motion.section
       ref={ref}
-      className="py-20 bg-black"
+      className="py-20 bg-[#1e2952]"
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
     >
