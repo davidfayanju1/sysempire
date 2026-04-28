@@ -202,7 +202,7 @@ const Nav = () => {
                         onClick={closeMenu}
                         className={`
                           block text-2xl font-light tracking-[0.15em] uppercase transition-colors
-                          ${active ? "text-pink-500" : "text-gray-900 hover:text-pink-500"}
+                          ${active ? "text-blue-800" : "text-gray-900 hover:text-black"}
                         `}
                       >
                         {link.label}
