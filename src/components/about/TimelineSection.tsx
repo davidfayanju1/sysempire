@@ -83,7 +83,7 @@ export const TimelineSection = () => {
         </div>
 
         {/* Static Header */}
-        <div className="absolute top-12 text-center z-30">
+        <div className=" text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

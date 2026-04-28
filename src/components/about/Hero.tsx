@@ -28,13 +28,19 @@ export const HeroSection = () => {
         animate={{ scale: 1 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
+      {/* Multiple overlay layers for better text readability */}
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-black/40 to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
+      {/* Subtle vignette effect */}
+      <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.5)] pointer-events-none" />
+
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-3 py-1 border border-white/20 mb-6"
+          className="inline-flex items-center gap-2 px-3 py-1 border border-white/20 mb-6 bg-black/20 backdrop-blur-sm"
         >
           <Sparkles className="w-3 h-3 text-white/80 animate-pulse" />
           <span className="text-[9px] tracking-[0.2em] uppercase text-white/80 font-['Times_New_Roman',serif]">
@@ -45,12 +51,12 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6 tracking-tight"
+          className="text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6 tracking-tight drop-shadow-lg"
         >
           Crafting the Future
           <br />
           of{" "}
-          <span className="font-['Times_New_Roman',serif] font-bold italic bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+          <span className="font-['Times_New_Roman',serif] font-bold italic bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
             African Fashion
           </span>
         </motion.h1>
@@ -58,13 +64,13 @@ export const HeroSection = () => {
           initial={{ opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: 64 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="w-16 h-px bg-white/30 mx-auto mb-6"
+          className="w-16 h-px bg-white/40 mx-auto mb-6"
         />
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-white/70 text-sm max-w-2xl mx-auto leading-relaxed"
+          className="text-white/90 text-sm max-w-2xl mx-auto leading-relaxed drop-shadow"
         >
           A decade of excellence, thousands of stories, and a commitment to
           redefining luxury through authentic African craftsmanship.
@@ -75,7 +81,7 @@ export const HeroSection = () => {
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
       >
-        <div className="w-[1px] h-12 bg-white/30" />
+        <div className="w-[1px] h-12 bg-white/40" />
       </motion.div>
     </motion.section>
   );
