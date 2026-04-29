@@ -79,7 +79,7 @@ const Collections = () => {
     description:
       "Each collection tells a unique story. Every garment is a testament to craftsmanship, culture, and the relentless pursuit of beauty.",
     image:
-      "https://images.unsplash.com/photo-1687952622898-4e9514a710d5?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://images.unsplash.com/photo-1763823132521-72f373850de2?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   };
 
   const fadeUpVariants = {
@@ -129,8 +129,8 @@ const Collections = () => {
           <div className="w-px h-12 bg-white/30" />
         </div>
       </section>
-
       {/* Featured Piece */}
+      // Featured Piece section - updated image handling
       <section ref={heroRef} className="py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -165,18 +165,20 @@ const Collections = () => {
               initial="hidden"
               animate={isHeroInView ? "visible" : "hidden"}
               variants={fadeUpVariants}
-              className="order-1 md:order-2 border border-black/10 overflow-hidden"
+              className="order-1 md:order-2 border border-black/10 overflow-hidden bg-gray-100"
             >
-              <img
-                src={featuredPiece.image}
-                alt={featuredPiece.title}
-                className="w-full h-[450px] object-cover object-top grayscale hover:grayscale-0 transition-all duration-700"
+              {/* Option 1: Use background image with cover and a wrapper div */}
+              <div
+                className="w-full h-[450px] bg-cover bg-center bg-no-repeat grayscale hover:grayscale-0 transition-all duration-700"
+                style={{
+                  backgroundImage: `url('${featuredPiece.image}')`,
+                  backgroundPosition: "center 30%", // Adjust this value to show more of the outfit
+                }}
               />
             </motion.div>
           </div>
         </div>
       </section>
-
       {/* Collections Grid */}
       <section className="py-24 bg-white border-t border-black/5">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
@@ -266,7 +268,6 @@ const Collections = () => {
           </motion.div>
         </div>
       </section>
-
       {/* Editorial Quote Section */}
       <section className="py-24 bg-black">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
@@ -286,7 +287,6 @@ const Collections = () => {
           </div>
         </div>
       </section>
-
       {/* CTA */}
       <section className="py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">

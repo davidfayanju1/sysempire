@@ -59,8 +59,8 @@ const AboutUs = () => {
             </div>
             <p className="text-lg md:text-xl font-new-roman font-light text-black leading-relaxed max-w-2xl mx-auto">
               "With heavy hearts, we mourn the loss of our Founder & CEO, Mrs.
-              Adesewa Oluwayanju. Her legacy is our promise: SYS EMPIRE
-              continues: unwavering, excellent, and wholly devoted to you"
+              Adesewa Oluwayanju. Her legacy is our promise. SYS EMPIRE
+              continues Unwavering, excellent, and wholly devoted to you"
             </p>
             <p className="text-[10px] text-black/30 mt-6 tracking-[0.2em] uppercase">
               — SYS EMPIRE TEAM
