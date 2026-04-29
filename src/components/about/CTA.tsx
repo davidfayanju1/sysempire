@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { motion, useInView, type Variants } from "framer-motion";
 import { useRef, useState } from "react";
-import { Heart, ArrowRight, Sparkles, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowRight, Sparkles, Mail, Phone, MapPin } from "lucide-react";
 import { address, email, phoneNumber } from "../../data/contact";
 
 const contactInfo = {
