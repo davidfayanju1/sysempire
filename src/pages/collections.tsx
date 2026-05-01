@@ -130,7 +130,6 @@ const Collections = () => {
         </div>
       </section>
       {/* Featured Piece */}
-      // Featured Piece section - updated image handling
       <section ref={heroRef} className="py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 items-center">

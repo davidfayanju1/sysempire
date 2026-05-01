@@ -5,6 +5,7 @@ import ContactUs from "./pages/contact-us";
 import AboutPage from "./pages/about-page";
 import Collections from "./pages/collections";
 import ScrollToTop from "./lib/ScrollToTop";
+import LookBookPage from "./pages/look-book";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/collection" element={<Collections />} />
+        <Route path="/lookbook" element={<LookBookPage />} />
       </Routes>
     </>
   );
