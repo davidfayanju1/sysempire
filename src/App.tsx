@@ -7,6 +7,9 @@ import Collections from "./pages/collections";
 import ScrollToTop from "./lib/ScrollToTop";
 import LookBookPage from "./pages/look-book";
 import Birthday from "./pages/birthday";
+import Login from "./pages/auth/login";
+import Signup from "./pages/auth/signup";
+import Cart from "./pages/cart";
 
 function App() {
   return (
@@ -19,6 +22,10 @@ function App() {
         <Route path="/collection" element={<Collections />} />
         <Route path="/lookbook" element={<LookBookPage />} />
         <Route path="/birthday" element={<Birthday />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="*" element={<Home />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </>
   );

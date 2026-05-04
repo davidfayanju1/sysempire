@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  UserCircle,
-  Heart,
-  ShoppingBag,
-} from "lucide-react";
+import { Menu, X, User, LogOut, UserCircle, ShoppingBag } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Nav = () => {
@@ -16,7 +8,7 @@ const Nav = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [wishlistCount, setWishlistCount] = useState(0);
+  const [, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
@@ -158,30 +150,7 @@ const Nav = () => {
           </div>
 
           {/* Right side icons: Wishlist, User, Cart */}
-          <div className="hidden justify-center md:flex items-center gap-5">
-            {/* Wishlist Icon */}
-            <motion.button
-              onClick={() => navigate("/wishlist")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className={`relative cursor-pointer transition-colors duration-300 ${
-                isScrolled
-                  ? "text-gray-700 hover:text-black"
-                  : "text-white hover:text-white/80"
-              }`}
-            >
-              <Heart className="w-5 h-5" />
-              {wishlistCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center"
-                >
-                  {wishlistCount}
-                </motion.span>
-              )}
-            </motion.button>
-
+          <div className="hidden justify-center md:flex items-start gap-5">
             {/* User Icon with Dropdown */}
             <div className="relative">
               {isLoggedIn ? (
@@ -382,25 +351,6 @@ const Nav = () => {
                   transition={{ delay: 0.3, duration: 0.4 }}
                   className="flex items-center justify-center gap-8 pt-4"
                 >
-                  {/* Wishlist */}
-                  <button
-                    onClick={() => {
-                      navigate("/wishlist");
-                      closeMenu();
-                    }}
-                    className="relative flex flex-col items-center gap-1"
-                  >
-                    <Heart className="w-5 h-5 text-gray-700" />
-                    <span className="text-[10px] tracking-wide text-gray-500">
-                      WISHLIST
-                    </span>
-                    {wishlistCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </button>
-
                   {/* User */}
                   {isLoggedIn ? (
                     <button
