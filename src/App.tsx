@@ -6,6 +6,7 @@ import AboutPage from "./pages/about-page";
 import Collections from "./pages/collections";
 import ScrollToTop from "./lib/ScrollToTop";
 import LookBookPage from "./pages/look-book";
+import Birthday from "./pages/birthday";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/collection" element={<Collections />} />
         <Route path="/lookbook" element={<LookBookPage />} />
+        <Route path="/birthday" element={<Birthday />} />
       </Routes>
     </>
   );

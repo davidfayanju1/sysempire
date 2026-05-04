@@ -1,13 +1,50 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ArrowRight } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  UserCircle,
+  Heart,
+  ShoppingBag,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is logged in (check localStorage or your auth state)
+    const token = localStorage.getItem("authToken");
+    setIsLoggedIn(!!token);
+
+    // Load wishlist and cart counts
+    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    setWishlistCount(wishlist.length);
+    setCartCount(cart.length);
+  }, []);
+
+  // Listen for storage events to update counts across tabs
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      setWishlistCount(wishlist.length);
+      setCartCount(cart.length);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,6 +57,7 @@ const Nav = () => {
   // Close menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
   }, [location]);
 
   // Prevent body scroll when menu is open
@@ -38,7 +76,6 @@ const Nav = () => {
     { to: "/", label: "HOME" },
     { to: "/about", label: "ABOUT" },
     { to: "/collection", label: "COLLECTION" },
-    // { to: "/lookbook", label: "LOOKBOOK" },
     { to: "/contact", label: "CONTACT" },
   ];
 
@@ -49,6 +86,13 @@ const Nav = () => {
 
   const closeMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    setIsLoggedIn(false);
+    setIsUserMenuOpen(false);
+    navigate("/");
   };
 
   const commonColor = "text-white";
@@ -66,14 +110,18 @@ const Nav = () => {
       >
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="relative z-50" onClick={closeMenu}>
+          <Link
+            to="/"
+            className="relative z-50 md:ml-0 ml-[-1.7rem]"
+            onClick={closeMenu}
+          >
             <motion.img
               src={
                 isScrolled ? "/images/logo_dark.png" : "/images/logo_light.png"
               }
               alt="Logo"
               className={`transition-all md:ml-[-1.3rem] duration-300 object-contain ${
-                isScrolled ? "w-24 h-16" : "w-16 h-16"
+                isScrolled ? "w-24 h-16" : "w-24 h-16"
               }`}
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
@@ -109,22 +157,138 @@ const Nav = () => {
             </div>
           </div>
 
-          {/* Single CTA Button */}
-          <motion.button
-            onClick={() => navigate("/collection")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`
-              hidden md:flex items-center gap-2 transition-all duration-300 px-5 py-2.5 text-xs font-[400] tracking-wide
-              ${
+          {/* Right side icons: Wishlist, User, Cart */}
+          <div className="hidden justify-center md:flex items-center gap-5">
+            {/* Wishlist Icon */}
+            <motion.button
+              onClick={() => navigate("/wishlist")}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative cursor-pointer transition-colors duration-300 ${
                 isScrolled
-                  ? "bg-black text-white hover:bg-black/90 shadow-sm"
-                  : "bg-white text-black hover:bg-white/90"
-              }
-            `}
-          >
-            Shop Now
-          </motion.button>
+                  ? "text-gray-700 hover:text-black"
+                  : "text-white hover:text-white/80"
+              }`}
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center"
+                >
+                  {wishlistCount}
+                </motion.span>
+              )}
+            </motion.button>
+
+            {/* User Icon with Dropdown */}
+            <div className="relative">
+              {isLoggedIn ? (
+                <>
+                  <motion.button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`transition-colors duration-300 ${
+                      isScrolled
+                        ? "text-gray-700 hover:text-black"
+                        : "text-white hover:text-white/80"
+                    }`}
+                  >
+                    <UserCircle className="w-5 h-5" />
+                  </motion.button>
+
+                  {/* User Dropdown Menu */}
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute right-0 mt-3 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-50 border border-gray-100"
+                        >
+                          <Link
+                            to="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            My Profile
+                          </Link>
+                          <Link
+                            to="/orders"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            My Orders
+                          </Link>
+                          <Link
+                            to="/wishlist"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            Wishlist
+                          </Link>
+                          <hr className="my-1" />
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                          >
+                            <LogOut className="w-3 h-3" />
+                            Logout
+                          </button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </>
+              ) : (
+                <motion.button
+                  onClick={() => navigate("/login")}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`transition-colors duration-300 ${
+                    isScrolled
+                      ? "text-gray-700 hover:text-black"
+                      : "text-white hover:text-white/80"
+                  }`}
+                >
+                  <User className="w-5 h-5" />
+                </motion.button>
+              )}
+            </div>
+
+            {/* Cart Icon */}
+            <motion.button
+              onClick={() => navigate("/cart")}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative transition-colors duration-300 ${
+                isScrolled
+                  ? "text-gray-700 hover:text-black"
+                  : "text-white hover:text-white/80"
+              }`}
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {cartCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center"
+                >
+                  {cartCount}
+                </motion.span>
+              )}
+            </motion.button>
+          </div>
 
           {/* Mobile Menu Button */}
           <motion.button
@@ -202,7 +366,7 @@ const Nav = () => {
                         onClick={closeMenu}
                         className={`
                           block text-2xl font-light tracking-[0.15em] uppercase transition-colors
-                          ${active ? "text-blue-800" : "text-gray-900 hover:text-black"}
+                          ${active ? "text-black" : "text-gray-900 hover:text-black"}
                         `}
                       >
                         {link.label}
@@ -210,26 +374,107 @@ const Nav = () => {
                     </motion.div>
                   );
                 })}
-              </div>
 
-              {/* Mobile CTA Button */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.4 }}
-                className="flex justify-center pt-8"
-              >
-                <button
-                  onClick={() => {
-                    navigate("/collection");
-                    closeMenu();
-                  }}
-                  className="flex items-center gap-2 px-8 py-3 bg-black text-white text-sm font-medium tracking-wide hover:bg-black/90 transition-colors"
+                {/* Mobile Action Icons Section */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                  className="flex items-center justify-center gap-8 pt-4"
                 >
-                  Shop Now
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </motion.div>
+                  {/* Wishlist */}
+                  <button
+                    onClick={() => {
+                      navigate("/wishlist");
+                      closeMenu();
+                    }}
+                    className="relative flex flex-col items-center gap-1"
+                  >
+                    <Heart className="w-5 h-5 text-gray-700" />
+                    <span className="text-[10px] tracking-wide text-gray-500">
+                      WISHLIST
+                    </span>
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* User */}
+                  {isLoggedIn ? (
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        closeMenu();
+                      }}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <LogOut className="w-5 h-5 text-gray-700" />
+                      <span className="text-[10px] tracking-wide text-gray-500">
+                        LOGOUT
+                      </span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        navigate("/login");
+                        closeMenu();
+                      }}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <User className="w-5 h-5 text-gray-700" />
+                      <span className="text-[10px] tracking-wide text-gray-500">
+                        ACCOUNT
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Cart */}
+                  <button
+                    onClick={() => {
+                      navigate("/cart");
+                      closeMenu();
+                    }}
+                    className="relative flex flex-col items-center gap-1"
+                  >
+                    <ShoppingBag className="w-5 h-5 text-gray-700" />
+                    <span className="text-[10px] tracking-wide text-gray-500">
+                      CART
+                    </span>
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-black text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
+                  </button>
+                </motion.div>
+
+                {/* Mobile Profile Links for Logged In Users */}
+                {isLoggedIn && (
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.35, duration: 0.4 }}
+                    className="flex flex-col items-center gap-3 pt-2"
+                  >
+                    <Link
+                      to="/profile"
+                      onClick={closeMenu}
+                      className="text-xs font-light tracking-[0.15em] text-gray-500 hover:text-black transition-colors"
+                    >
+                      MY PROFILE
+                    </Link>
+                    <Link
+                      to="/orders"
+                      onClick={closeMenu}
+                      className="text-xs font-light tracking-[0.15em] text-gray-500 hover:text-black transition-colors"
+                    >
+                      MY ORDERS
+                    </Link>
+                  </motion.div>
+                )}
+              </div>
 
               {/* Vogue-inspired tagline */}
               <motion.div
