@@ -159,7 +159,7 @@ const Nav = () => {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`transition-colors duration-300 ${
+                    className={`transition-colors cursor-pointer duration-300 ${
                       isScrolled
                         ? "text-gray-700 hover:text-black"
                         : "text-white hover:text-white/80"
@@ -221,10 +221,10 @@ const Nav = () => {
                 </>
               ) : (
                 <motion.button
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/profile")}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`transition-colors duration-300 ${
+                  className={`transition-colors cursor-pointer duration-300 ${
                     isScrolled
                       ? "text-gray-700 hover:text-black"
                       : "text-white hover:text-white/80"
@@ -240,7 +240,7 @@ const Nav = () => {
               onClick={() => navigate("/cart")}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className={`relative transition-colors duration-300 ${
+              className={`relative cursor-pointer transition-colors duration-300 ${
                 isScrolled
                   ? "text-gray-700 hover:text-black"
                   : "text-white hover:text-white/80"
