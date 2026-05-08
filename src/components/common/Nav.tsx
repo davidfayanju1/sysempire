@@ -368,7 +368,7 @@ const Nav = () => {
                   ) : (
                     <button
                       onClick={() => {
-                        navigate("/login");
+                        navigate("/profile");
                         closeMenu();
                       }}
                       className="flex flex-col items-center gap-1"
