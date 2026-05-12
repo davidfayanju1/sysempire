@@ -62,7 +62,7 @@ export const productsDatabase: { [key: number]: Product } = {
       },
       {
         id: 2,
-        url: "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
+        url: "https://images.unsplash.com/photo-1631234764568-996fab371596?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         alt: "Back view",
       },
       {
@@ -121,7 +121,7 @@ export const productsDatabase: { [key: number]: Product } = {
     images: [
       {
         id: 1,
-        url: "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
+        url: "https://images.unsplash.com/photo-1765991735382-0f9f7da9b44d?q=80&w=926&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         alt: "Front view",
       },
       {
@@ -223,7 +223,7 @@ export const productsDatabase: { [key: number]: Product } = {
     images: [
       {
         id: 1,
-        url: "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
+        url: "https://images.unsplash.com/photo-1631234764568-996fab371596?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         alt: "Front view",
       },
     ],
