@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -6,7 +6,6 @@ import {
   Heart,
   Share2,
   ChevronLeft,
-  ChevronRight,
   Ruler,
   Star,
   Truck,
@@ -15,8 +14,11 @@ import {
   Plus,
   Minus,
   X,
+  Scissors,
+  ChevronRight,
 } from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
+import SimilarProducts from "../components/product/SimilarProducts";
 
 // Types
 interface ProductImage {
@@ -41,10 +43,209 @@ interface Product {
   material: string;
   careInstructions: string[];
   fit: string;
+  allowsCustomSize: boolean;
 }
 
+// Mock products database - exported for use in other components
+export const productsDatabase: { [key: number]: Product } = {
+  1: {
+    id: 1,
+    name: "Celestial Silk Gown",
+    price: 2890,
+    description:
+      "Experience the epitome of elegance with our Celestial Silk Gown. Crafted from the finest Mulberry silk, this masterpiece drapes gracefully, creating an ethereal silhouette that captures light with every movement. The hand-sewn celestial beadwork along the neckline adds a subtle sparkle, making it perfect for evening galas and sophisticated soirees.",
+    images: [
+      {
+        id: 1,
+        url: "https://images.unsplash.com/photo-1628565931779-4f4f0b4f578a?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        alt: "Front view",
+      },
+      {
+        id: 2,
+        url: "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
+        alt: "Back view",
+      },
+      {
+        id: 3,
+        url: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=2069",
+        alt: "Detail view",
+      },
+      {
+        id: 4,
+        url: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=2070",
+        alt: "Side view",
+      },
+    ],
+    category: "Evening Wear",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      {
+        name: "Midnight Blue",
+        code: "#1a2332",
+        image:
+          "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
+      },
+      {
+        name: "Blush Pink",
+        code: "#f5e6e8",
+        image:
+          "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
+      },
+      {
+        name: "Ivory",
+        code: "#fff8f0",
+        image:
+          "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=2069",
+      },
+    ],
+    rating: 4.8,
+    reviews: 127,
+    inStock: true,
+    sku: "CSG-2024-001",
+    material: "100% Mulberry Silk",
+    careInstructions: [
+      "Dry clean only",
+      "Do not bleach",
+      "Iron on low heat",
+      "Store in garment bag",
+    ],
+    fit: "True to size, model is 5'9\" wearing size S",
+    allowsCustomSize: true,
+  },
+  2: {
+    id: 2,
+    name: "Midnight Velvet Gown",
+    price: 3200,
+    description:
+      "Luxurious velvet meets timeless elegance in this stunning gown. Perfect for formal events and black-tie occasions.",
+    images: [
+      {
+        id: 1,
+        url: "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
+        alt: "Front view",
+      },
+      {
+        id: 2,
+        url: "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
+        alt: "Back view",
+      },
+    ],
+    category: "Evening Wear",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      { name: "Black", code: "#000000" },
+      { name: "Navy", code: "#000080" },
+    ],
+    rating: 4.9,
+    reviews: 89,
+    inStock: true,
+    sku: "MVG-2024-002",
+    material: "Luxury Velvet",
+    careInstructions: ["Dry clean only", "Do not iron directly"],
+    fit: "True to size",
+    allowsCustomSize: true,
+  },
+  3: {
+    id: 3,
+    name: "Sapphire Silk Dress",
+    price: 2450,
+    description:
+      "A stunning sapphire blue dress that commands attention. Perfect for formal events and special occasions.",
+    images: [
+      {
+        id: 1,
+        url: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=2069",
+        alt: "Front view",
+      },
+      {
+        id: 2,
+        url: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=2070",
+        alt: "Back view",
+      },
+    ],
+    category: "Evening Wear",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      { name: "Sapphire", code: "#0f52ba" },
+      { name: "Emerald", code: "#50c878" },
+    ],
+    rating: 4.7,
+    reviews: 94,
+    inStock: true,
+    sku: "SSD-2024-003",
+    material: "Italian Silk",
+    careInstructions: ["Dry clean only", "Do not bleach"],
+    fit: "True to size",
+    allowsCustomSize: true,
+  },
+  4: {
+    id: 4,
+    name: "Crystal Embellished Gown",
+    price: 5600,
+    description:
+      "Hand-embroidered with Swarovski crystals, this gown is a masterpiece of craftsmanship.",
+    images: [
+      {
+        id: 1,
+        url: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=2070",
+        alt: "Front view",
+      },
+      {
+        id: 2,
+        url: "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
+        alt: "Detail view",
+      },
+    ],
+    category: "Evening Wear",
+    sizes: ["XS", "S", "M", "L"],
+    colors: [
+      { name: "Clear Crystal", code: "#e8e8e8" },
+      { name: "Rose Gold", code: "#b76e79" },
+    ],
+    rating: 5.0,
+    reviews: 45,
+    inStock: true,
+    sku: "CEG-2024-004",
+    material: "Silk Chiffon with Crystal Embellishments",
+    careInstructions: [
+      "Professional dry clean only",
+      "Do not iron directly on crystals",
+    ],
+    fit: "True to size",
+    allowsCustomSize: true,
+  },
+  5: {
+    id: 5,
+    name: "Pearl White Dress",
+    price: 1890,
+    description:
+      "Elegant pearl white dress perfect for weddings and formal events.",
+    images: [
+      {
+        id: 1,
+        url: "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
+        alt: "Front view",
+      },
+    ],
+    category: "Evening Wear",
+    sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      { name: "Pearl White", code: "#f8f0e3" },
+      { name: "Ivory", code: "#fff8f0" },
+    ],
+    rating: 4.6,
+    reviews: 112,
+    inStock: true,
+    sku: "PWD-2024-005",
+    material: "Dupioni Silk",
+    careInstructions: ["Dry clean only"],
+    fit: "True to size",
+    allowsCustomSize: true,
+  },
+};
+
 const ProductDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,84 +255,93 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
-  const [addingToCart, setAddingToCart] = useState(false);
-  const [showAddedToCart, setShowAddedToCart] = useState(false);
+  const [creatingOrder, setCreatingOrder] = useState(false);
+  const [showOrderCreated, setShowOrderCreated] = useState(false);
+  const [isCustomSize, setIsCustomSize] = useState(false);
+  const [showCustomSizeModal, setShowCustomSizeModal] = useState(false);
+  const [isStickyBarVisible, setIsStickyBarVisible] = useState(true);
+  const [customMeasurements, setCustomMeasurements] = useState({
+    bust: "",
+    waist: "",
+    hips: "",
+    shoulder: "",
+    armLength: "",
+    torsoLength: "",
+    notes: "",
+  });
 
-  // Mock product data - replace with API call
+  // Refs for sticky elements
+  const imageColumnRef = useRef<HTMLDivElement>(null);
+  const similarProductsRef = useRef<HTMLDivElement>(null);
+  const productInfoEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if user is logged in
+  const isLoggedIn = () => {
+    const token = localStorage.getItem("authToken");
+    return !!token;
+  };
+
+  // Fetch product data based on ID from URL
   useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      const mockProduct: Product = {
-        id: Number(id) || 1,
-        name: "Celestial Silk Gown",
-        price: 2890,
-        description:
-          "Experience the epitome of elegance with our Celestial Silk Gown. Crafted from the finest Mulberry silk, this masterpiece drapes gracefully, creating an ethereal silhouette that captures light with every movement. The hand-sewn celestial beadwork along the neckline adds a subtle sparkle, making it perfect for evening galas and sophisticated soirees.",
-        images: [
-          {
-            id: 1,
-            url: "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
-            alt: "Front view",
-          },
-          {
-            id: 2,
-            url: "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
-            alt: "Back view",
-          },
-          {
-            id: 3,
-            url: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=2069",
-            alt: "Detail view",
-          },
-          {
-            id: 4,
-            url: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=2070",
-            alt: "Side view",
-          },
-        ],
-        category: "Evening Wear",
-        sizes: ["XS", "S", "M", "L", "XL"],
-        colors: [
-          {
-            name: "Midnight Blue",
-            code: "#1a2332",
-            image:
-              "https://images.unsplash.com/photo-1594552072238-92d7b48c4c2f?q=80&w=2070",
-          },
-          {
-            name: "Blush Pink",
-            code: "#f5e6e8",
-            image:
-              "https://images.unsplash.com/photo-1525884363673-c593149ceb43?q=80&w=2070",
-          },
-          {
-            name: "Ivory",
-            code: "#fff8f0",
-            image:
-              "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=2069",
-          },
-        ],
-        rating: 4.8,
-        reviews: 127,
-        inStock: true,
-        sku: "CSG-2024-001",
-        material: "100% Mulberry Silk",
-        careInstructions: [
-          "Dry clean only",
-          "Do not bleach",
-          "Iron on low heat",
-          "Store in garment bag",
-        ],
-        fit: "True to size, model is 5'9\" wearing size S",
-      };
-      setProduct(mockProduct);
+    setLoading(true);
+
+    // Simulate API fetch with a small delay
+    const timer = setTimeout(() => {
+      let productId: number;
+
+      // Try to parse the id as a number
+      if (id && !isNaN(Number(id))) {
+        productId = Number(id);
+      } else {
+        // If id is not a number, try to find by slug or name (for demo, default to 1)
+        productId = 1;
+      }
+
+      const foundProduct = productsDatabase[productId];
+
+      if (foundProduct) {
+        setProduct(foundProduct);
+      } else {
+        // If product not found, try to show first product as fallback
+        const firstProduct = productsDatabase[1];
+        if (firstProduct) {
+          setProduct(firstProduct);
+          console.warn(
+            `Product with id ${id} not found, showing fallback product`,
+          );
+        } else {
+          setProduct(null);
+        }
+      }
       setLoading(false);
-    }, 500);
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [id]);
 
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert("Please select a size");
+  // Handle scroll to hide/show sticky bar on mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      if (similarProductsRef.current && window.innerWidth < 768) {
+        const similarProductsTop = similarProductsRef.current.offsetTop;
+        const scrollPosition = window.scrollY + window.innerHeight;
+
+        // Hide sticky bar when reaching similar products section
+        if (scrollPosition > similarProductsTop) {
+          setIsStickyBarVisible(false);
+        } else {
+          setIsStickyBarVisible(true);
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [product]);
+
+  const handleCreateOrder = () => {
+    if (!selectedSize && !isCustomSize) {
+      alert("Please select a size or choose custom size");
       return;
     }
     if (!selectedColor) {
@@ -139,34 +349,66 @@ const ProductDetails = () => {
       return;
     }
 
-    setAddingToCart(true);
+    setCreatingOrder(true);
 
-    // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
 
-    // Add new item
-    const cartItem = {
-      id: product?.id,
+    const orderItem = {
+      id: Date.now(),
+      productId: product?.id,
       name: product?.name,
       price: product?.price,
       quantity: quantity,
-      size: selectedSize,
+      size: isCustomSize ? "Custom Size" : selectedSize,
       color: selectedColor,
       image: product?.images[0].url,
       sku: product?.sku,
+      orderDate: new Date().toISOString(),
+      status: "pending",
+      isCustomSize: isCustomSize,
+      measurements: isCustomSize ? customMeasurements : null,
     };
 
-    existingCart.push(cartItem);
-    localStorage.setItem("cart", JSON.stringify(existingCart));
+    existingOrders.push(orderItem);
+    localStorage.setItem("orders", JSON.stringify(existingOrders));
 
-    // Dispatch custom event to update cart count in Nav
-    window.dispatchEvent(new Event("cartUpdated"));
+    window.dispatchEvent(new Event("orderCreated"));
 
     setTimeout(() => {
-      setAddingToCart(false);
-      setShowAddedToCart(true);
-      setTimeout(() => setShowAddedToCart(false), 3000);
+      setCreatingOrder(false);
+      setShowOrderCreated(true);
+      setTimeout(() => setShowOrderCreated(false), 3000);
+
+      setSelectedSize("");
+      setSelectedColor("");
+      setQuantity(1);
+      setIsCustomSize(false);
     }, 500);
+  };
+
+  const handleCustomSizeClick = () => {
+    if (!isLoggedIn()) {
+      navigate("/login", {
+        state: { from: `/product/${id}`, customSizeRequest: true },
+      });
+    } else {
+      setShowCustomSizeModal(true);
+    }
+  };
+
+  const handleCustomSizeSubmit = () => {
+    if (
+      !customMeasurements.bust ||
+      !customMeasurements.waist ||
+      !customMeasurements.hips
+    ) {
+      alert("Please provide at least bust, waist, and hip measurements");
+      return;
+    }
+
+    setIsCustomSize(true);
+    setSelectedSize("custom");
+    setShowCustomSizeModal(false);
   };
 
   const handleQuantityChange = (delta: number) => {
@@ -196,7 +438,7 @@ const ProductDetails = () => {
           <div className="text-center">
             <h2 className="text-2xl font-light mb-4">Product Not Found</h2>
             <button
-              onClick={() => navigate("/product")}
+              onClick={() => navigate("/")}
               className="text-black border-b border-black pb-1 hover:opacity-70 transition-opacity"
             >
               Return to Shop
@@ -221,8 +463,11 @@ const ProductDetails = () => {
           </button>
 
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Left Column - Image Gallery */}
-            <div className="space-y-4">
+            {/* Left Column - Image Gallery (Sticky on desktop) */}
+            <div
+              ref={imageColumnRef}
+              className="lg:sticky lg:top-24 lg:self-start space-y-4"
+            >
               {/* Main Image */}
               <motion.div
                 key={selectedImage}
@@ -232,8 +477,10 @@ const ProductDetails = () => {
                 className="relative aspect-[3/4] overflow-hidden bg-gray-50"
               >
                 <img
-                  src={product.images[selectedImage].url}
-                  alt={product.images[selectedImage].alt}
+                  src={
+                    product.images[selectedImage]?.url || product.images[0]?.url
+                  }
+                  alt={product.images[selectedImage]?.alt || product.name}
                   className="w-full h-full object-cover"
                 />
               </motion.div>
@@ -307,7 +554,7 @@ const ProductDetails = () => {
                 </div>
                 {product.inStock && (
                   <span className="inline-block mt-2 text-xs text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                    In Stock
+                    Available for Order
                   </span>
                 )}
               </div>
@@ -368,9 +615,12 @@ const ProductDetails = () => {
                   {product.sizes.map((size) => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
+                      onClick={() => {
+                        setIsCustomSize(false);
+                        setSelectedSize(size);
+                      }}
                       className={`min-w-[60px] h-12 px-4 border transition-all ${
-                        selectedSize === size
+                        selectedSize === size && !isCustomSize
                           ? "border-black bg-black text-white"
                           : "border-gray-300 hover:border-black text-gray-700"
                       }`}
@@ -378,7 +628,28 @@ const ProductDetails = () => {
                       {size}
                     </button>
                   ))}
+
+                  {/* Custom Size Option */}
+                  {product.allowsCustomSize && (
+                    <button
+                      onClick={handleCustomSizeClick}
+                      className={`min-w-[120px] h-12 px-4 border transition-all flex items-center justify-center gap-2 ${
+                        isCustomSize
+                          ? "border-black bg-black text-white"
+                          : "border-gray-300 hover:border-black text-gray-700"
+                      }`}
+                    >
+                      <Scissors className="w-4 h-4" />
+                      Custom Size
+                    </button>
+                  )}
                 </div>
+                {isCustomSize && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    ✓ Custom size selected. Our atelier will contact you for
+                    detailed measurements.
+                  </p>
+                )}
               </div>
 
               {/* Quantity */}
@@ -405,22 +676,22 @@ const ProductDetails = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-3 pt-4">
+              {/* Action Buttons - Regular desktop view */}
+              <div className="hidden md:block space-y-3 pt-4">
                 <button
-                  onClick={handleAddToCart}
-                  disabled={addingToCart}
+                  onClick={handleCreateOrder}
+                  disabled={creatingOrder}
                   className="w-full bg-black text-white py-4 px-8 tracking-[0.2em] text-sm uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
-                  {addingToCart ? (
+                  {creatingOrder ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                      Adding...
+                      Processing...
                     </>
                   ) : (
                     <>
                       <ShoppingBag className="w-4 h-4" />
-                      Add to Cart
+                      Create Order
                     </>
                   )}
                 </button>
@@ -446,6 +717,18 @@ const ProductDetails = () => {
                 </div>
               </div>
 
+              {/* Custom Order Notice */}
+              <div className="bg-gray-50 p-4 border-l-4 border-black">
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  <span className="font-medium">
+                    ✨ Custom Orders Available:
+                  </span>{" "}
+                  Need a unique size or personalized fit? Select "Custom Size"
+                  and our master tailors will create a piece exclusively for
+                  you. Custom orders typically take 4-6 weeks for completion.
+                </p>
+              </div>
+
               {/* Shipping & Returns */}
               <div className="border-t border-gray-100 pt-6 space-y-4">
                 <div className="flex items-start gap-3">
@@ -462,7 +745,7 @@ const ProductDetails = () => {
                   <div>
                     <p className="text-sm font-medium">14-Day Returns</p>
                     <p className="text-xs text-gray-500">
-                      Hassle-free returns within 14 days
+                      Hassle-free returns within 14 days (excludes custom sizes)
                     </p>
                   </div>
                 </div>
@@ -518,10 +801,73 @@ const ProductDetails = () => {
                   </div>
                 </details>
               </div>
+
+              {/* Hidden div to track end of product info */}
+              <div ref={productInfoEndRef} />
             </div>
+          </div>
+
+          {/* Similar Products Section */}
+          <div ref={similarProductsRef}>
+            <SimilarProducts
+              currentProductId={product.id}
+              currentCategory={product.category}
+              productsDatabase={productsDatabase}
+            />
           </div>
         </div>
       </div>
+
+      {/* Mobile Sticky Order Button - Only shows when not scrolled past similar products */}
+      <AnimatePresence>
+        {isStickyBarVisible && (
+          <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50"
+          >
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <div className="text-xs text-gray-500 mb-1">Total Price</div>
+                <div className="text-lg font-medium">
+                  ${(product.price * quantity).toLocaleString()}
+                </div>
+              </div>
+              <button
+                onClick={handleCreateOrder}
+                disabled={creatingOrder}
+                className="flex-1 bg-black text-white py-3 px-6 tracking-[0.2em] text-xs uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {creatingOrder ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4" />
+                    Create Order
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="flex-1 border border-gray-300 py-2 text-xs uppercase tracking-[0.2em] font-light hover:border-black transition-all flex items-center justify-center gap-2"
+              >
+                <Heart
+                  className={`w-3 h-3 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`}
+                />
+                Wishlist
+              </button>
+              <button className="flex-1 border border-gray-300 py-2 text-xs uppercase tracking-[0.2em] font-light hover:border-black transition-all flex items-center justify-center gap-2">
+                <Share2 className="w-3 h-3" />
+                Share
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Size Guide Modal */}
       <AnimatePresence>
@@ -589,9 +935,188 @@ const ProductDetails = () => {
         )}
       </AnimatePresence>
 
-      {/* Added to Cart Notification */}
+      {/* Custom Size Modal */}
       <AnimatePresence>
-        {showAddedToCart && (
+        {showCustomSizeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6 overflow-y-auto"
+            onClick={() => setShowCustomSizeModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-light tracking-wide">
+                  Custom Size Request
+                </h3>
+                <button
+                  onClick={() => setShowCustomSizeModal(false)}
+                  className="text-gray-400 hover:text-black transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <p className="text-sm text-gray-600">
+                  Please provide your measurements for a perfect fit. Our
+                  atelier will contact you to confirm details and may request
+                  additional measurements if needed.
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Bust (inches) *
+                    </label>
+                    <input
+                      type="number"
+                      value={customMeasurements.bust}
+                      onChange={(e) =>
+                        setCustomMeasurements({
+                          ...customMeasurements,
+                          bust: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                      placeholder="e.g., 34"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Waist (inches) *
+                    </label>
+                    <input
+                      type="number"
+                      value={customMeasurements.waist}
+                      onChange={(e) =>
+                        setCustomMeasurements({
+                          ...customMeasurements,
+                          waist: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                      placeholder="e.g., 28"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Hips (inches) *
+                    </label>
+                    <input
+                      type="number"
+                      value={customMeasurements.hips}
+                      onChange={(e) =>
+                        setCustomMeasurements({
+                          ...customMeasurements,
+                          hips: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                      placeholder="e.g., 38"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Shoulder Width (inches)
+                    </label>
+                    <input
+                      type="number"
+                      value={customMeasurements.shoulder}
+                      onChange={(e) =>
+                        setCustomMeasurements({
+                          ...customMeasurements,
+                          shoulder: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                      placeholder="e.g., 15"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Arm Length (inches)
+                    </label>
+                    <input
+                      type="number"
+                      value={customMeasurements.armLength}
+                      onChange={(e) =>
+                        setCustomMeasurements({
+                          ...customMeasurements,
+                          armLength: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                      placeholder="e.g., 24"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Torso Length (inches)
+                    </label>
+                    <input
+                      type="number"
+                      value={customMeasurements.torsoLength}
+                      onChange={(e) =>
+                        setCustomMeasurements({
+                          ...customMeasurements,
+                          torsoLength: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                      placeholder="e.g., 18"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Additional Notes
+                  </label>
+                  <textarea
+                    value={customMeasurements.notes}
+                    onChange={(e) =>
+                      setCustomMeasurements({
+                        ...customMeasurements,
+                        notes: e.target.value,
+                      })
+                    }
+                    rows={4}
+                    className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
+                    placeholder="Any specific requirements or preferences..."
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleCustomSizeSubmit}
+                    className="flex-1 bg-black text-white py-3 px-6 text-sm uppercase tracking-[0.2em] font-light hover:bg-gray-800 transition-colors"
+                  >
+                    Submit Measurements
+                  </button>
+                  <button
+                    onClick={() => setShowCustomSizeModal(false)}
+                    className="flex-1 border border-gray-300 py-3 px-6 text-sm uppercase tracking-[0.2em] font-light hover:border-black transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Order Created Notification */}
+      <AnimatePresence>
+        {showOrderCreated && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -603,16 +1128,23 @@ const ProductDetails = () => {
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Added to Cart</p>
+                <p className="text-sm font-medium">Order Created!</p>
                 <p className="text-xs text-gray-300 mt-1">
-                  {quantity} × {product.name} - {selectedSize} / {selectedColor}
+                  {quantity} × {product.name} -{" "}
+                  {isCustomSize ? "Custom Size" : selectedSize} /{" "}
+                  {selectedColor}
                 </p>
+                {isCustomSize && (
+                  <p className="text-xs text-gray-300 mt-1">
+                    Our atelier will contact you within 48 hours
+                  </p>
+                )}
               </div>
               <button
-                onClick={() => navigate("/cart")}
+                onClick={() => navigate("/orders")}
                 className="text-xs uppercase tracking-wider border-b border-white pb-1 hover:opacity-70 transition-opacity"
               >
-                View Cart
+                View Orders
               </button>
             </div>
           </motion.div>
