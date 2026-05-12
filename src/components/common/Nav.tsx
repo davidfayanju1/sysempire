@@ -200,11 +200,11 @@ const Nav = () => {
               <motion.img
                 src={
                   isScrolled
-                    ? "/images/logo_dark.png"
-                    : "/images/logo_light.png"
+                    ? "/images/full_logo_dark.png"
+                    : "/images/full_logo_light.png"
                 }
                 alt="MAISON"
-                className={`transition-all duration-500 object-contain ${
+                className={`transition-all md:ml-0 ml-[-1.35rem] duration-500 object-contain ${
                   isScrolled ? "w-20 h-14" : "w-20 h-14"
                 }`}
                 whileHover={{ opacity: 0.7 }}

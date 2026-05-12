@@ -12,6 +12,7 @@ import Signup from "./pages/auth/signup";
 import Cart from "./pages/cart";
 import UserProfile from "./pages/user-profile";
 import Wears from "./pages/wears";
+import ProductDetails from "./pages/product-details";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/wears/:name" element={<Wears />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
       </Routes>
     </>
   );

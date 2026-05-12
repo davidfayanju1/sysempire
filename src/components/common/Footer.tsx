@@ -76,7 +76,7 @@ const Footer = () => {
           <div className="col-span-2">
             <Link to="/" className="inline-block mb-4 ml-[-2rem]">
               <img
-                src="/images/logo_light.png"
+                src="/images/full_logo_light.png"
                 alt="Logo"
                 className="w-36 h-36 object-contain"
               />
