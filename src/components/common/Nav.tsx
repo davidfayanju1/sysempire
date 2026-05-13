@@ -117,8 +117,8 @@ const Nav = () => {
               <img
                 src={
                   isDarkTheme || isMobileMenuOpen
-                    ? "/images/full_logo_dark.png"
-                    : "/images/full_logo_light.png"
+                    ? "/images/logo_dark.png"
+                    : "/images/logo_light.png"
                 }
                 alt="MAISON"
                 className="w-16 h-10 md:w-20 md:h-14 object-contain transition-all duration-500"
