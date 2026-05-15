@@ -443,7 +443,14 @@ const UserProfile = () => {
   return (
     <DefaultLayout>
       {/* Hero Section - Minimalist, no border radius */}
-      <div className="relative bg-black">
+      <div className="relative h-[400px] overflow-hidden bg-black">
+        <div className="image-container">
+          <img
+            src="https://images.unsplash.com/photo-1654967823638-62acf4987dfd?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt=""
+            className="w-full absolute object-center inset-0 h-full object-cover opacity-30"
+          />
+        </div>
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-20 md:py-28">
           <div className="max-w-3xl">
             <motion.div

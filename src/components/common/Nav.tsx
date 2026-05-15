@@ -112,7 +112,7 @@ const Nav = () => {
       >
         <div className="max-w-[1600px] mx-auto px-6 md:px-12">
           <div className="flex items-center justify-between relative h-14">
-            {/* Logo - Positioned relative on mobile to prevent fuzzing */}
+            {/* Logo - Always visible left */}
             <Link to="/" className="z-50 shrink-0">
               <img
                 src={
@@ -120,7 +120,7 @@ const Nav = () => {
                     ? "/images/logo_dark.png"
                     : "/images/logo_light.png"
                 }
-                alt="MAISON"
+                alt="SYS_EMPIRE_LOGO"
                 className="w-16 h-10 md:w-20 md:h-14 object-contain transition-all duration-500"
               />
             </Link>
@@ -147,22 +147,25 @@ const Nav = () => {
               ))}
             </div>
 
-            {/* Icons & Mobile Toggle */}
-            <div className="flex items-center gap-4 md:gap-6 z-50">
+            {/* Desktop-only Action Icons */}
+            <div className="hidden lg:flex items-center gap-6 z-50">
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className={
-                  isDarkTheme || isMobileMenuOpen
-                    ? "text-gray-800"
-                    : "text-white"
-                }
+                className={isDarkTheme ? "text-gray-800" : "text-white"}
               >
                 <Search size={18} strokeWidth={1} />
               </button>
 
               <button
+                onClick={() => navigate("/profile")}
+                className={isDarkTheme ? "text-gray-800" : "text-white"}
+              >
+                <User size={18} strokeWidth={1} />
+              </button>
+
+              <button
                 onClick={() => navigate("/cart")}
-                className={`relative ${isDarkTheme || isMobileMenuOpen ? "text-gray-800" : "text-white"}`}
+                className={`relative ${isDarkTheme ? "text-gray-800" : "text-white"}`}
               >
                 <ShoppingBag size={18} strokeWidth={1} />
                 {cartCount > 0 && (
@@ -171,31 +174,32 @@ const Nav = () => {
                   </span>
                 )}
               </button>
-
-              <button
-                className="lg:hidden flex flex-col gap-1.5 p-1"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                <motion.span
-                  animate={{
-                    rotate: isMobileMenuOpen ? 45 : 0,
-                    y: isMobileMenuOpen ? 7 : 0,
-                  }}
-                  className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
-                />
-                <motion.span
-                  animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
-                  className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
-                />
-                <motion.span
-                  animate={{
-                    rotate: isMobileMenuOpen ? -45 : 0,
-                    y: isMobileMenuOpen ? -7 : 0,
-                  }}
-                  className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
-                />
-              </button>
             </div>
+
+            {/* Mobile-only Hamburger Button */}
+            <button
+              className="lg:hidden flex flex-col gap-1.5 p-1 z-50 ml-auto"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <motion.span
+                animate={{
+                  rotate: isMobileMenuOpen ? 45 : 0,
+                  y: isMobileMenuOpen ? 7 : 0,
+                }}
+                className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
+              />
+              <motion.span
+                animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
+                className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
+              />
+              <motion.span
+                animate={{
+                  rotate: isMobileMenuOpen ? -45 : 0,
+                  y: isMobileMenuOpen ? -7 : 0,
+                }}
+                className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
+              />
+            </button>
           </div>
         </div>
 
@@ -218,7 +222,7 @@ const Nav = () => {
                   <div className="grid grid-cols-2 gap-16">
                     {collections.map((col) => (
                       <div key={col.title}>
-                        <p className="text-[10px] tracking-widest text-gray-400 mb-6 font-medium">
+                        <p className="text-[10px] tracking-[0.2em] text-gray-400 mb-6 font-medium">
                           {col.title}
                         </p>
                         <div className="space-y-4">
@@ -358,6 +362,7 @@ const Nav = () => {
                 ))}
               </div>
 
+              {/* Mobile Profile & Cart actions are elegantly arranged inside the panel */}
               <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col gap-6">
                 <button
                   onClick={() => navigate("/profile")}
@@ -365,7 +370,14 @@ const Nav = () => {
                 >
                   <User size={18} strokeWidth={1} /> My Account
                 </button>
-                <div className="flex gap-6 text-[9px] tracking-widest text-gray-400 uppercase font-light">
+                <button
+                  onClick={() => navigate("/cart")}
+                  className="flex items-center gap-3 text-gray-800 uppercase text-[10px] tracking-[0.2em] font-light"
+                >
+                  <ShoppingBag size={18} strokeWidth={1} /> Shopping Bag (
+                  {cartCount})
+                </button>
+                <div className="flex gap-6 text-[9px] tracking-widest text-gray-400 uppercase font-light mt-4">
                   <Link to="/shipping">Shipping</Link>
                   <Link to="/contact">Contact</Link>
                   <Link to="/terms">Terms</Link>

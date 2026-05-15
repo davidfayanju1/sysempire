@@ -146,7 +146,14 @@ const Cart = () => {
   return (
     <DefaultLayout>
       {/* Hero Section */}
-      <section className="relative bg-black pt-[4rem] border-b border-black/10">
+      <section className="relative h-[500px] overflow-hidden bg-black pt-[4rem] border-b border-black/10">
+        <div className="image-container">
+          <img
+            src="https://images.unsplash.com/photo-1642872597460-278924cb13dd?q=80&w=3131&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt=""
+            className="w-full absolute inset-0 h-full object-cover opacity-30"
+          />
+        </div>
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-12 md:py-16">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 border border-black/10 mb-6">
