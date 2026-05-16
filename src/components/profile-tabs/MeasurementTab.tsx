@@ -211,7 +211,6 @@ const MeasurementTab = () => {
   ): number | null => {
     if (!worldLandmarks || worldLandmarks.length < 32) return null;
 
-    // Get the highest point (nose or top of head)
     const nose = worldLandmarks[LANDMARKS.NOSE];
     const leftHeel = worldLandmarks[LANDMARKS.LEFT_HEEL];
     const rightHeel = worldLandmarks[LANDMARKS.RIGHT_HEEL];
@@ -220,7 +219,6 @@ const MeasurementTab = () => {
 
     if (!nose || !leftHeel || !rightHeel) return null;
 
-    // Get the lowest point (feet)
     const feetY = Math.max(
       leftHeel?.y || 0,
       rightHeel?.y || 0,
@@ -228,34 +226,23 @@ const MeasurementTab = () => {
       rightFootIndex?.y || 0,
     );
 
-    // Calculate height in meters (difference in Y coordinate)
     const heightInMeters = Math.abs(feetY - nose.y) * 100;
+    const heightInCm = heightInMeters * 1.8;
 
-    // Convert to cm and apply calibration
-    // MediaPipe returns normalized coordinates, actual height calculation
-    const heightInCm = heightInMeters * 1.8; // Scaling factor for real-world measurements
-
-    // Return realistic height (between 140cm and 220cm)
     if (heightInCm > 140 && heightInCm < 220) {
       return Math.round(heightInCm);
     }
 
-    // Fallback to average if detection seems off
     return 170;
   };
 
   // Calculate all body measurements from landmarks
   const calculateAllMeasurements = (
-    // landmarks: any[],
     worldLandmarks: any[],
     heightCm: number,
   ): Measurement[] => {
     const w = worldLandmarks;
 
-    // Calculate body segment ratios based on detected height
-    // const heightInMeters = heightCm / 100;
-
-    // Get key points for measurements
     const leftShoulder = w[LANDMARKS.LEFT_SHOULDER];
     const rightShoulder = w[LANDMARKS.RIGHT_SHOULDER];
     const leftHip = w[LANDMARKS.LEFT_HIP];
@@ -264,10 +251,7 @@ const MeasurementTab = () => {
     const rightWrist = w[LANDMARKS.RIGHT_WRIST];
     const leftAnkle = w[LANDMARKS.LEFT_ANKLE];
     const rightAnkle = w[LANDMARKS.RIGHT_ANKLE];
-    // const leftKnee = w[LANDMARKS.LEFT_KNEE];
-    // const rightKnee = w[LANDMARKS.RIGHT_KNEE];
 
-    // Calculate 3D distances
     const shoulderWidth =
       Math.abs((leftShoulder?.x || 0) - (rightShoulder?.x || 0)) * 100;
     const hipWidth = Math.abs((leftHip?.x || 0) - (rightHip?.x || 0)) * 100;
@@ -282,10 +266,10 @@ const MeasurementTab = () => {
     const rightLegLength =
       Math.abs((rightHip?.y || 0) - (rightAnkle?.y || 0)) * 100;
 
-    // Scale factor based on detected height
+    console.log(rightLegLength, "JUST TESTING");
+
     const scaleFactor = heightCm / 170;
 
-    // Calculate circumference estimates using body proportion formulas
     const chestEstimate = Math.round(shoulderWidth * 2.4 * scaleFactor);
     const waistEstimate = Math.round(hipWidth * 2.2 * scaleFactor);
     const hipEstimate = Math.round(hipWidth * 2.6 * scaleFactor);
@@ -293,8 +277,6 @@ const MeasurementTab = () => {
     const bicepEstimate = Math.round(leftArmLength * 0.22 * scaleFactor);
     const thighEstimate = Math.round(leftLegLength * 0.28 * scaleFactor);
     const calfEstimate = Math.round(leftLegLength * 0.18 * scaleFactor);
-
-    console.log(rightLegLength, "Right ankle");
 
     return [
       {
@@ -410,7 +392,7 @@ const MeasurementTab = () => {
     return { isRaised: false, handSide: null, confidence: 0 };
   };
 
-  // Calculate pose quality and determine current prompt
+  // Calculate pose quality
   const calculatePoseQuality = (landmarks: any[]): number => {
     let validLandmarks = 0;
     const keyLandmarks = [
@@ -441,7 +423,16 @@ const MeasurementTab = () => {
       }
     }
 
-    // Update prompt based on pose
+    const centerCheck = () => {
+      const ls = landmarks[LANDMARKS.LEFT_SHOULDER];
+      const rs = landmarks[LANDMARKS.RIGHT_SHOULDER];
+      if (ls && rs) {
+        const centerX = (ls.x + rs.x) / 2;
+        return centerX > 0.3 && centerX < 0.7;
+      }
+      return false;
+    };
+
     if (validLandmarks < 6 && currentPrompt !== 0) {
       setCurrentPrompt(0);
     } else if (
@@ -450,22 +441,8 @@ const MeasurementTab = () => {
       currentPrompt !== 1
     ) {
       setCurrentPrompt(1);
-    } else if (
-      validLandmarks >= 10 &&
-      centerCheckPassed() &&
-      currentPrompt !== 2
-    ) {
+    } else if (validLandmarks >= 10 && centerCheck() && currentPrompt !== 2) {
       setCurrentPrompt(2);
-    }
-
-    function centerCheckPassed() {
-      const ls = landmarks[LANDMARKS.LEFT_SHOULDER];
-      const rs = landmarks[LANDMARKS.RIGHT_SHOULDER];
-      if (ls && rs) {
-        const centerX = (ls.x + rs.x) / 2;
-        return centerX > 0.3 && centerX < 0.7;
-      }
-      return false;
     }
 
     return Math.min(score, 1);
@@ -587,9 +564,8 @@ const MeasurementTab = () => {
               if (height && height > 140 && height < 220) {
                 setDetectedHeight(height);
                 const measurements = calculateAllMeasurements(
-                  landmarks,
                   worldLandmarks,
-                  //   height,
+                  height,
                 );
                 setLiveMeasurements(measurements);
               }
@@ -833,7 +809,6 @@ const MeasurementTab = () => {
             playsInline
             muted
           />
-
           <canvas
             ref={canvasRef}
             className="absolute inset-0 w-full h-full object-cover"
@@ -988,7 +963,7 @@ const MeasurementTab = () => {
               onClick={stopCamera}
               className="flex-1 py-3 bg-white/10 backdrop-blur text-white text-sm uppercase tracking-[0.15em] hover:bg-white/20 transition"
             >
-              Cancel{" "}
+              Cancel
             </button>
             <button
               onClick={handleManualCapture}
