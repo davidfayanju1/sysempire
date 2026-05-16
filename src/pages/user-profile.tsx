@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react";
+import {
+  User,
+  Package,
+  Heart,
+  MapPin,
+  Settings,
+  LogOut,
+  Camera,
+} from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
+import MeasurementTab from "../components/profile-tabs/MeasurementTab";
 
 // Tab components
 const ProfileInfo = () => {
@@ -417,6 +426,11 @@ const UserProfile = () => {
       icon: <MapPin className="w-4 h-4" />,
     },
     {
+      id: "measurements",
+      label: "Take Measurement",
+      icon: <Camera className="w-4 h-4" />,
+    },
+    {
       id: "settings",
       label: "Settings",
       icon: <Settings className="w-4 h-4" />,
@@ -433,6 +447,8 @@ const UserProfile = () => {
         return <Wishlist />;
       case "addresses":
         return <AddressBook />;
+      case "measurements":
+        return <MeasurementTab />;
       case "settings":
         return <SettingsTab />;
       default:
