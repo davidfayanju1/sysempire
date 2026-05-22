@@ -3,6 +3,7 @@ import DefaultLayout from "../layout/DefaultLayout";
 import AboutUs from "../components/home/AboutUs";
 import Marquee from "../components/home/Marquee";
 import Testimonial from "../components/home/Testimonial";
+import Founder from "../components/home/Founder";
 
 const Home = () => {
   return (
@@ -10,6 +11,7 @@ const Home = () => {
       <Hero />
       <AboutUs />
       <Marquee />
+      <Founder />
       <Testimonial />
     </DefaultLayout>
   );

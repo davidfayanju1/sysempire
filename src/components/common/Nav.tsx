@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, ShoppingBag, Search, X, ChevronRight } from "lucide-react";
+import {
+  User,
+  ShoppingBag,
+  Search,
+  X,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Nav = () => {
@@ -106,7 +113,7 @@ const Nav = () => {
     <>
       <motion.nav
         ref={navRef}
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 ${
+        className={`fixed top-0 border-b border-white/10 left-0 w-full z-50 transition-all duration-700 ${
           isScrolled ? "bg-white py-3 shadow-sm" : "bg-transparent py-5"
         }`}
       >
@@ -137,11 +144,21 @@ const Nav = () => {
                 >
                   <button
                     onClick={() => link.to && handleNavigation(link.to)}
-                    className={`text-[10px] tracking-[0.2em] uppercase font-light transition-colors ${
+                    className={`flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase font-light transition-colors ${
                       isDarkTheme ? "text-gray-800" : "text-white"
                     } ${activeDropdown === link.dropdown ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
                   >
                     {link.label}
+                    {link.dropdown && (
+                      <motion.div
+                        animate={{
+                          rotate: activeDropdown === link.dropdown ? 180 : 0,
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChevronDown size={12} strokeWidth={1.5} />
+                      </motion.div>
+                    )}
                   </button>
                 </div>
               ))}
