@@ -8,11 +8,11 @@ const Founder = () => {
             {/* 1px clean crisp border around the entire image block layout */}
             <div className="border border-black bg-white flex flex-col">
               {/* Inner container with a 1px border around the photo block matching the mockup */}
-              <div className="p-0 border-b border-black aspect-[4/5] w-full overflow-hidden bg-gray-100">
+              <div className="p-0 border-b border-black aspect-[4/5] w-full overflow-hidden">
                 <img
                   src="/images/owner.png" // Replace with your exact filename in the public folder
                   alt="Martin Gyllenhal"
-                  className="w-full h-full object-cover grayscale block"
+                  className="w-full h-full object-cover"
                 />
               </div>
 
@@ -36,7 +36,7 @@ const Founder = () => {
           </div>
 
           {/* RIGHT COLUMN: MASSIVE MANIFESTO TEXT TYPOGRAPHY */}
-          <div className="col-span-1 md:col-span-6 lg:col-span-7 space-y-12 pt-4 md:pl-4">
+          <div className="col-span-1 md:col-span-6 lg:col-span-7 md:space-y-12 space-y-4 pt-4 md:pl-4">
             {/* Extra large headline matching the design scale */}
             <h2 className="text-5xl md:text-6xl lg:text-[76px] font-[300] tracking-tight text-black leading-[1.05]">
               What our founder says.
