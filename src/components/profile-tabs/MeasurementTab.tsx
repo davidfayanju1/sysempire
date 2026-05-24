@@ -1,4 +1,3 @@
-// components/MeasurementTab.tsx
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,10 +11,11 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   Hand,
-  Shield,
-  Smartphone,
-  Zap,
   Activity,
+  X,
+  CheckCircle,
+  Info,
+  ArrowRight,
 } from "lucide-react";
 
 import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
@@ -34,6 +34,8 @@ interface GestureState {
 }
 
 const MeasurementTab = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"camera" | "upload">("camera");
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -53,7 +55,7 @@ const MeasurementTab = () => {
   >(null);
   const [showVideo, setShowVideo] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState(0);
-  const [, setIsFullscreen] = useState(false);
+  // const [, setIsFullscreen] = useState(false);
   const [detectedHeight, setDetectedHeight] = useState<number | null>(null);
   const [isMeasuring] = useState(false);
 
@@ -61,39 +63,71 @@ const MeasurementTab = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadFileInputRef = useRef<HTMLInputElement>(null);
   const poseLandmarkerRef = useRef<any>(null);
   const animationRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Prompts for user guidance
+  // Instructions for users
+  const instructions = [
+    {
+      icon: <User className="w-5 h-5" />,
+      title: "Stand Straight",
+      description: "Position yourself facing the camera with good posture",
+      detail:
+        "Keep your feet shoulder-width apart and look directly at the camera",
+    },
+    {
+      icon: <Move className="w-5 h-5" />,
+      title: "Arms Visible",
+      description: "Keep your arms slightly away from your body",
+      detail: "Don't cross your arms or hide your hands",
+    },
+    {
+      icon: <Target className="w-5 h-5" />,
+      title: "Stay Centered",
+      description: "Position yourself in the middle of the frame",
+      detail: "Your whole body should be visible from head to toe",
+    },
+    {
+      icon: <Hand className="w-5 h-5" />,
+      title: "Raise Your Hand",
+      description: "Lift either hand above shoulder level",
+      detail: "This triggers the measurement capture",
+    },
+    {
+      icon: <Activity className="w-5 h-5" />,
+      title: "Good Lighting",
+      description: "Ensure you're in a well-lit area",
+      detail: "Natural daylight works best for accurate measurements",
+    },
+  ];
+
+  // Prompts for modal guidance
   const prompts = [
     {
       icon: <User className="w-8 h-8" />,
       title: "Stand Straight",
       description: "Position yourself facing the camera with good posture",
       instruction: "Keep your feet shoulder-width apart",
-      color: "from-blue-500 to-cyan-500",
     },
     {
       icon: <Move className="w-8 h-8" />,
       title: "Arms Visible",
       description: "Keep your arms slightly away from your body",
       instruction: "Don't cross your arms or hide your hands",
-      color: "from-purple-500 to-pink-500",
     },
     {
       icon: <Target className="w-8 h-8" />,
       title: "Stay Centered",
       description: "Position yourself in the middle of the frame",
       instruction: "Your whole body should be visible",
-      color: "from-emerald-500 to-teal-500",
     },
     {
       icon: <Hand className="w-8 h-8" />,
       title: "Raise Your Hand",
       description: "Lift either hand above shoulder level",
       instruction: "This triggers the measurement capture",
-      color: "from-orange-500 to-red-500",
     },
   ];
 
@@ -123,7 +157,6 @@ const MeasurementTab = () => {
     const initPoseLandmarker = async () => {
       try {
         setIsModelLoading(true);
-        console.log("Loading MediaPipe...");
 
         const vision = await FilesetResolver.forVisionTasks(
           "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",
@@ -144,9 +177,8 @@ const MeasurementTab = () => {
 
         poseLandmarkerRef.current = poseLandmarker;
         setIsModelLoading(false);
-        console.log("✅ MediaPipe Pose loaded successfully");
       } catch (err) {
-        console.error("❌ Failed to initialize:", err);
+        console.error("Failed to initialize:", err);
         setError("Failed to load pose detection. Please refresh the page.");
         setIsModelLoading(false);
       }
@@ -166,44 +198,6 @@ const MeasurementTab = () => {
       }
     };
   }, []);
-
-  // Start camera
-  const startCamera = async () => {
-    setError(null);
-    setMeasurements(null);
-    setLiveMeasurements(null);
-    setDetectedHeight(null);
-    setShowVideo(true);
-    setActiveStep(2);
-    setCurrentPrompt(0);
-
-    try {
-      console.log("Requesting camera access...");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-
-        videoRef.current.onloadedmetadata = () => {
-          console.log("Video loaded, starting detection...");
-          videoRef.current?.play();
-          setIsCameraActive(true);
-          startRealTimeDetection();
-        };
-      }
-    } catch (err) {
-      console.error("Camera error:", err);
-      setError("Unable to access camera. Please check permissions.");
-      setShowVideo(false);
-    }
-  };
 
   // Calculate actual height from 3D world landmarks
   const calculateHeightFromLandmarks = (
@@ -266,8 +260,6 @@ const MeasurementTab = () => {
     const rightLegLength =
       Math.abs((rightHip?.y || 0) - (rightAnkle?.y || 0)) * 100;
 
-    console.log(rightLegLength, "JUST TESTING");
-
     const scaleFactor = heightCm / 170;
 
     const chestEstimate = Math.round(shoulderWidth * 2.4 * scaleFactor);
@@ -277,6 +269,8 @@ const MeasurementTab = () => {
     const bicepEstimate = Math.round(leftArmLength * 0.22 * scaleFactor);
     const thighEstimate = Math.round(leftLegLength * 0.28 * scaleFactor);
     const calfEstimate = Math.round(leftLegLength * 0.18 * scaleFactor);
+
+    console.log(rightLegLength, "Right Leg Length");
 
     return [
       {
@@ -471,7 +465,7 @@ const MeasurementTab = () => {
       [LANDMARKS.RIGHT_KNEE, LANDMARKS.RIGHT_ANKLE],
     ];
 
-    const handColor = gesture.isRaised ? "#22c55e" : "#3b82f6";
+    const handColor = gesture.isRaised ? "#10b981" : "#6b7280";
 
     connections.forEach(([startIdx, endIdx]) => {
       const start = landmarks[startIdx];
@@ -498,7 +492,7 @@ const MeasurementTab = () => {
 
         ctx.beginPath();
         ctx.arc(x, y, isRaisedHand ? 10 : 6, 0, 2 * Math.PI);
-        ctx.fillStyle = isRaisedHand ? "#22c55e" : "#ffffff";
+        ctx.fillStyle = isRaisedHand ? "#10b981" : "#ffffff";
         ctx.fill();
 
         ctx.beginPath();
@@ -558,7 +552,6 @@ const MeasurementTab = () => {
 
             drawSkeleton(ctx, landmarks, canvas.width, canvas.height, gesture);
 
-            // Calculate height and measurements when pose is good
             if (worldLandmarks && quality > 0.6 && !isMeasuring) {
               const height = calculateHeightFromLandmarks(worldLandmarks);
               if (height && height > 140 && height < 220) {
@@ -570,7 +563,6 @@ const MeasurementTab = () => {
                 setLiveMeasurements(measurements);
               }
 
-              // Auto-capture when hand is raised and pose is good
               if (
                 gesture.isRaised &&
                 !countdown &&
@@ -629,13 +621,6 @@ const MeasurementTab = () => {
     }
   };
 
-  // Manual capture trigger
-  const handleManualCapture = () => {
-    if (liveMeasurements && !isAutoCapturing) {
-      startCountdown();
-    }
-  };
-
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -650,15 +635,69 @@ const MeasurementTab = () => {
     setIsAutoCapturing(false);
   };
 
-  const resetMeasurement = () => {
+  const closeModal = () => {
+    stopCamera();
+    setIsModalOpen(false);
+    setActiveStep(1);
+    setMeasurements(null);
+    setLiveMeasurements(null);
     setCapturedImage(null);
+    setDetectedHeight(null);
+  };
+
+  // const resetMeasurement = () => {
+  //   setCapturedImage(null);
+  //   setMeasurements(null);
+  //   setLiveMeasurements(null);
+  //   setDetectedHeight(null);
+  //   setError(null);
+  //   setCountdown(null);
+  //   setActiveStep(1);
+  //   setCurrentPrompt(0);
+  //   startCamera();
+  // };
+
+  const startCamera = async () => {
+    setError(null);
     setMeasurements(null);
     setLiveMeasurements(null);
     setDetectedHeight(null);
-    setError(null);
-    setCountdown(null);
-    setActiveStep(1);
+    setShowVideo(true);
+    setActiveStep(2);
     setCurrentPrompt(0);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          setIsCameraActive(true);
+          startRealTimeDetection();
+        };
+      }
+    } catch (err) {
+      console.error("Camera error:", err);
+      setError("Unable to access camera. Please check permissions.");
+      setShowVideo(false);
+    }
+  };
+
+  const openModal = (mode: "camera" | "upload") => {
+    setModalMode(mode);
+    setIsModalOpen(true);
+    if (mode === "camera") {
+      startCamera();
+    }
   };
 
   const saveMeasurements = () => {
@@ -669,7 +708,8 @@ const MeasurementTab = () => {
         detectedHeight: detectedHeight,
       };
       localStorage.setItem("userMeasurements", JSON.stringify(savedData));
-      alert("✨ Measurements saved to your profile!");
+      alert("Measurements saved to your profile!");
+      closeModal();
     }
   };
 
@@ -680,409 +720,517 @@ const MeasurementTab = () => {
       reader.onloadend = () => {
         setCapturedImage(reader.result as string);
         setActiveStep(3);
+        // For uploaded images, we would need to run pose detection separately
+        // For now, set mock measurements
+        const mockMeasurements: Measurement[] = [
+          {
+            name: "Height",
+            value: 170,
+            unit: "cm",
+            description: "Estimated height",
+          },
+          {
+            name: "Shoulder Width",
+            value: 42,
+            unit: "cm",
+            description: "Distance between shoulders",
+          },
+          {
+            name: "Chest / Bust",
+            value: 88,
+            unit: "cm",
+            description: "Circumference at fullest part",
+          },
+          {
+            name: "Waist",
+            value: 72,
+            unit: "cm",
+            description: "Narrowest part of torso",
+          },
+          {
+            name: "Hip",
+            value: 94,
+            unit: "cm",
+            description: "Widest part of hips/seat",
+          },
+        ];
+        setMeasurements(mockMeasurements);
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
     }
   };
 
   // Loading State
   if (isModelLoading) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center z-50">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="relative mb-8">
-            <div className="w-24 h-24 border-4 border-white/10 rounded-full animate-ping absolute inset-0" />
-            <div className="w-24 h-24 border-4 border-white/20 rounded-full animate-spin absolute inset-0 border-t-white" />
-            <div className="w-24 h-24 flex items-center justify-center relative">
-              <Sparkles className="w-10 h-10 text-white animate-pulse" />
+          <div className="relative mb-6">
+            <div className="w-16 h-16 border-2 border-black/10 rounded-full animate-ping absolute inset-0" />
+            <div className="w-16 h-16 border-2 border-black/20 rounded-full animate-spin absolute inset-0 border-t-black" />
+            <div className="w-16 h-16 flex items-center justify-center relative">
+              <Sparkles className="w-6 h-6 text-black/40" />
             </div>
           </div>
-          <h2 className="text-2xl font-light text-white mb-2 tracking-wide">
-            Preparing AI Measurement System
-          </h2>
-          <p className="text-white/50 text-sm">
-            Loading pose detection model...
-          </p>
-          <div className="mt-8 flex gap-2 justify-center">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="w-2 h-2 bg-white/30 rounded-full animate-bounce"
-                style={{ animationDelay: `${i * 0.15}s` }}
-              />
-            ))}
-          </div>
-          <p className="text-white/30 text-xs mt-8">
-            This may take a few seconds
-          </p>
+          <h3 className="text-lg font-light text-black/60 mb-1">
+            Loading AI Model
+          </h3>
+          <p className="text-sm text-black/40">Preparing pose detection...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-white">
-      {/* Step 1: Welcome Screen */}
-      {activeStep === 1 && (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-gray-50">
-          <div className="max-w-4xl mx-auto px-6 py-12 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/5 rounded-full">
-                <Sparkles className="w-4 h-4 text-black/60" />
-                <span className="text-[10px] uppercase tracking-[0.2em] text-black/60">
-                  AI-Powered Technology
-                </span>
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-light tracking-tight">
-                Body Measurement
-                <br />
-                <span className="text-black/60">Made Simple</span>
-              </h1>
-
-              <p className="text-black/50 max-w-md mx-auto text-lg font-light">
-                Get accurate measurements using advanced AI pose detection
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-                <button
-                  onClick={startCamera}
-                  className="px-8 py-4 bg-black text-white text-sm uppercase tracking-[0.2em] hover:bg-black/90 transition flex items-center justify-center gap-3 group"
-                >
-                  <CameraIcon className="w-4 h-4 group-hover:scale-110 transition" />
-                  Start Measurement
-                </button>
-
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-8 py-4 border border-black/20 text-black/60 hover:border-black text-sm uppercase tracking-[0.2em] transition flex items-center justify-center gap-3"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  Upload Photo
-                </button>
-              </div>
-
-              <div className="flex justify-center gap-8 pt-12 text-black/30">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-[10px] uppercase">
-                    Private & Secure
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4" />
-                  <span className="text-[10px] uppercase">
-                    Works on Any Device
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  <span className="text-[10px] uppercase">Instant Results</span>
-                </div>
-              </div>
-            </motion.div>
+    <div ref={containerRef} className="space-y-6">
+      {/* Two Column Layout - Instructions on Left, Actions on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - Instructions */}
+        <div className="border border-black/10 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Info className="w-5 h-5 text-black/40" />
+            <h3 className="text-sm uppercase tracking-[0.2em] text-black/40">
+              How It Works
+            </h3>
           </div>
-        </div>
-      )}
 
-      {/* Step 2: Camera with Live Measurement Detection */}
-      {activeStep === 2 && showVideo && (
-        <div className="relative w-full h-screen overflow-hidden bg-black">
-          <video
-            ref={videoRef}
-            style={{ display: "none" }}
-            autoPlay
-            playsInline
-            muted
-          />
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ backgroundColor: "#000" }}
-          />
-
-          {/* Floating Prompt Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md"
-          >
-            <div
-              className={`bg-gradient-to-r ${prompts[currentPrompt].color} p-5 shadow-2xl`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="text-white">{prompts[currentPrompt].icon}</div>
-                <div className="flex-1">
-                  <h3 className="text-white text-lg font-light mb-1">
-                    {prompts[currentPrompt].title}
-                  </h3>
-                  <p className="text-white/80 text-sm">
-                    {prompts[currentPrompt].description}
+          <div className="space-y-6">
+            {instructions.map((instruction, idx) => (
+              <div key={idx} className="flex gap-4">
+                <div className="shrink-0 w-10 h-10 rounded-full border border-black/10 flex items-center justify-center">
+                  {instruction.icon}
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-black/80 mb-1">
+                    {instruction.title}
+                  </h4>
+                  <p className="text-xs text-black/50">
+                    {instruction.description}
                   </p>
-                  <p className="text-white/60 text-xs mt-2">
-                    {prompts[currentPrompt].instruction}
+                  <p className="text-[10px] text-black/30 mt-1">
+                    {instruction.detail}
                   </p>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            ))}
+          </div>
 
-          {/* Detected Height Display */}
-          {detectedHeight && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute top-24 right-4 z-10 bg-black/60 backdrop-blur px-4 py-2 rounded-full"
-            >
-              <div className="flex items-center gap-2">
-                <Ruler className="w-4 h-4 text-green-400" />
-                <span className="text-white text-sm font-light">
-                  Height: {detectedHeight}cm
-                </span>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Live Measurements Panel */}
-          {liveMeasurements && (
-            <motion.div
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="absolute right-4 top-32 z-10 w-48 bg-black/60 backdrop-blur rounded-lg overflow-hidden"
-            >
-              <div className="p-2 border-b border-white/20">
-                <p className="text-[8px] uppercase tracking-[0.2em] text-white/60 text-center">
-                  Live Measurements
+          {/* Tips Box */}
+          <div className="mt-8 p-4 bg-black/5">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-black/60 mb-1">
+                  Pro Tip
+                </p>
+                <p className="text-xs text-black/50">
+                  Wear form-fitting clothing for the most accurate measurements.
+                  Dark colors against a light background work best.
                 </p>
               </div>
-              <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
-                {liveMeasurements.slice(0, 6).map((m, idx) => (
-                  <div key={idx} className="flex justify-between text-xs">
-                    <span className="text-white/60">{m.name}</span>
-                    <span className="text-white font-light">
-                      {m.value}
-                      {m.unit}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+            </div>
+          </div>
+        </div>
 
-          {/* Gesture Status */}
+        {/* Right Column - Actions */}
+        <div className="border border-black/10 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Ruler className="w-5 h-5 text-black/40" />
+            <h3 className="text-sm uppercase tracking-[0.2em] text-black/40">
+              Get Your Measurements
+            </h3>
+          </div>
+
+          <div className="space-y-6">
+            {/* Option 1: Self Measurement with Camera */}
+            <div className="border border-black/10 p-5 hover:border-black/20 transition">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h4 className="text-base font-light tracking-tight">
+                    Self Measurement
+                  </h4>
+                  <p className="text-xs text-black/50 mt-1">
+                    Stand in front of your camera
+                  </p>
+                </div>
+                <CameraIcon className="w-5 h-5 text-black/40" />
+              </div>
+              <p className="text-[11px] text-black/40 leading-relaxed mb-4">
+                Position yourself at a distance where your full body is visible.
+                Our AI will guide you through the process and automatically
+                capture when you raise your hand.
+              </p>
+              <button
+                onClick={() => openModal("camera")}
+                className="w-full px-4 py-3 bg-black text-white text-xs uppercase tracking-[0.2em] hover:bg-black/90 transition flex items-center justify-center gap-2"
+              >
+                <CameraIcon className="w-4 h-4" />
+                Start Self Measurement
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            {/* Option 2: Upload Full Photo */}
+            <div className="border border-black/10 p-5 hover:border-black/20 transition">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h4 className="text-base font-light tracking-tight">
+                    Upload Photo
+                  </h4>
+                  <p className="text-xs text-black/50 mt-1">
+                    Use a full-body standing photo
+                  </p>
+                </div>
+                <ImageIcon className="w-5 h-5 text-black/40" />
+              </div>
+              <p className="text-[11px] text-black/40 leading-relaxed mb-4">
+                Upload a clear full-body photo standing straight with arms
+                slightly away from your body. The photo should be well-lit and
+                show your entire silhouette.
+              </p>
+              <button
+                onClick={() => uploadFileInputRef.current?.click()}
+                className="w-full px-4 py-3 border border-black/20 text-black/60 text-xs uppercase tracking-[0.2em] hover:border-black hover:text-black transition flex items-center justify-center gap-2"
+              >
+                <ImageIcon className="w-4 h-4" />
+                Upload Full Photo
+              </button>
+            </div>
+
+            {/* Saved Measurements Status */}
+            <div className="pt-4 border-t border-black/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-black/40">
+                    Saved Measurements
+                  </p>
+                  <p className="text-xs text-black/30 mt-1">
+                    Last updated: Not yet
+                  </p>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-gray-300" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Measurement Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={`absolute bottom-28 left-1/2 transform -translate-x-1/2 z-10 px-6 py-3 backdrop-blur-md rounded-full transition-all ${
-              gestureDetected.isRaised
-                ? "bg-green-500/90 text-white"
-                : "bg-black/60 text-white/80"
-            }`}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+            onClick={(e) => e.target === e.currentTarget && closeModal()}
           >
-            <div className="flex items-center gap-3">
-              <Hand className="w-5 h-5" />
-              <span className="text-sm font-light tracking-wide">
-                {gestureDetected.isRaised
-                  ? `✓ ${gestureDetected.handSide === "left" ? "Left" : "Right"} hand detected!`
-                  : "Raise your hand to capture"}
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Pose Quality Ring */}
-          <div className="absolute bottom-8 right-8 z-10">
-            <div className="relative w-16 h-16">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.2)"
-                  strokeWidth="4"
-                />
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  fill="none"
-                  stroke={
-                    poseQuality > 0.7
-                      ? "#22c55e"
-                      : poseQuality > 0.4
-                        ? "#eab308"
-                        : "#ef4444"
-                  }
-                  strokeWidth="4"
-                  strokeDasharray={`${poseQuality * 175.9} 175.9`}
-                  strokeLinecap="round"
-                  className="transition-all duration-300"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white text-xs font-light">
-                  {Math.round(poseQuality * 100)}%
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Countdown Overlay */}
-          <AnimatePresence>
-            {countdown !== null && (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                className="absolute inset-0 flex items-center justify-center bg-black/80 z-20"
-              >
-                <div className="text-white text-9xl font-light">
-                  {countdown}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Controls Bar */}
-          <div className="absolute bottom-4 left-4 right-4 z-10 flex gap-3">
-            <button
-              onClick={stopCamera}
-              className="flex-1 py-3 bg-white/10 backdrop-blur text-white text-sm uppercase tracking-[0.15em] hover:bg-white/20 transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleManualCapture}
-              disabled={!detectedHeight}
-              className="flex-1 py-3 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Take Measurement
-            </button>
-          </div>
-
-          {/* Fullscreen Toggle */}
-          <button
-            onClick={toggleFullscreen}
-            className="absolute top-4 right-4 z-10 p-2 bg-white/10 backdrop-blur hover:bg-white/20 transition rounded-lg"
-          >
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      {/* Step 3: Complete Results */}
-      {measurements && activeStep === 3 && (
-        <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 py-12 px-6">
-          <div className="max-w-5xl mx-auto">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full h-full bg-black"
             >
-              {capturedImage && (
-                <div className="w-40 h-48 mx-auto overflow-hidden border border-black/10 shadow-lg rounded-lg">
-                  <img
-                    src={capturedImage}
-                    alt="Captured"
-                    className="w-full h-full object-cover"
+              {/* Camera Mode */}
+              {modalMode === "camera" && activeStep === 2 && showVideo && (
+                <div className="relative w-full h-full overflow-hidden">
+                  <video
+                    ref={videoRef}
+                    style={{ display: "none" }}
+                    autoPlay
+                    playsInline
+                    muted
                   />
+                  <canvas
+                    ref={canvasRef}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+
+                  {/* Close Button */}
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-white/20 transition"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+
+                  {/* Floating Prompt Card */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 w-[90%] max-w-md"
+                  >
+                    <div className="bg-white/10 backdrop-blur border border-white/20 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="text-white">
+                          {prompts[currentPrompt].icon}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-white text-lg font-light mb-1">
+                            {prompts[currentPrompt].title}
+                          </h3>
+                          <p className="text-white/60 text-sm">
+                            {prompts[currentPrompt].description}
+                          </p>
+                          <p className="text-white/40 text-xs mt-2">
+                            {prompts[currentPrompt].instruction}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Detected Height Display */}
+                  {detectedHeight && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="absolute top-20 right-20 z-10 bg-white/10 backdrop-blur px-4 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Ruler className="w-4 h-4 text-green-400" />
+                        <span className="text-white text-sm font-light">
+                          Height: {detectedHeight}cm
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Live Measurements Panel */}
+                  {liveMeasurements && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="absolute right-4 top-32 z-10 w-48 bg-white/10 backdrop-blur border border-white/20"
+                    >
+                      <div className="p-2 border-b border-white/20">
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-white/60 text-center">
+                          Live Measurements
+                        </p>
+                      </div>
+                      <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
+                        {liveMeasurements.slice(0, 6).map((m, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between text-xs"
+                          >
+                            <span className="text-white/60">{m.name}</span>
+                            <span className="text-white font-light">
+                              {m.value}
+                              {m.unit}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Gesture Status */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`absolute bottom-28 left-1/2 transform -translate-x-1/2 z-10 px-6 py-3 backdrop-blur transition-all ${
+                      gestureDetected.isRaised
+                        ? "bg-green-600 text-white"
+                        : "bg-white/10 text-white/80"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Hand className="w-5 h-5" />
+                      <span className="text-sm font-light tracking-wide">
+                        {gestureDetected.isRaised
+                          ? `✓ ${gestureDetected.handSide === "left" ? "Left" : "Right"} hand detected!`
+                          : "Raise your hand to capture"}
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  {/* Pose Quality Indicator */}
+                  <div className="absolute bottom-8 right-8 z-10">
+                    <div className="relative w-16 h-16">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                          cx="32"
+                          cy="32"
+                          r="28"
+                          fill="none"
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="4"
+                        />
+                        <circle
+                          cx="32"
+                          cy="32"
+                          r="28"
+                          fill="none"
+                          stroke={
+                            poseQuality > 0.7
+                              ? "#10b981"
+                              : poseQuality > 0.4
+                                ? "#6b7280"
+                                : "#ef4444"
+                          }
+                          strokeWidth="4"
+                          strokeDasharray={`${poseQuality * 175.9} 175.9`}
+                          strokeLinecap="round"
+                          className="transition-all duration-300"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-white text-xs font-light">
+                          {Math.round(poseQuality * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Countdown Overlay */}
+                  <AnimatePresence>
+                    {countdown !== null && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="absolute inset-0 flex items-center justify-center bg-black/90 z-20"
+                      >
+                        <div className="text-white text-9xl font-light">
+                          {countdown}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Controls Bar */}
+                  <div className="absolute bottom-4 left-4 right-4 z-10 flex gap-3">
+                    <button
+                      onClick={closeModal}
+                      className="flex-1 py-3 bg-white/10 text-white text-sm uppercase tracking-[0.15em] hover:bg-white/20 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={startCountdown}
+                      disabled={!detectedHeight}
+                      className="flex-1 py-3 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Take Measurement
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 mb-4">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-[10px] tracking-[0.2em] uppercase text-green-700">
-                    Measurements Complete
-                  </span>
+              {/* Upload Mode or Results */}
+              {((modalMode === "upload" && measurements) ||
+                (activeStep === 3 && measurements)) && (
+                <div className="h-full overflow-y-auto py-12 px-6">
+                  <div className="max-w-5xl mx-auto">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-8"
+                    >
+                      {/* Close Button */}
+                      <div className="flex justify-end">
+                        <button
+                          onClick={closeModal}
+                          className="p-2 hover:bg-white/10 transition"
+                        >
+                          <X className="w-6 h-6 text-white/60 hover:text-white" />
+                        </button>
+                      </div>
+
+                      {capturedImage && (
+                        <div className="w-40 h-48 mx-auto overflow-hidden border border-white/20">
+                          <img
+                            src={capturedImage}
+                            alt="Captured"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="text-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 mb-4">
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          <span className="text-[10px] tracking-[0.2em] uppercase text-green-400">
+                            Measurements Complete
+                          </span>
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-light tracking-tight text-white">
+                          Your Body Profile
+                        </h2>
+                        <p className="text-white/50 mt-2 flex items-center justify-center gap-2">
+                          <Activity className="w-4 h-4" />
+                          Height detected:{" "}
+                          <strong className="text-white">
+                            {
+                              measurements.find((m) => m.name === "Height")
+                                ?.value
+                            }
+                            cm
+                          </strong>
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {measurements.map((m, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.03 }}
+                            className="border border-white/10 p-5 hover:border-white/30 transition-all"
+                          >
+                            <p className="text-[9px] uppercase tracking-[0.2em] text-white/40 mb-2">
+                              {m.name}
+                            </p>
+                            <p className="text-3xl font-light text-white">
+                              {m.value}
+                              <span className="text-sm text-white/40 ml-1">
+                                {m.unit}
+                              </span>
+                            </p>
+                            <p className="text-[10px] text-white/30 mt-2">
+                              {m.description}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-4 pt-8">
+                        <button
+                          onClick={closeModal}
+                          className="flex-1 py-4 border border-white/20 text-white/60 hover:border-white/40 text-sm uppercase tracking-[0.15em] font-light transition"
+                        >
+                          Close
+                        </button>
+                        <button
+                          onClick={saveMeasurements}
+                          className="flex-1 py-4 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition font-light"
+                        >
+                          Save to Profile
+                        </button>
+                      </div>
+
+                      <p className="text-center text-[10px] text-white/30">
+                        AI-powered estimates • Accuracy within 1-3cm
+                      </p>
+                    </motion.div>
+                  </div>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-light tracking-tight">
-                  Your Body Profile
-                </h2>
-                <p className="text-black/50 mt-2 flex items-center justify-center gap-2">
-                  <Activity className="w-4 h-4" />
-                  Height detected:{" "}
-                  <strong>
-                    {measurements.find((m) => m.name === "Height")?.value}cm
-                  </strong>
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {measurements.map((m, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="bg-white border border-black/10 p-5 hover:border-black/30 hover:shadow-md transition-all"
-                  >
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-black/40 mb-2">
-                      {m.name}
-                    </p>
-                    <p className="text-3xl font-light">
-                      {m.value}
-                      <span className="text-sm text-black/40 ml-1">
-                        {m.unit}
-                      </span>
-                    </p>
-                    <p className="text-[10px] text-black/30 mt-2">
-                      {m.description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-
-              <div className="flex gap-4 pt-8">
-                <button
-                  onClick={resetMeasurement}
-                  className="flex-1 py-4 border border-black/20 text-black/60 hover:border-black text-sm uppercase tracking-[0.15em] font-light transition"
-                >
-                  Measure Again
-                </button>
-                <button
-                  onClick={saveMeasurements}
-                  className="flex-1 py-4 bg-black text-white text-sm uppercase tracking-[0.15em] hover:bg-black/90 transition font-light"
-                >
-                  Save to Profile
-                </button>
-              </div>
-
-              <p className="text-center text-[10px] text-black/30">
-                AI-powered estimates using MediaPipe Pose Detection • Accuracy
-                within 1-3cm
-              </p>
+              )}
             </motion.div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
+      {/* Hidden File Inputs */}
+      <input
+        ref={uploadFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
       <input
         ref={fileInputRef}
         type="file"

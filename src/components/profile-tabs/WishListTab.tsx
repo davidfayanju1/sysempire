@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
+import { ShoppingCart } from "phosphor-react";
 
 const WishlistTab = () => {
   const wishlistItems = [
@@ -36,25 +37,34 @@ const WishlistTab = () => {
       {wishlistItems.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-5 border border-black/10 p-4 hover:border-black/30 transition"
+          className="flex justify-between items-center md:gap-5 gap-2 border border-black/10 p-4 hover:border-black/30 transition"
         >
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-16 h-16 object-cover"
-          />
-          <div className="flex-1">
-            <h4 className="font-medium text-black tracking-wide">
-              {item.name}
-            </h4>
-            <p className="text-black/60 text-sm mt-1">{item.price}</p>
+          <div className="item-container md:w-[60%] w-[80%] flex items-center md:gap-5 gap-2">
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-16 h-16 object-cover"
+            />
+
+            <div className="">
+              <h4 className="font-medium line-clamp-1 min-w-0 text-black leading-[1rem]">
+                {item.name}
+              </h4>
+              <p className="text-black/60 text-sm mt-1">{item.price}</p>
+            </div>
           </div>
-          <button className="px-5 py-2 bg-black text-white text-xs uppercase tracking-[0.15em] hover:bg-black/80 transition">
-            Add to Cart
-          </button>
-          <button className="p-2 text-black/30 hover:text-red-500 transition">
-            <Heart className="w-5 h-5" />
-          </button>
+          <div className="item-container flex items-center">
+            <button className="md:hidden block">
+              <ShoppingCart className="w-5 h-5 text-black/30" />
+            </button>
+
+            <button className="px-5 md:block hidden py-2 bg-black text-white text-xs uppercase tracking-[0.15em] hover:bg-black/80 transition">
+              Add to Cart
+            </button>
+            <button className="p-2 text-black/30 hover:text-red-500 transition">
+              <Heart className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       ))}
     </motion.div>
