@@ -8,28 +8,37 @@ const Founder = () => {
             {/* 1px clean crisp border around the entire image block layout */}
             <div className="border border-black bg-white flex flex-col">
               {/* Inner container with a 1px border around the photo block matching the mockup */}
-              <div className="p-0 border-b border-black aspect-[4/5] w-full overflow-hidden">
+              <div className="relative p-0 border-b border-black aspect-[4/5] w-full overflow-hidden">
                 <img
                   src="/images/owner.png" // Replace with your exact filename in the public folder
-                  alt="Martin Gyllenhal"
+                  alt="Mrs. Adesewa Oluwayanju"
                   className="w-full h-full object-cover"
                 />
+
+                {/* Logo Overlay - Top Left Corner */}
+                <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
+                  <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 border border-black/10">
+                    <img
+                      src="/images/logo_dark.jpeg"
+                      alt=""
+                      className="h-10 w-5"
+                    />
+                    {/* <span className="font-serif italic font-light text-black text-sm md:text-base tracking-tighter">
+                      SYS
+                    </span> */}
+                  </div>
+                </div>
               </div>
 
               {/* Label Metadata Section underneath the image */}
               <div className="p-6 pt-5 pb-7 flex justify-between items-end bg-white">
                 <div>
                   <h3 className="text-2xl md:text-3xl font-normal tracking-tight text-black leading-none">
-                    Oluwayanju Adesewa
+                    Mrs. Adesewa Oluwayanju
                   </h3>
                   <p className="text-xs text-gray-500 font-medium tracking-wider mt-2.5 uppercase">
                     CEO & Founder
                   </p>
-                </div>
-
-                {/* Custom Monogram Signature Block */}
-                <div className="h-11 text-black select-none pointer-events-none font-serif italic font-light text-3xl tracking-tighter leading-none px-1">
-                  SYS
                 </div>
               </div>
             </div>
