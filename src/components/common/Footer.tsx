@@ -1,12 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin } from "lucide-react";
-import {
-  FacebookLogo,
-  InstagramLogo,
-  TwitterLogo,
-  YoutubeLogo,
-  LinkedinLogo,
-} from "phosphor-react";
+import { InstagramLogo, TwitterLogo } from "phosphor-react";
 import { email } from "../../data/contact";
 
 const Footer = () => {
@@ -49,21 +43,10 @@ const Footer = () => {
   const socialLinks = [
     {
       icon: InstagramLogo,
-      href: "https://instagram.com",
+      href: "https://www.instagram.com/sys_empire/",
       label: "Instagram",
     },
-    { icon: FacebookLogo, href: "https://facebook.com", label: "Facebook" },
     { icon: TwitterLogo, href: "https://twitter.com", label: "Twitter" },
-    {
-      icon: YoutubeLogo,
-      href: "https://youtube.com",
-      label: "YouTube",
-    },
-    {
-      icon: LinkedinLogo,
-      href: "https://linkedin.com",
-      label: "LinkedIn",
-    },
   ];
 
   return (

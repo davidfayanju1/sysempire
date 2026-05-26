@@ -72,7 +72,7 @@ const Testimonial = () => {
   const current = testimonials[currentIndex];
 
   return (
-    <section className="bg-white py-14 md:py-32">
+    <section className="bg-white py-14 md:py-22">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         {/* Section Header */}
         <div className="text-center md:mb-16 mb-6">

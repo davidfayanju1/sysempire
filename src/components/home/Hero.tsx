@@ -26,7 +26,7 @@ const Hero = () => {
         playsInline
         className="absolute top-0 left-0 w-full h-full object-cover"
       >
-        <source src="/videos/video1.mp4" type="video/mp4" />
+        <source src="/videos/video2.mp4" type="video/mp4" />
       </video>
 
       {/* Black and White Overlay - Multiple layers for editorial magazine effect */}
