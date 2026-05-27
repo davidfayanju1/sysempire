@@ -82,19 +82,23 @@ const Nav = () => {
     {
       name: "Wedding",
       to: "/wears/wedding",
-      image: "/images/apparells/wedding.png",
+      image: "/images/female-clothing/wedding-pose.png",
     },
     {
       name: "Dinner",
       to: "/wears/dinner",
-      image: "/images/apparells/attire.png",
+      image: "/images/female-clothing/orange.png",
     },
     {
       name: "Lunch",
       to: "/wears/lunch",
-      image: "/images/apparells/adire_2.png",
+      image: "/images/female-clothing/lunch.png",
     },
-    { name: "Party", to: "/wears/party", image: "/images/apparells/adire.png" },
+    {
+      name: "Party",
+      to: "/wears/party",
+      image: "/images/female-clothing/blue.png",
+    },
   ];
 
   const mainLinks = [

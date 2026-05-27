@@ -11,7 +11,7 @@ const Testimonial = () => {
       id: 1,
       name: "Isabella Omotola",
       role: "Creative Director, Lagos Fashion Week",
-      text: "The craftsmanship is absolutely breathtaking. Every piece tells a story of dedication and artistry. I've never felt more confident than when wearing their designs.",
+      text: "I wanted to tell you a bit thank you again for the dress and to let you know that the dress was awarded best dress for the night.",
       rating: 5,
       location: "Lagos, Nigeria",
       image: "/images/testimonials/client1.jpg",
@@ -112,7 +112,7 @@ const Testimonial = () => {
           </div>
 
           {/* Client Info */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <h4 className="text-base font-semibold text-black tracking-wide">
               {current.name}
             </h4>
@@ -120,7 +120,7 @@ const Testimonial = () => {
               {current.role}
             </p>
             <p className="text-[10px] text-black/30 mt-1">{current.location}</p>
-          </div>
+          </div> */}
 
           {/* Navigation */}
           <div className="flex justify-center items-center gap-4 mt-12">
