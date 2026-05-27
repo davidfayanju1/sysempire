@@ -23,9 +23,6 @@ const Founder = () => {
                       alt=""
                       className="h-10 w-5"
                     />
-                    {/* <span className="font-serif italic font-light text-black text-sm md:text-base tracking-tighter">
-                      SYS
-                    </span> */}
                   </div>
                 </div>
               </div>
@@ -54,16 +51,16 @@ const Founder = () => {
             {/* Maximized Quote blocks */}
             <div className="space-y-8 max-w-3xl">
               <p className="text-xl md:text-2xl lg:text-[27px] font-normal text-black leading-[1.45] tracking-tight">
-                “At our studio, we believe in the extraordinary power of visual
-                storytelling. Each project is more than just a job; it's a
-                journey of creativity, collaboration, and passion.
+                “At Sys, everyone matters because customer satisfaction is our
+                core goal. We believe that fashion should be accessible,
+                personal, and meaningful to every individual who wears our
+                pieces.
               </p>
 
               <p className="text-xl md:text-2xl lg:text-[27px] font-[300] text-gray-400 leading-[1.45] tracking-tight">
-                Our mission is to bring your stories to life in ways that
-                captivate and inspire. Together, let's push the boundaries of
-                what's possible and create visual masterpieces that leave a
-                lasting impact.”
+                We are committed to delivering the best design by going beyond
+                standards, from the fabrics we source to the final stitch,
+                excellence is never a compromise.”
               </p>
             </div>
           </div>

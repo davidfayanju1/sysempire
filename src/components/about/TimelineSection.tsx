@@ -5,49 +5,37 @@ import { Clock } from "lucide-react";
 
 const timelineData = [
   {
-    year: 2014,
+    year: 2022,
     title: "The Beginning",
     description:
       "Founded in a small studio with a sewing machine and a dream. The first collection featured 10 handmade pieces, each telling a unique story of African elegance.",
-    image:
-      "https://images.unsplash.com/photo-1536867520774-5b4f2628a69b?q=80&w=1036&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/blue.png",
     collection: "Inaugural Collection",
   },
   {
-    year: 2016,
+    year: 2023,
     title: "International Debut",
     description:
       "First international showroom opened in London. The brand gained recognition for blending traditional African textiles with contemporary silhouettes.",
-    image:
-      "https://images.unsplash.com/photo-1621370688441-8ce43a9903dd?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/purple.png",
     collection: "Diaspora Collection",
   },
   {
-    year: 2019,
+    year: 2024,
     title: "Flagship Launch",
     description:
       "Opened the flagship store in Lagos, Nigeria. Introduced the 'Afro-Futurism' collection at Lagos Fashion Week to critical acclaim.",
-    image:
-      "https://images.unsplash.com/photo-1628565931779-4f4f0b4f578a?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/orange.png",
     collection: "Afro-Futurism",
   },
   {
-    year: 2021,
+    year: 2025,
     title: "Global Recognition",
     description:
       "Featured in Vogue, Elle, and Harper's Bazaar. Collaborated with international designers and expanded to Paris and New York.",
     image:
       "https://images.unsplash.com/photo-1633655442168-c6ef0ed2f984?q=80&w=2076&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     collection: "Global Citizen",
-  },
-  {
-    year: 2024,
-    title: "Sustainable Future",
-    description:
-      "Launched the eco-conscious collection using sustainable materials. Committed to ethical fashion and empowering local artisans.",
-    image:
-      "https://images.unsplash.com/photo-1620063224601-ead11b9737bf?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    collection: "Conscious Couture",
   },
 ];
 

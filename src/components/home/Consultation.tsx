@@ -41,9 +41,9 @@ const Consultation = () => {
           <p className="text-3xl md:text-5xl font-light text-black leading-[1.3] md:leading-[1.4] tracking-tight">
             Personal <span className="font-bold">Style Consultation</span>
           </p>
-          <p className="text-2xl md:text-4xl font-light text-black/70 mt-4">
+          {/* <p className="text-2xl md:text-4xl font-light text-black/70 mt-4">
             crafting your <span className="font-bold">signature look</span>
-          </p>
+          </p> */}
           <div className="w-16 h-px bg-black/15 mx-auto mt-8" />
         </div>
 
@@ -54,9 +54,9 @@ const Consultation = () => {
             {/* Background Image */}
             <div className="absolute inset-0">
               <img
-                src="https://images.unsplash.com/photo-1600091166971-7f9faad6c1e2?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                src="/images/female-clothing/blue.png"
                 alt="Luxury style consultation"
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full scale-120 object-cover object-center"
               />
               {/* Dark Overlay for text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
@@ -107,7 +107,7 @@ const Consultation = () => {
                 <div className="w-12 h-px bg-white/40" />
 
                 <p className="text-white/60 text-[10px] tracking-[0.15em] uppercase">
-                  Since 2014
+                  Since 2022
                 </p>
               </div>
             </div>

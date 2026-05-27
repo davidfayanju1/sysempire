@@ -4,10 +4,10 @@ import { useRef } from "react";
 import { Award, Globe, Users, Sparkles } from "lucide-react";
 
 const stats = [
-  { value: "10+", label: "Years of Excellence", icon: Award },
+  { value: "5+", label: "Years of Excellence", icon: Award },
   { value: "5+", label: "Countries Served", icon: Globe },
-  { value: "10k+", label: "Happy Clients", icon: Users },
-  { value: "10+", label: "Collections", icon: Sparkles },
+  { value: "3k+", label: "Happy Clients", icon: Users },
+  { value: "4+", label: "Collections", icon: Sparkles },
 ];
 
 const cardVariants: Variants = {

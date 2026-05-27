@@ -21,8 +21,7 @@ export const HeroSection = () => {
       <motion.div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110"
         style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80')",
+          backgroundImage: "url('/images/female-clothing/orange.png')",
         }}
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
@@ -44,7 +43,7 @@ export const HeroSection = () => {
         >
           <Sparkles className="w-3 h-3 text-white/80 animate-pulse" />
           <span className="text-[9px] tracking-[0.2em] uppercase text-white/80 font-['Times_New_Roman',serif]">
-            Est. 2014
+            Est. 2022
           </span>
         </motion.div>
         <motion.h1

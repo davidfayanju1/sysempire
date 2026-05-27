@@ -53,7 +53,7 @@ export const PhilosophySection = () => {
             variants={floatVariants}
             className="text-black/60 text-sm leading-relaxed"
           >
-            We believe fashion is a powerful form of expression — one that tells
+            We believe fashion is a powerful form of expression, one that tells
             stories, preserves culture, and creates impact. Every stitch carries
             meaning, every design honors tradition while embracing innovation.
           </motion.p>

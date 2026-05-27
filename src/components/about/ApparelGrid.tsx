@@ -12,17 +12,15 @@ interface ApparelYear {
 
 const apparelYears: ApparelYear[] = [
   {
-    year: 2014,
+    year: 2022,
     name: "Heritage",
-    image:
-      "https://images.unsplash.com/photo-1696962701419-6f510910e838?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/blue.png",
     pieces: ["Ankara Gowns", "Kaftans"],
   },
   {
-    year: 2016,
+    year: 2023,
     name: "Diaspora",
-    image:
-      "https://images.unsplash.com/photo-1648329008114-bce0ec0b5950?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/purple.png",
     pieces: ["Cocktail Dresses", "Evening Wear"],
   },
   {
@@ -33,24 +31,21 @@ const apparelYears: ApparelYear[] = [
     pieces: ["Power Suits", "Blazers"],
   },
   {
-    year: 2020,
+    year: 2023,
     name: "Avant-Garde",
-    image:
-      "https://images.unsplash.com/photo-1619610405999-d6ab699dc9b4?q=80&w=990&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/orange.png",
     pieces: ["Statement Pieces", "Bridal"],
   },
   {
-    year: 2022,
-    name: "Minimalist",
-    image:
-      "https://images.unsplash.com/photo-1668035188870-9bba52206be9?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    pieces: ["Daily Wear", "Essentials"],
+    year: 2024,
+    name: "Atelier",
+    image: "/images/female-clothing/international.png",
+    pieces: ["Custom-Made", "Atelier"],
   },
   {
-    year: 2024,
+    year: 2025,
     name: "Eco-Chic",
-    image:
-      "https://images.unsplash.com/photo-1773398972684-2ba88aa89499?q=80&w=997&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "/images/female-clothing/pink.png",
     pieces: ["Sustainable Collection"],
   },
 ];

@@ -103,6 +103,7 @@ const Nav = () => {
     { label: "OCCASIONS", dropdown: "occasions" },
     { label: "EDITORIAL", to: "/wears/editorial" },
     { label: "ATELIER", to: "/wears/atelier" },
+    { label: "CUSTOM", to: "/custom" },
   ];
 
   const handleNavigation = (to: string) => {
