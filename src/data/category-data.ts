@@ -38,8 +38,8 @@ export type CategoryData = {
 export const categoryData: CategoryData = {
   // New Arrivals
   "new-arrivals": {
-    name: "New Arrivals",
-    slug: "new-arrivals",
+    name: "Ready To Wear",
+    slug: "ready-to-wear",
     hero: {
       title: "FRESH PERSPECTIVES",
       subtitle: "New Arrivals",

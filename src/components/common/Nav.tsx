@@ -98,7 +98,7 @@ const Nav = () => {
   ];
 
   const mainLinks = [
-    { label: "NEW ARRIVALS", to: "/wears/new-arrivals" },
+    { label: "RTW", to: "/wears/new-arrivals" },
     { label: "COLLECTIONS", dropdown: "collections" },
     { label: "OCCASIONS", dropdown: "occasions" },
     { label: "EDITORIAL", to: "/wears/editorial" },
@@ -117,7 +117,7 @@ const Nav = () => {
           isScrolled ? "bg-white py-3 shadow-sm" : "bg-transparent py-5"
         }`}
       >
-        <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-12">
           <div className="flex items-center justify-between relative h-14">
             {/* Logo - Always visible left */}
             <Link to="/" className="z-50 shrink-0">
@@ -128,7 +128,7 @@ const Nav = () => {
                     : "/images/logo_light.png"
                 }
                 alt="SYS_EMPIRE_LOGO"
-                className="w-16 h-10 md:w-20 md:h-14 object-contain transition-all duration-500"
+                className="w-16 h-14 md:ml-0 ml-[-.5rem] md:w-20 md:h-14 object-contain transition-all duration-500"
               />
             </Link>
 

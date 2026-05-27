@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin } from "lucide-react";
-import { InstagramLogo, TwitterLogo } from "phosphor-react";
+import {
+  FacebookLogo,
+  InstagramLogo,
+  TwitterLogo,
+  TiktokLogo,
+} from "phosphor-react";
 import { email } from "../../data/contact";
 
 const Footer = () => {
@@ -46,7 +51,21 @@ const Footer = () => {
       href: "https://www.instagram.com/sys_empire/",
       label: "Instagram",
     },
-    { icon: TwitterLogo, href: "https://twitter.com", label: "Twitter" },
+    {
+      icon: FacebookLogo,
+      href: "https://www.facebook.com/people/Sys_Empire/100081984155261/?ref=NONE_xav_ig_profile_page_web#",
+      label: "Facebook",
+    },
+    {
+      icon: TwitterLogo,
+      href: "https://twitter.com/sys_empire/",
+      label: "Twitter",
+    },
+    {
+      icon: TiktokLogo,
+      href: "https://www.tiktok.com/@sys_empire?fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPOTM2NjE5NzQzMzkyNDU5AAGnx0k3V-z7jaNsfrBTlknKi7s7TKLKfLtnObraNub2h8kdVyrzl-QyQqwmucA_aem_YWdncwAZ4B52NcAhDOiO6wBCjj98&brid=YWdncwHf_vLAeBSeu_xOwxCqtOVA",
+      label: "Tiktok",
+    },
   ];
 
   return (

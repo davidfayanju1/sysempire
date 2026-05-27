@@ -33,24 +33,22 @@ const Consultation = () => {
   };
 
   return (
-    <section className="bg-white overflow-hidden">
+    <section className="bg-gray-50 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-10 md:py-24">
         {/* Header - Vogue editorial style */}
         <div className="max-w-4xl mx-auto text-center mb-16">
           <div className="w-16 h-px bg-black/15 mx-auto mb-8" />
-          <p className="text-3xl md:text-5xl font-light text-black leading-[1.3] md:leading-[1.4] tracking-tight font-['Times_New_Roman',serif]">
-            Personal{" "}
-            <span className="font-bold italic">Style Consultation</span>
+          <p className="text-3xl md:text-5xl font-light text-black leading-[1.3] md:leading-[1.4] tracking-tight">
+            Personal <span className="font-bold">Style Consultation</span>
           </p>
-          <p className="text-2xl md:text-4xl font-light text-black/70 mt-4 font-['Times_New_Roman',serif]">
-            crafting your{" "}
-            <span className="font-bold italic">signature look</span>
+          <p className="text-2xl md:text-4xl font-light text-black/70 mt-4">
+            crafting your <span className="font-bold">signature look</span>
           </p>
           <div className="w-16 h-px bg-black/15 mx-auto mt-8" />
         </div>
 
         {/* Two Column Layout with Image */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-0 max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-0 max-w-[1070px] mx-auto">
           {/* Left Column - Hero Image with Overlay Text */}
           <div className="relative h-[500px] lg:h-auto lg:min-h-[600px] overflow-hidden group">
             {/* Background Image */}
@@ -100,7 +98,7 @@ const Consultation = () => {
                   <div className="flex items-center gap-3 text-white/80">
                     <MapPin className="w-4 h-4" />
                     <span className="text-xs tracking-wide">
-                      Global locations
+                      Lagos, Nigeria
                     </span>
                   </div>
                 </div>
@@ -119,7 +117,7 @@ const Consultation = () => {
           </div>
 
           {/* Right Column - Form */}
-          <div className="bg-white lg:pl-12 flex flex-col justify-center">
+          <div className="bg-transparent lg:pl-12 flex flex-col justify-center">
             {/* Intro Text */}
             <div className="mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 border border-black/10 mb-6">
