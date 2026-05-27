@@ -266,7 +266,7 @@ const Nav = () => {
                   <div className="grid grid-cols-4 gap-6">
                     {occasions.map((occ) => (
                       <Link key={occ.name} to={occ.to} className="group">
-                        <div className="aspect-[3/4] overflow-hidden rounded-sm bg-gray-100 mb-3">
+                        <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3">
                           <img
                             src={occ.image}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"

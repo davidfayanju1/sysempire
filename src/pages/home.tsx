@@ -6,6 +6,7 @@ import Testimonial from "../components/home/Testimonial";
 import Founder from "../components/home/Founder";
 import Consultation from "../components/home/Consultation";
 import GenderClothes from "../components/home/GenderClothes";
+import Feedback from "../components/home/Feedback";
 
 const Home = () => {
   return (
@@ -16,6 +17,7 @@ const Home = () => {
       <Founder />
       <Consultation />
       <Testimonial />
+      <Feedback />
       {/* <AboutUs /> */}
     </DefaultLayout>
   );
