@@ -6,9 +6,6 @@ import { Link } from "react-router-dom";
 import { ApparelGrid } from "../components/about/ApparelGrid";
 
 const Collections = () => {
-  // const [hoveredCollection, setHoveredCollection] = useState<number | null>(
-  //   null,
-  // );
   const heroRef = useRef(null);
   const isHeroInView = useInView(heroRef, { once: true, amount: 0.3 });
 
