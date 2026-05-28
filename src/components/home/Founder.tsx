@@ -1,7 +1,7 @@
 const Founder = () => {
   return (
     <section className="bg-white text-black py-16 md:py-24 font-sans selection:bg-black selection:text-white">
-      <div className="container mx-auto px-4 max-w-[1100px]">
+      <div className="container mx-auto px-6 max-w-[1100px]">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-16 items-start">
           {/* LEFT COLUMN: EXTRA LARGE IMAGE FRAME WITH BLACK BORDER */}
           <div className="col-span-1 md:col-span-6 lg:col-span-5 w-full">

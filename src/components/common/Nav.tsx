@@ -362,7 +362,7 @@ const Nav = () => {
                                     onClick={() => handleNavigation(occ.to)}
                                     className="text-left"
                                   >
-                                    <div className="aspect-[4/5] bg-gray-100 mb-2 rounded-sm overflow-hidden">
+                                    <div className="aspect-[4/5] bg-gray-100 mb-2 overflow-hidden">
                                       <img
                                         src={occ.image}
                                         className="w-full h-full object-cover"

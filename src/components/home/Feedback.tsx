@@ -1,7 +1,7 @@
 const Feedback = () => {
   return (
     <section className="bg-gray-100 text-black py-16 md:py-24 font-sans">
-      <div className="container mx-auto px-4 max-w-2xl">
+      <div className="container mx-auto px-6 max-w-2xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-light tracking-tight text-black mb-4">
             We're not perfect.
