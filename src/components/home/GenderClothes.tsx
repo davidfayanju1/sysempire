@@ -18,7 +18,7 @@ const GenderClothes = () => {
         <div className="grid md:grid-cols-2 gap-8 max-w-[1070px] mx-auto">
           {/* Female Card */}
           <Link
-            to="/products?gender=female"
+            to="/wears/women-ready-to-wear"
             className="group relative block overflow-hidden min-h-[400px] md:min-h-[500px] rounded-none"
           >
             {/* Unsplash Background Image - Women's Fashion */}
@@ -49,7 +49,7 @@ const GenderClothes = () => {
           </Link>
           {/* Male Card */}
           <Link
-            to="/products?gender=male"
+            to="/wears/men-ready-to-wear"
             className="group relative block overflow-hidden min-h-[400px] md:min-h-[500px] rounded-none"
           >
             {/* Unsplash Background Image - Men's Fashion */}

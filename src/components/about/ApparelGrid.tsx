@@ -24,7 +24,7 @@ const apparelYears: ApparelYear[] = [
     pieces: ["Cocktail Dresses", "Evening Wear"],
   },
   {
-    year: 2018,
+    year: 2024,
     name: "Modernist",
     image:
       "https://images.unsplash.com/photo-1666985152385-5075e84caf0e?q=80&w=1360&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
