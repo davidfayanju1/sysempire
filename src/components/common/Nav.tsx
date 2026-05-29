@@ -26,6 +26,14 @@ const Nav = () => {
   const isProductPage = location.pathname.startsWith("/product");
   const isDarkTheme = isScrolled || isProductPage;
 
+  // Helper function to check if a link is active
+  const isActiveLink = (to: string) => {
+    if (to === "/") {
+      return location.pathname === to;
+    }
+    return location.pathname.startsWith(to);
+  };
+
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartCount(cart.length);
@@ -105,8 +113,8 @@ const Nav = () => {
     { label: "RTW", to: "/wears/new-arrivals" },
     { label: "COLLECTIONS", dropdown: "collections" },
     { label: "OCCASIONS", dropdown: "occasions" },
-    { label: "EDITORIAL", to: "/wears/editorial" },
-    { label: "ATELIER", to: "/wears/atelier" },
+    // { label: "EDITORIAL", to: "/wears/editorial" },
+    // { label: "ATELIER", to: "/wears/atelier" },
     { label: "CUSTOM", to: "/custom-wear" },
   ];
 
@@ -139,34 +147,44 @@ const Nav = () => {
 
             {/* Desktop Nav - Absolute center */}
             <div className="hidden lg:flex items-center absolute left-1/2 -translate-x-1/2 gap-8">
-              {mainLinks.map((link) => (
-                <div
-                  key={link.label}
-                  onMouseEnter={() =>
-                    link.dropdown && handleMouseEnter(link.dropdown)
-                  }
-                  onMouseLeave={() => link.dropdown && handleMouseLeave()}
-                >
-                  <button
-                    onClick={() => link.to && handleNavigation(link.to)}
-                    className={`flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase font-light transition-colors ${
-                      isDarkTheme ? "text-gray-800" : "text-white"
-                    } ${activeDropdown === link.dropdown ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
+              {mainLinks.map((link) => {
+                const isActive = link.to ? isActiveLink(link.to) : false;
+
+                return (
+                  <div
+                    key={link.label}
+                    onMouseEnter={() =>
+                      link.dropdown && handleMouseEnter(link.dropdown)
+                    }
+                    onMouseLeave={() => link.dropdown && handleMouseLeave()}
                   >
-                    {link.label}
-                    {link.dropdown && (
-                      <motion.div
-                        animate={{
-                          rotate: activeDropdown === link.dropdown ? 180 : 0,
-                        }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ChevronDown size={12} strokeWidth={1.5} />
-                      </motion.div>
-                    )}
-                  </button>
-                </div>
-              ))}
+                    <button
+                      onClick={() => link.to && handleNavigation(link.to)}
+                      className={`flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase font-light transition-colors ${
+                        isDarkTheme ? "text-gray-800" : "text-white"
+                      } ${
+                        isActive
+                          ? "opacity-100 font-medium"
+                          : activeDropdown === link.dropdown
+                            ? "opacity-100"
+                            : "opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      {link.label}
+                      {link.dropdown && (
+                        <motion.div
+                          animate={{
+                            rotate: activeDropdown === link.dropdown ? 180 : 0,
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <ChevronDown size={12} strokeWidth={1.5} />
+                        </motion.div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Desktop-only Action Icons */}
@@ -297,104 +315,139 @@ const Nav = () => {
           >
             <div className="flex-1 overflow-y-auto pt-24 px-6 pb-12">
               <div className="space-y-2">
-                {mainLinks.map((link) => (
-                  <div key={link.label} className="py-2">
-                    <div
-                      className="flex items-center justify-between group cursor-pointer"
-                      onClick={() =>
-                        link.dropdown
-                          ? setMobileExpanded(
-                              mobileExpanded === link.label ? null : link.label,
-                            )
-                          : handleNavigation(link.to!)
-                      }
-                    >
-                      <span className="text-2xl font-light tracking-tight text-gray-900 uppercase">
-                        {link.label}
-                      </span>
-                      {link.dropdown && (
-                        <motion.div
-                          animate={{
-                            rotate: mobileExpanded === link.label ? 90 : 0,
-                          }}
-                          className="text-gray-400"
-                        >
-                          <ChevronRight size={20} strokeWidth={1} />
-                        </motion.div>
-                      )}
-                    </div>
+                {mainLinks.map((link) => {
+                  const isActive = link.to ? isActiveLink(link.to) : false;
 
-                    <AnimatePresence>
-                      {mobileExpanded === link.label && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
+                  return (
+                    <div key={link.label} className="py-2">
+                      <div
+                        className="flex items-center justify-between group cursor-pointer"
+                        onClick={() =>
+                          link.dropdown
+                            ? setMobileExpanded(
+                                mobileExpanded === link.label
+                                  ? null
+                                  : link.label,
+                              )
+                            : handleNavigation(link.to!)
+                        }
+                      >
+                        <span
+                          className={`text-2xl font-light tracking-tight uppercase ${
+                            isActive
+                              ? "text-black font-medium"
+                              : "text-gray-900"
+                          }`}
                         >
-                          <div className="py-4 pl-4 space-y-6 border-l border-gray-100 mt-2">
-                            {link.dropdown === "collections" &&
-                              collections.map((col) => (
-                                <div key={col.title}>
-                                  <p className="text-[9px] tracking-widest text-gray-400 uppercase mb-3">
-                                    {col.title}
-                                  </p>
-                                  <div className="space-y-4">
-                                    {col.items.map((item) => (
-                                      <button
-                                        key={item.name}
-                                        onClick={() =>
-                                          handleNavigation(item.to)
-                                        }
-                                        className="block text-lg font-light text-gray-600"
-                                      >
-                                        {item.name}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            {link.dropdown === "occasions" && (
-                              <div className="grid grid-cols-2 gap-4">
-                                {occasions.map((occ) => (
-                                  <button
-                                    key={occ.name}
-                                    onClick={() => handleNavigation(occ.to)}
-                                    className="text-left"
-                                  >
-                                    <div className="aspect-[4/5] bg-gray-100 mb-2 overflow-hidden">
-                                      <img
-                                        src={occ.image}
-                                        className="w-full h-full object-cover"
-                                        alt=""
-                                      />
-                                    </div>
-                                    <p className="text-[9px] tracking-widest uppercase font-light">
-                                      {occ.name}
-                                    </p>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
+                          {link.label}
+                        </span>
+                        {link.dropdown && (
+                          <motion.div
+                            animate={{
+                              rotate: mobileExpanded === link.label ? 90 : 0,
+                            }}
+                            className="text-gray-400"
+                          >
+                            <ChevronRight size={20} strokeWidth={1} />
+                          </motion.div>
+                        )}
+                      </div>
+
+                      {/* Active indicator for mobile */}
+                      {isActive && !link.dropdown && (
+                        <div className="w-8 h-[1px] bg-black mt-1" />
                       )}
-                    </AnimatePresence>
-                  </div>
-                ))}
+
+                      <AnimatePresence>
+                        {mobileExpanded === link.label && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="py-4 pl-4 space-y-6 border-l border-gray-100 mt-2">
+                              {link.dropdown === "collections" &&
+                                collections.map((col) => (
+                                  <div key={col.title}>
+                                    <p className="text-[9px] tracking-widest text-gray-400 uppercase mb-3">
+                                      {col.title}
+                                    </p>
+                                    <div className="space-y-4">
+                                      {col.items.map((item) => (
+                                        <button
+                                          key={item.name}
+                                          onClick={() =>
+                                            handleNavigation(item.to)
+                                          }
+                                          className={`block text-lg font-light transition-colors ${
+                                            isActiveLink(item.to)
+                                              ? "text-black font-medium"
+                                              : "text-gray-600"
+                                          }`}
+                                        >
+                                          {item.name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              {link.dropdown === "occasions" && (
+                                <div className="grid grid-cols-2 gap-4">
+                                  {occasions.map((occ) => (
+                                    <button
+                                      key={occ.name}
+                                      onClick={() => handleNavigation(occ.to)}
+                                      className="text-left"
+                                    >
+                                      <div className="aspect-[4/5] bg-gray-100 mb-2 overflow-hidden">
+                                        <img
+                                          src={occ.image}
+                                          className="w-full h-full object-cover"
+                                          alt=""
+                                        />
+                                      </div>
+                                      <p
+                                        className={`text-[9px] tracking-widest uppercase font-light ${
+                                          isActiveLink(occ.to)
+                                            ? "text-black font-medium"
+                                            : ""
+                                        }`}
+                                      >
+                                        {occ.name}
+                                      </p>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Mobile Profile & Cart actions are elegantly arranged inside the panel */}
+              {/* Mobile Profile & Cart actions */}
               <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col gap-6">
                 <button
                   onClick={() => navigate("/profile")}
-                  className="flex items-center gap-3 text-gray-800 uppercase text-[10px] tracking-[0.2em] font-light"
+                  className={`flex items-center gap-3 uppercase text-[10px] tracking-[0.2em] font-light ${
+                    isActiveLink("/profile")
+                      ? "text-black font-medium"
+                      : "text-gray-800"
+                  }`}
                 >
                   <User size={18} strokeWidth={1} /> My Account
                 </button>
                 <button
                   onClick={() => navigate("/cart")}
-                  className="flex items-center gap-3 text-gray-800 uppercase text-[10px] tracking-[0.2em] font-light"
+                  className={`flex items-center gap-3 uppercase text-[10px] tracking-[0.2em] font-light ${
+                    isActiveLink("/cart")
+                      ? "text-black font-medium"
+                      : "text-gray-800"
+                  }`}
                 >
                   <ShoppingBag size={18} strokeWidth={1} /> Shopping Bag (
                   {cartCount})

@@ -24,7 +24,7 @@ const StepGender = ({ onNext }: StepGenderProps) => {
         {/* Female Option */}
         <button
           onClick={() => onNext("female")}
-          className="group relative overflow-hidden aspect-[3/4] bg-white transition-all"
+          className="group cursor-pointer relative overflow-hidden aspect-[3/4] bg-white transition-all"
         >
           <img
             src="/images/female-clothing/orange.png"
@@ -48,7 +48,7 @@ const StepGender = ({ onNext }: StepGenderProps) => {
         {/* Male Option */}
         <button
           onClick={() => onNext("male")}
-          className="group relative overflow-hidden aspect-[3/4] bg-white transition-all"
+          className="group cursor-pointer relative overflow-hidden aspect-[3/4] bg-white transition-all"
         >
           <img
             src="https://images.unsplash.com/photo-1663044022726-889ee51a682e?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
