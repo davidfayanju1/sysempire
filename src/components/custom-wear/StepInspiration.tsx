@@ -1,0 +1,555 @@
+import { useState } from "react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  Upload,
+  Image,
+  PenTool,
+  X,
+} from "lucide-react";
+
+interface StepInspirationProps {
+  onBack: () => void;
+  onNext: (
+    hasInspiration: boolean,
+    image?: string,
+    description?: string,
+  ) => void;
+  outfitType: string | null;
+}
+
+const StepInspiration = ({
+  onBack,
+  onNext,
+  outfitType,
+}: StepInspirationProps) => {
+  const [selectedMethod, setSelectedMethod] = useState<
+    "upload" | "describe" | "browse" | null
+  >(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (selectedMethod === "upload" && uploadedImage) {
+      onNext(true, uploadedImage);
+    } else if (selectedMethod === "describe" && description.trim()) {
+      onNext(true, undefined, description);
+    } else if (selectedMethod === "browse" && selectedStyle) {
+      onNext(true, selectedStyle);
+    }
+  };
+
+  // Get outfit type display name
+  const getOutfitTypeName = () => {
+    switch (outfitType) {
+      case "native-wear":
+        return "Native Wear";
+      case "corporate":
+        return "Corporate Wear";
+      case "dresses":
+        return "Dresses";
+      case "suits":
+        return "Suits";
+      case "casual":
+        return "Casual Wear";
+      case "wedding":
+        return "Wedding Wear";
+      case "uniforms":
+        return "Uniforms";
+      default:
+        return "outfit";
+    }
+  };
+
+  // Browse style templates based on outfit type
+  const getBrowseStyles = () => {
+    const stylesByType: Record<
+      string,
+      Array<{ id: number; name: string; image: string }>
+    > = {
+      "native-wear": [
+        {
+          id: 1,
+          name: "Traditional Agbada",
+          image:
+            "https://images.unsplash.com/photo-1688143029511-b37423aa60a2?q=80&w=986&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Modern Kaftan",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Buba & Sokoto",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Embroidered Dashiki",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "Iro ati Buba",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Senator Style",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+      ],
+      corporate: [
+        {
+          id: 1,
+          name: "Power Suit",
+          image:
+            "https://images.unsplash.com/photo-1763739528420-bdc297ff4ec7?q=80&w=987&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Blazer & Trousers",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Corporate Dress",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Executive Look",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "Modern Professional",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Business Casual",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+      ],
+      dresses: [
+        {
+          id: 1,
+          name: "Evening Gown",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Cocktail Dress",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Maxi Dress",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Bodycon",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "A-Line Dress",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Midi Dress",
+          image:
+            "https://images.unsplash.com/photo-1688143029511-b37423aa60a2?q=80&w=986&auto=format&fit=crop",
+        },
+      ],
+      suits: [
+        {
+          id: 1,
+          name: "Classic Suit",
+          image:
+            "https://images.unsplash.com/photo-1649532355244-e011eebe7a81?q=80&w=987&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Tuxedo",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Double-Breasted",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Slim Fit Suit",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "Three-Piece Suit",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Linen Suit",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+      ],
+      casual: [
+        {
+          id: 1,
+          name: "Weekend Look",
+          image:
+            "https://images.unsplash.com/photo-1614890085618-0e1054da74f8?q=80&w=987&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Smart Casual",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Relaxed Fit",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Summer Style",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "Streetwear",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Loungewear",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+      ],
+      wedding: [
+        {
+          id: 1,
+          name: "Bridal Gown",
+          image:
+            "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Groom's Suit",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Bridesmaid Dress",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Mother of Bride/Groom",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "Traditional Wedding",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Wedding Guest",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+      ],
+      uniforms: [
+        {
+          id: 1,
+          name: "Corporate Uniform",
+          image:
+            "https://images.unsplash.com/photo-1654762549162-1f1e6387d67e?q=80&w=2071&auto=format&fit=crop",
+        },
+        {
+          id: 2,
+          name: "School Uniform",
+          image:
+            "https://images.unsplash.com/photo-1617137968427-85924c800c22?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 3,
+          name: "Team Wear",
+          image:
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 4,
+          name: "Hospitality Uniform",
+          image:
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
+        },
+        {
+          id: 5,
+          name: "Security Uniform",
+          image:
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=1887&auto=format&fit=crop",
+        },
+        {
+          id: 6,
+          name: "Medical Wear",
+          image:
+            "https://images.unsplash.com/photo-1605637069235-6a99f0c45ff6?q=80&w=1935&auto=format&fit=crop",
+        },
+      ],
+    };
+
+    return stylesByType[outfitType || ""] || stylesByType["casual"];
+  };
+
+  const browseStyles = getBrowseStyles();
+
+  if (!selectedMethod) {
+    return (
+      <section className="py-20 px-6 max-w-4xl mx-auto">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back
+        </button>
+
+        <div className="text-center mb-12">
+          <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
+            Step 02
+          </span>
+          <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
+            Do you already have a design in mind?
+          </h2>
+          <p className="text-gray-500 max-w-lg mx-auto">
+            Share your vision for your {getOutfitTypeName()} with us however
+            it's easiest for you.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+          <button
+            onClick={() => setSelectedMethod("upload")}
+            className="p-8 bg-white border border-black/5 hover:border-black/20 transition-all text-center"
+          >
+            <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Upload className="w-5 h-5 text-black/60" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Upload Image</h3>
+            <p className="text-xs text-gray-400">
+              Screenshot, Pinterest, Instagram
+            </p>
+          </button>
+
+          <button
+            onClick={() => setSelectedMethod("describe")}
+            className="p-8 bg-white border border-black/5 hover:border-black/20 transition-all text-center"
+          >
+            <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <PenTool className="w-5 h-5 text-black/60" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Describe It</h3>
+            <p className="text-xs text-gray-400">Tell us in your own words</p>
+          </button>
+
+          <button
+            onClick={() => setSelectedMethod("browse")}
+            className="p-8 bg-white border border-black/5 hover:border-black/20 transition-all text-center"
+          >
+            <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Image className="w-5 h-5 text-black/60" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Browse Styles</h3>
+            <p className="text-xs text-gray-400">
+              Explore {getOutfitTypeName()} styles
+            </p>
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-20 px-6 max-w-4xl mx-auto">
+      <button
+        onClick={() => {
+          setSelectedMethod(null);
+          setSelectedStyle(null);
+        }}
+        className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Back to options
+      </button>
+
+      <div className="text-center mb-12">
+        <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
+          Step 02
+        </span>
+        <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
+          {selectedMethod === "upload" && "Share your inspiration image"}
+          {selectedMethod === "describe" && "Describe your dream outfit"}
+          {selectedMethod === "browse" &&
+            `Choose a ${getOutfitTypeName()} style that inspires you`}
+        </h2>
+        {selectedMethod === "browse" && (
+          <p className="text-gray-500 max-w-lg mx-auto">
+            Select a style close to what you're looking for. We'll use this as
+            inspiration for your custom {getOutfitTypeName().toLowerCase()}.
+          </p>
+        )}
+      </div>
+
+      {selectedMethod === "upload" && (
+        <div className="space-y-6 max-w-2xl mx-auto">
+          {!uploadedImage ? (
+            <label className="block border-2 border-dashed border-black/10 hover:border-black/30 transition-all p-12 text-center cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleUpload}
+                className="hidden"
+              />
+              <Upload className="w-8 h-8 text-black/40 mx-auto mb-3" />
+              <p className="text-sm text-gray-500">Click to upload an image</p>
+              <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+            </label>
+          ) : (
+            <div className="relative">
+              <img
+                src={uploadedImage}
+                alt="Inspiration"
+                className="w-full max-h-96 object-contain bg-gray-50"
+              />
+              <button
+                onClick={() => setUploadedImage(null)}
+                className="absolute top-2 right-2 p-1 bg-white/80 hover:bg-white"
+              >
+                <X className="w-4 h-4 text-black" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {selectedMethod === "describe" && (
+        <div className="max-w-2xl mx-auto">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={`Describe your vision for your ${getOutfitTypeName().toLowerCase()}... colors, style, mood, occasion, anything that helps us understand what you want.`}
+            rows={6}
+            className="w-full p-4 border border-black/10 focus:border-black/40 outline-none transition resize-none text-gray-700 placeholder:text-gray-300"
+          />
+        </div>
+      )}
+
+      {selectedMethod === "browse" && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          {browseStyles.map((style) => (
+            <button
+              key={style.id}
+              onClick={() => setSelectedStyle(style.image)}
+              className={`group relative aspect-[3/4] overflow-hidden bg-gray-100 border transition-all ${
+                selectedStyle === style.image
+                  ? "border-black"
+                  : "border-black/5 hover:border-black/20"
+              }`}
+            >
+              <img
+                src={style.image}
+                alt={style.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+                <p className="text-white text-sm font-light">{style.name}</p>
+              </div>
+              {selectedStyle === style.image && (
+                <div className="absolute top-3 right-3 w-5 h-5 bg-black border border-white">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-3 h-3 bg-white" />
+                  </div>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-4 mt-8 max-w-2xl mx-auto">
+        <button
+          onClick={() => {
+            setSelectedMethod(null);
+            setSelectedStyle(null);
+          }}
+          className="flex-1 py-3 border border-black/20 text-black/60 text-sm uppercase tracking-wider hover:border-black/40 transition"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={
+            (selectedMethod === "upload" && !uploadedImage) ||
+            (selectedMethod === "describe" && !description.trim()) ||
+            (selectedMethod === "browse" && !selectedStyle)
+          }
+          className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Continue <ArrowRight className="w-4 h-4 inline ml-2" />
+        </button>
+      </div>
+    </section>
+  );
+};
+
+export default StepInspiration;

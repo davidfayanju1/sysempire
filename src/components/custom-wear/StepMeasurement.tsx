@@ -10,7 +10,7 @@ import MeasurementModal from "./MeasurementModal";
 interface StepMeasurementProps {
   onBack: () => void;
   onNext: (measurements: any, method: "camera" | "upload" | "manual") => void;
-  gender: "male" | "female" | null;
+  gender?: "male" | "female" | null;
 }
 
 interface ManualMeasurement {
@@ -277,7 +277,7 @@ const StepMeasurement = ({ onBack, onNext, gender }: StepMeasurementProps) => {
           onComplete={(measurements) =>
             handleMeasurementComplete(measurements, "camera")
           }
-          gender={gender}
+          gender={gender ?? null}
         />
       )}
     </section>

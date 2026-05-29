@@ -1,18 +1,25 @@
-import { CheckCircle, Ruler, Sparkles, Heart } from "lucide-react";
+import {
+  CheckCircle,
+  Ruler,
+  Sparkles,
+  Heart,
+  Package,
+  Calendar,
+} from "lucide-react";
 import type { OrderData } from "../../pages/custom-wear";
 
 interface StepReviewProps {
   orderData: OrderData;
   onBack: () => void;
-  onSubmit: () => void;
+  onNext: () => void; // Changed from onSubmit to onNext to match parent
 }
 
-const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
+const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
   return (
     <section className="py-20 px-6 max-w-4xl mx-auto">
       <div className="text-center mb-12">
         <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
-          Step 04
+          Step 07
         </span>
         <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
           Review Your Order
@@ -23,23 +30,19 @@ const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Gender Card */}
+        {/* Outfit Type Card */}
         <div className="border border-black/10 p-6 bg-white">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center">
-                {orderData.gender === "male" ? (
-                  <Sparkles className="w-4 h-4 text-black/60" />
-                ) : (
-                  <Heart className="w-4 h-4 text-black/60" />
-                )}
+                <Sparkles className="w-4 h-4 text-black/60" />
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-gray-400">
-                  Collection
+                  Outfit Type
                 </p>
                 <p className="font-medium capitalize">
-                  SYS {orderData.gender === "male" ? "Men" : "Women"}
+                  {orderData.outfitType?.replace("-", " ") || "Not selected"}
                 </p>
               </div>
             </div>
@@ -50,32 +53,25 @@ const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
               Edit
             </button>
           </div>
-          <p className="text-sm text-gray-500">
-            {orderData.gender === "male"
-              ? "Powerful, elegant kings. Crafted from fine fibres that transcend time and generations."
-              : "Elegant silhouettes that dance with grace. Timeless pieces designed for the woman who moves through life with confidence."}
-          </p>
         </div>
 
-        {/* Style Intent Card */}
+        {/* Inspiration Card */}
         <div className="border border-black/10 p-6 bg-white">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center">
-                {orderData.hasStyleInMind ? (
-                  <Sparkles className="w-4 h-4 text-black/60" />
-                ) : (
-                  <Heart className="w-4 h-4 text-black/60" />
-                )}
+                <Heart className="w-4 h-4 text-black/60" />
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-gray-400">
-                  Style Approach
+                  Inspiration
                 </p>
                 <p className="font-medium">
-                  {orderData.hasStyleInMind
-                    ? "I have a style in mind"
-                    : "I need inspiration"}
+                  {orderData.hasInspiration === true
+                    ? "I have a design in mind"
+                    : orderData.hasInspiration === false
+                      ? "Need inspiration"
+                      : "Not specified"}
                 </p>
               </div>
             </div>
@@ -86,12 +82,98 @@ const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
               Edit
             </button>
           </div>
-          <p className="text-sm text-gray-500">
-            {orderData.hasStyleInMind
-              ? "You already know what you want. Our designers will work closely with you to bring your exact vision to life."
-              : "Our creative team will guide you through styles, fabrics, and designs that suit your personality and body type."}
-          </p>
+          {orderData.inspirationDescription && (
+            <p className="text-sm text-gray-500 mt-2">
+              {orderData.inspirationDescription}
+            </p>
+          )}
+          {orderData.inspirationImage && (
+            <div className="mt-3 w-20 h-20 overflow-hidden border border-black/10">
+              <img
+                src={orderData.inspirationImage}
+                alt="Inspiration"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
         </div>
+
+        {/* Fabric Card */}
+        <div className="border border-black/10 p-6 bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center">
+                <Package className="w-4 h-4 text-black/60" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-400">
+                  Fabric
+                </p>
+                <p className="font-medium capitalize">
+                  {orderData.fabricOption === "have-fabric"
+                    ? "I have fabric"
+                    : orderData.fabricOption === "source-fabric"
+                      ? "Source for me"
+                      : "Not sure yet"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onBack}
+              className="text-xs text-gray-400 hover:text-black"
+            >
+              Edit
+            </button>
+          </div>
+          {orderData.fabricDetails?.type && (
+            <p className="text-sm text-gray-500 mt-2">
+              Fabric type: {orderData.fabricDetails.type}
+            </p>
+          )}
+          {orderData.fabricPreferences?.colors &&
+            orderData.fabricPreferences.colors.length > 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Colors: {orderData.fabricPreferences.colors.join(", ")}
+              </p>
+            )}
+        </div>
+
+        {/* Customization Card */}
+        {Object.keys(orderData.customizations).length > 0 && (
+          <div className="border border-black/10 p-6 bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-black/60" />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-400">
+                    Customizations
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onBack}
+                className="text-xs text-gray-400 hover:text-black"
+              >
+                Edit
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              {Object.entries(orderData.customizations).map(([key, value]) => (
+                <div
+                  key={key}
+                  className="flex justify-between border-b border-black/5 py-2"
+                >
+                  <span className="text-xs text-gray-500 capitalize">
+                    {key.replace(/([A-Z])/g, " $1")}
+                  </span>
+                  <span className="text-sm font-light">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Measurements Card */}
         <div className="border border-black/10 p-6 bg-white">
@@ -109,7 +191,9 @@ const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
                     ? "AI Body Scan"
                     : orderData.measurementMethod === "upload"
                       ? "Photo Analysis"
-                      : "Manual Entry"}
+                      : orderData.measurementMethod === "manual"
+                        ? "Manual Entry"
+                        : "Not provided"}
                 </p>
               </div>
             </div>
@@ -144,6 +228,39 @@ const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
           )}
         </div>
 
+        {/* Delivery Card */}
+        <div className="border border-black/10 p-6 bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-black/60" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-400">
+                  Delivery
+                </p>
+                <p className="font-medium">
+                  {orderData.eventDate
+                    ? new Date(orderData.eventDate).toLocaleDateString()
+                    : "Not set"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onBack}
+              className="text-xs text-gray-400 hover:text-black"
+            >
+              Edit
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-2 capitalize">
+            {orderData.deliveryPreference === "pickup"
+              ? "Pick up from studio"
+              : "Deliver to me"}
+            {orderData.isExpress && " • Express Service"}
+          </p>
+        </div>
+
         {/* Next Steps Note */}
         <div className="bg-amber-50 border border-amber-200 p-6">
           <div className="flex items-start gap-3">
@@ -170,10 +287,10 @@ const StepReview = ({ orderData, onBack, onSubmit }: StepReviewProps) => {
             Back
           </button>
           <button
-            onClick={onSubmit}
+            onClick={onNext}
             className="flex-1 py-4 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition"
           >
-            Submit Order
+            Proceed to Payment
           </button>
         </div>
       </div>

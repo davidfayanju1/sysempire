@@ -7,6 +7,7 @@ import Founder from "../components/home/Founder";
 import Consultation from "../components/home/Consultation";
 import GenderClothes from "../components/home/GenderClothes";
 import Feedback from "../components/home/Feedback";
+import FAQ from "../components/home/FAQ";
 
 const Home = () => {
   return (
@@ -15,10 +16,10 @@ const Home = () => {
       <Marquee />
       <GenderClothes />
       <Founder />
-      <Consultation />
       <Testimonial />
+      <Consultation />
       <Feedback />
-      {/* <AboutUs /> */}
+      <FAQ />
     </DefaultLayout>
   );
 };
