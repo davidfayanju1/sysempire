@@ -5,9 +5,13 @@ const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Ensure video plays properly
-    if (videoRef.current) {
-      videoRef.current
+    const video = videoRef.current;
+    if (video) {
+      // Hardcode mute rules via JS to ensure browsers allow autoplay
+      video.muted = true;
+      video.defaultMuted = true;
+
+      video
         .play()
         .catch((error: { message: string; name: string; stack: string }) => {
           console.log("Video autoplay failed:", error);
@@ -16,27 +20,27 @@ const Hero = () => {
   }, []);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Background Video */}
+    <div className="relative h-screen w-full overflow-hidden bg-black">
+      {/* Background Video - Added z-0 */}
       <video
         ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover"
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
       >
         <source src="/videos/video2.mp4" type="video/mp4" />
       </video>
 
-      {/* Black and White Overlay - Multiple layers for editorial magazine effect */}
-      <div className="absolute inset-0 bg-black/50" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
+      {/* Overlays - Added z-10 to stay above video but below text */}
+      <div className="absolute inset-0 bg-black/50 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 z-10" />
 
-      {/* Grain/Noise Overlay for vintage magazine texture */}
+      {/* Grain/Noise Overlay */}
       <div
-        className="absolute inset-0 opacity-20 pointer-events-none"
+        className="absolute inset-0 opacity-20 pointer-events-none z-10"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           backgroundRepeat: "repeat",
@@ -44,8 +48,8 @@ const Hero = () => {
         }}
       />
 
-      {/* Hero Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
+      {/* Hero Content - Added z-20 to sit on top of everything */}
+      <div className="relative z-20 flex flex-col items-center justify-center h-full text-center px-6">
         <div className="max-w-4xl mx-auto">
           {/* Vogue-style badge */}
           <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 border border-white/20 mb-8">
@@ -54,7 +58,7 @@ const Hero = () => {
             </span>
           </div>
 
-          {/* Main headline with Times New Roman on key words */}
+          {/* Main headline */}
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-light tracking-tighter text-white mb-6">
             Where{" "}
             <span className="font-['Times_New_Roman',serif] font-light italic text-white">
@@ -95,12 +99,12 @@ const Hero = () => {
       </div>
 
       {/* Vogue-style decorative line */}
-      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-10">
+      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-20">
         <div className="w-px h-8 bg-white/30" />
       </div>
 
-      {/* Scroll Indicator - Vogue inspired */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
         <div className="flex flex-col items-center gap-2">
           <span className="text-[7px] tracking-[0.3em] uppercase text-white/40 font-['Times_New_Roman',serif]">
             CONTINUE

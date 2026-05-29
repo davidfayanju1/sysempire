@@ -82,7 +82,7 @@ const StepOutfitType = ({ onNext }: StepOutfitTypeProps) => {
           <button
             key={category.id}
             onClick={() => onNext(category.id)}
-            className="group relative aspect-3/4 overflow-hidden bg-gray-100 border border-black/5 hover:border-black/20 transition-all"
+            className="group cursor-pointer relative aspect-3/4 overflow-hidden bg-gray-100 border border-black/5 hover:border-black/20 transition-all"
           >
             {/* Full Image */}
             <img
