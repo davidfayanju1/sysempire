@@ -354,7 +354,7 @@ const StepInspiration = ({
 
   if (!selectedMethod) {
     return (
-      <section className="py-20 px-6 max-w-4xl mx-auto">
+      <section className="py-20 px-6 max-w-5xl mx-auto">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"

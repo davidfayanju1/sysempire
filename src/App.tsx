@@ -14,6 +14,7 @@ import UserProfile from "./pages/user-profile";
 import Wears from "./pages/wears";
 import ProductDetails from "./pages/product-details";
 import CustomWear from "./pages/custom-wear";
+import WeAreBack from "./pages/we-are-back";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/wears/:name" element={<Wears />} />
         <Route path="/custom-wear" element={<CustomWear />} />
         <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/we-are-back" element={<WeAreBack />} />
       </Routes>
     </>
   );

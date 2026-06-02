@@ -1,7 +1,11 @@
 import { ArrowRight, Heart, MapPin, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
 
-const Consultation = () => {
+interface ConsultationProps {
+  className?: string;
+}
+
+const Consultation = ({ className = "bg-gray-100" }: ConsultationProps) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,7 +37,7 @@ const Consultation = () => {
   };
 
   return (
-    <section className="bg-gray-50 overflow-hidden">
+    <section className={`overflow-hidden ${className}`}>
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-10 md:py-24">
         {/* Header - Vogue editorial style */}
         <div className="max-w-4xl mx-auto text-center mb-16">
