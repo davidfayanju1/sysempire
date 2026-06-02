@@ -1,21 +1,14 @@
-import React from "react";
-
 const WeAreBack = () => {
   return (
     <div className="min-h-screen bg-[#fcf8f2] flex items-center justify-center p-4 md:p-8 antialiased">
       {/* Main Flier Container */}
       <div
-        className="w-full max-w-4xl min-h-[600px] shadow-2xl relative overflow-hidden border border-[#58182d]/10 bg-cover bg-[center_top] flex items-stretch"
+        className="w-full max-w-4xl min-h-[600px] shadow-2xl relative overflow-hidden border border-[#58182d]/10 bg-cover bg-position-[center_top] flex items-stretch"
         style={{
           backgroundImage: `url('/images/female-clothing/orange.png')`,
         }}
       >
-        {/* 
-          Sleek Gradient Overlay (Reversed): 
-          Now fades from semi-clear on the left to deeper wine on the right side 
-          to provide a perfect background for the text on the right.
-        */}
-        <div className="absolute inset-0 bg-gradient-to-l from-[#2a0b15]/95 via-[#58182d]/80 to-[#58182d]/20 z-10" />
+        <div className="absolute inset-0 bg-linear-to-l from-[#2a0b15]/95 via-[#58182d]/80 to-[#58182d]/20 z-10" />
         <div className="absolute inset-0 bg-[#2a0b15]/5 backdrop-blur-[0.3px] z-10" />
 
         {/* Absolute TOP-LEFT Logo Placement */}
