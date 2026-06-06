@@ -2,14 +2,20 @@ const WeAreBack = () => {
   return (
     <div className="min-h-screen bg-[#fcf8f2] flex items-center justify-center p-4 md:p-8 antialiased">
       {/* Main Flier Container */}
-      <div
-        className="w-full max-w-4xl min-h-[600px] shadow-2xl relative overflow-hidden border border-[#58182d]/10 bg-cover bg-position-[center_top] flex items-stretch"
-        style={{
-          backgroundImage: `url('/images/female-clothing/orange.png')`,
-        }}
-      >
-        <div className="absolute inset-0 bg-linear-to-l from-[#2a0b15]/95 via-[#58182d]/80 to-[#58182d]/20 z-10" />
-        <div className="absolute inset-0 bg-[#2a0b15]/5 backdrop-blur-[0.3px] z-10" />
+      <div className="w-full max-w-4xl min-h-[600px] shadow-2xl relative overflow-hidden border border-[#58182d]/10 flex items-stretch">
+        {/* Full background image - full width, top visible */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/female-clothing/sky-blue.png"
+            alt="Background"
+            className="w-full h-full object-cover object-top"
+            style={{ objectPosition: "left top" }}
+          />
+        </div>
+
+        {/* Reduced gradient overlays */}
+        <div className="absolute inset-0 bg-linear-to-r from-[#2a0b15]/60 via-[#58182d]/50 to-transparent z-10" />
+        <div className="absolute inset-0 bg-[#2a0b15]/5 z-10" />
 
         {/* Absolute TOP-LEFT Logo Placement */}
         <div className="absolute top-6 left-6 md:top-10 md:left-10 z-30 max-w-[140px] md:max-w-[185px]">
@@ -38,12 +44,12 @@ const WeAreBack = () => {
 
           {/* Middle Section: Premium Copywriting */}
           <div className="space-y-6 max-w-xl my-auto py-4 drop-shadow-sm">
-            <p className="text-lg md:text-xl font-serif font-light leading-relaxed text-[#fbf5eb] text-balance">
+            <p className="text-lg md:text-xl font-serif font-light leading-relaxed text-white text-balance">
               Our doors and digital channels are completely open. We are ready
               to bring your fashion visions to life with the precision you
               expect.
             </p>
-            <p className="text-sm md:text-base font-light leading-relaxed text-[#fbf5eb]/85 tracking-wide text-balance">
+            <p className="text-sm md:text-base font-light leading-relaxed text-white tracking-wide text-balance">
               Every detail has been refined. From custom tailoring to premium
               delivery, we have stepped up our standards to ensure we serve you
               consistently, efficiently, and{" "}
@@ -56,7 +62,7 @@ const WeAreBack = () => {
           {/* Bottom Section: Call to Action & Operational Hours */}
           <div className="border-t border-[#fbf5eb]/20 pt-8 mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-[#fbf5eb]/60 font-sans font-medium">
+              <p className="text-[10px] tracking-[0.2em] uppercase text-white font-sans font-medium">
                 Experience the Empire
               </p>
               <p className="text-base font-serif font-medium tracking-wide text-white mt-0.5 drop-shadow-sm">

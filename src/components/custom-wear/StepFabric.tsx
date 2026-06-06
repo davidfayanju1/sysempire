@@ -162,7 +162,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
               Pickup Preference
             </label>
             <div className="flex gap-4">
-              <button
+              {/* <button
                 onClick={() =>
                   setFabricDetails({
                     ...fabricDetails,
@@ -176,7 +176,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
                 }`}
               >
                 Schedule Pickup
-              </button>
+              </button> */}
               <button
                 onClick={() =>
                   setFabricDetails({
@@ -193,6 +193,9 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
                 I'll Drop Off
               </button>
             </div>
+            <small className="block mt-3">
+              *You'll get directions to our studio after placing your order
+            </small>
           </div>
         </div>
 

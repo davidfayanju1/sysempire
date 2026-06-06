@@ -160,7 +160,7 @@ const Nav = () => {
                   >
                     <button
                       onClick={() => link.to && handleNavigation(link.to)}
-                      className={`flex items-center gap-1 text-[10px] tracking-[0.2em] uppercase font-light transition-colors ${
+                      className={`flex cursor-pointer items-center gap-1 text-[10px] tracking-[0.2em] uppercase font-light transition-colors ${
                         isDarkTheme ? "text-gray-800" : "text-white"
                       } ${
                         isActive
@@ -191,21 +191,21 @@ const Nav = () => {
             <div className="hidden lg:flex items-center gap-6 z-50">
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className={isDarkTheme ? "text-gray-800" : "text-white"}
+                className={`${isDarkTheme ? "text-gray-800" : "text-white"} cursor-pointer`}
               >
                 <Search size={18} strokeWidth={1} />
               </button>
 
               <button
                 onClick={() => navigate("/profile")}
-                className={isDarkTheme ? "text-gray-800" : "text-white"}
+                className={`${isDarkTheme ? "text-gray-800" : "text-white"} cursor-pointer`}
               >
                 <User size={18} strokeWidth={1} />
               </button>
 
               <button
                 onClick={() => navigate("/cart")}
-                className={`relative ${isDarkTheme ? "text-gray-800" : "text-white"}`}
+                className={`relative cursor-pointer ${isDarkTheme ? "text-gray-800" : "text-white"}`}
               >
                 <ShoppingBag size={18} strokeWidth={1} />
                 {cartCount > 0 && (
