@@ -7,8 +7,13 @@ import {
   X,
   ChevronRight,
   ChevronDown,
+  Trash2,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useCart } from "../../util/useCart";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,7 +21,8 @@ const Nav = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { cartItems, cartCount, removeFromCart, updateQuantity } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -35,11 +41,6 @@ const Nav = () => {
   };
 
   useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartCount(cart.length);
-  }, [location]);
-
-  useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -51,13 +52,14 @@ const Nav = () => {
     setActiveDropdown(null);
     setMobileExpanded(null);
     setIsSearchOpen(false);
+    setIsCartOpen(false);
   }, [location]);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow =
-      isMobileMenuOpen || isSearchOpen ? "hidden" : "";
-  }, [isMobileMenuOpen, isSearchOpen]);
+      isMobileMenuOpen || isSearchOpen || isCartOpen ? "hidden" : "";
+  }, [isMobileMenuOpen, isSearchOpen, isCartOpen]);
 
   const handleMouseEnter = (dropdownName: any) => {
     if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
@@ -66,6 +68,26 @@ const Nav = () => {
 
   const handleMouseLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => setActiveDropdown(null), 200);
+  };
+
+  const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
+    if (newQuantity < 1) {
+      removeFromCart(itemId);
+    } else {
+      updateQuantity(itemId, newQuantity);
+    }
+  };
+
+  const handleRemoveItem = (itemId: number, itemName: string) => {
+    removeFromCart(itemId);
+    toast.success(`${itemName} removed from cart`);
+  };
+
+  const getTotalPrice = () => {
+    return cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0,
+    );
   };
 
   const collections = [
@@ -113,13 +135,13 @@ const Nav = () => {
     { label: "RTW", to: "/wears/new-arrivals" },
     { label: "COLLECTIONS", dropdown: "collections" },
     { label: "OCCASIONS", dropdown: "occasions" },
-    // { label: "EDITORIAL", to: "/wears/editorial" },
-    // { label: "ATELIER", to: "/wears/atelier" },
     { label: "PERSONAL FIT", to: "/custom-wear" },
   ];
 
   const handleNavigation = (to: string) => {
     navigate(to);
+    setIsMobileMenuOpen(false);
+    setIsCartOpen(false);
   };
 
   return (
@@ -204,7 +226,7 @@ const Nav = () => {
               </button>
 
               <button
-                onClick={() => navigate("/cart")}
+                onClick={() => setIsCartOpen(true)}
                 className={`relative cursor-pointer ${isDarkTheme ? "text-gray-800" : "text-white"}`}
               >
                 <ShoppingBag size={18} strokeWidth={1} />
@@ -432,7 +454,7 @@ const Nav = () => {
               {/* Mobile Profile & Cart actions */}
               <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col gap-6">
                 <button
-                  onClick={() => navigate("/profile")}
+                  onClick={() => handleNavigation("/profile")}
                   className={`flex items-center gap-3 uppercase text-[10px] tracking-[0.2em] font-light ${
                     isActiveLink("/profile")
                       ? "text-black font-medium"
@@ -442,7 +464,10 @@ const Nav = () => {
                   <User size={18} strokeWidth={1} /> My Account
                 </button>
                 <button
-                  onClick={() => navigate("/cart")}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsCartOpen(true);
+                  }}
                   className={`flex items-center gap-3 uppercase text-[10px] tracking-[0.2em] font-light ${
                     isActiveLink("/cart")
                       ? "text-black font-medium"
@@ -499,6 +524,193 @@ const Nav = () => {
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cart Slider Modal */}
+      <AnimatePresence>
+        {isCartOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCartOpen(false)}
+              className="fixed inset-0 bg-black/50 z-[55] lg:hidden"
+            />
+
+            {/* Cart Slider */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white shadow-2xl z-[60] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div>
+                  <h2 className="text-xl font-light tracking-wide">
+                    Your Cart
+                  </h2>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {cartCount} {cartCount === 1 ? "item" : "items"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsCartOpen(false)}
+                  className="text-gray-400 hover:text-black transition-colors"
+                >
+                  <X size={24} strokeWidth={1} />
+                </button>
+              </div>
+
+              {/* Cart Items */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {cartItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <ShoppingBag
+                      size={48}
+                      strokeWidth={1}
+                      className="text-gray-300 mb-4"
+                    />
+                    <p className="text-gray-500 font-light">
+                      Your cart is empty
+                    </p>
+                    <button
+                      onClick={() => {
+                        setIsCartOpen(false);
+                        navigate("/");
+                      }}
+                      className="mt-6 px-6 py-2 border border-black text-black text-sm uppercase tracking-wider hover:bg-black hover:text-white transition-colors"
+                    >
+                      Continue Shopping
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {cartItems.map((item) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="flex gap-4"
+                      >
+                        {/* Product Image */}
+                        <div className="w-20 h-24 bg-gray-100 overflow-hidden flex-shrink-0">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        {/* Product Details */}
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <div>
+                              <h3 className="font-medium text-sm tracking-wide">
+                                {item.name}
+                              </h3>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Size: {item.size} / Color: {item.color}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                SKU: {item.sku}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() =>
+                                handleRemoveItem(item.id, item.name)
+                              }
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 size={16} strokeWidth={1} />
+                            </button>
+                          </div>
+
+                          {/* Quantity Controls and Price */}
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center gap-2 border border-gray-200">
+                              <button
+                                onClick={() =>
+                                  handleUpdateQuantity(
+                                    item.id,
+                                    item.quantity - 1,
+                                  )
+                                }
+                                className="px-2 py-1 hover:bg-gray-50 transition-colors"
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span className="w-8 text-center text-sm">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleUpdateQuantity(
+                                    item.id,
+                                    item.quantity + 1,
+                                  )
+                                }
+                                className="px-2 py-1 hover:bg-gray-50 transition-colors"
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
+                            <p className="font-medium text-sm">
+                              ₦
+                              {(item.price * item.quantity).toLocaleString(
+                                "en-NG",
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {cartItems.length > 0 && (
+                <div className="border-t border-gray-100 p-6 space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">
+                      ₦{getTotalPrice().toLocaleString("en-NG")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-gray-500">
+                      Calculated at checkout
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      navigate("/checkout");
+                    }}
+                    className="w-full bg-black text-white py-3 text-sm uppercase tracking-wider hover:bg-gray-800 transition-colors"
+                  >
+                    Proceed to Checkout
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      navigate("/product");
+                    }}
+                    className="w-full border border-gray-300 py-3 text-sm uppercase tracking-wider hover:border-black transition-colors"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

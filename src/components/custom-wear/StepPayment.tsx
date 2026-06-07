@@ -80,10 +80,10 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium">Pay Deposit (50%)</span>
             <div
-              className={`w-4 h-4 border rounded-full ${paymentMethod === "deposit" ? "border-black" : "border-gray-300"}`}
+              className={`w-4 h-4 border bg-red-800 rounded-full ${paymentMethod === "deposit" ? "border-black" : "border-gray-300"}`}
             >
               {paymentMethod === "deposit" && (
-                <div className="w-2 h-2 bg-black rounded-full m-0.5" />
+                <div className="w-2 h-2 bg-black rounded-full" />
               )}
             </div>
           </div>
