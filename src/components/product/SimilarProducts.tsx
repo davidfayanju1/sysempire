@@ -82,7 +82,7 @@ const SimilarProducts = ({
                 {product.name}
               </h4>
               <p className="text-sm text-gray-900 font-light">
-                ${product.price.toLocaleString()}
+                ₦{product.price.toLocaleString("en-NG")}
               </p>
             </div>
           </motion.div>

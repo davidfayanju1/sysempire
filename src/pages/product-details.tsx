@@ -14,11 +14,14 @@ import {
   Plus,
   Minus,
   X,
-  Scissors,
   ChevronRight,
+  Check,
+  Info,
+  Maximize2,
 } from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
 import SimilarProducts from "../components/product/SimilarProducts";
+import { toast } from "sonner";
 
 // Types
 interface ProductImage {
@@ -43,7 +46,6 @@ interface Product {
   material: string;
   careInstructions: string[];
   fit: string;
-  allowsCustomSize: boolean;
 }
 
 // Mock products database - exported for use in other components
@@ -77,7 +79,7 @@ export const productsDatabase: { [key: number]: Product } = {
       },
     ],
     category: "Evening Wear",
-    sizes: ["XS", "S", "M", "L", "XL"],
+    sizes: ["XXS", "XS", "S", "M", "L", "XL", "XXL"],
     colors: [
       {
         name: "Midnight Blue",
@@ -110,7 +112,6 @@ export const productsDatabase: { [key: number]: Product } = {
       "Store in garment bag",
     ],
     fit: "True to size, model is 5'9\" wearing size S",
-    allowsCustomSize: true,
   },
   2: {
     id: 2,
@@ -131,7 +132,7 @@ export const productsDatabase: { [key: number]: Product } = {
       },
     ],
     category: "Evening Wear",
-    sizes: ["XS", "S", "M", "L", "XL"],
+    sizes: ["XXS", "XS", "S", "M", "L", "XL", "XXL"],
     colors: [
       { name: "Black", code: "#000000" },
       { name: "Navy", code: "#000080" },
@@ -143,7 +144,6 @@ export const productsDatabase: { [key: number]: Product } = {
     material: "Luxury Velvet",
     careInstructions: ["Dry clean only", "Do not iron directly"],
     fit: "True to size",
-    allowsCustomSize: true,
   },
   3: {
     id: 3,
@@ -164,7 +164,7 @@ export const productsDatabase: { [key: number]: Product } = {
       },
     ],
     category: "Evening Wear",
-    sizes: ["XS", "S", "M", "L", "XL"],
+    sizes: ["XXS", "XS", "S", "M", "L", "XL", "XXL"],
     colors: [
       { name: "Sapphire", code: "#0f52ba" },
       { name: "Emerald", code: "#50c878" },
@@ -176,7 +176,6 @@ export const productsDatabase: { [key: number]: Product } = {
     material: "Italian Silk",
     careInstructions: ["Dry clean only", "Do not bleach"],
     fit: "True to size",
-    allowsCustomSize: true,
   },
   4: {
     id: 4,
@@ -197,7 +196,7 @@ export const productsDatabase: { [key: number]: Product } = {
       },
     ],
     category: "Evening Wear",
-    sizes: ["XS", "S", "M", "L"],
+    sizes: ["XXS", "XS", "S", "M", "L", "XL"],
     colors: [
       { name: "Clear Crystal", code: "#e8e8e8" },
       { name: "Rose Gold", code: "#b76e79" },
@@ -212,7 +211,6 @@ export const productsDatabase: { [key: number]: Product } = {
       "Do not iron directly on crystals",
     ],
     fit: "True to size",
-    allowsCustomSize: true,
   },
   5: {
     id: 5,
@@ -228,7 +226,7 @@ export const productsDatabase: { [key: number]: Product } = {
       },
     ],
     category: "Evening Wear",
-    sizes: ["XS", "S", "M", "L", "XL"],
+    sizes: ["XXS", "XS", "S", "M", "L", "XL", "XXL"],
     colors: [
       { name: "Pearl White", code: "#f8f0e3" },
       { name: "Ivory", code: "#fff8f0" },
@@ -240,9 +238,21 @@ export const productsDatabase: { [key: number]: Product } = {
     material: "Dupioni Silk",
     careInstructions: ["Dry clean only"],
     fit: "True to size",
-    allowsCustomSize: true,
   },
 };
+
+// Cart item interface
+interface CartItem {
+  id: number;
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  size: string;
+  color: string;
+  image: string;
+  sku: string;
+}
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -255,45 +265,25 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
-  const [creatingOrder, setCreatingOrder] = useState(false);
-  const [showOrderCreated, setShowOrderCreated] = useState(false);
-  const [isCustomSize, setIsCustomSize] = useState(false);
-  const [showCustomSizeModal, setShowCustomSizeModal] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [showCartNotification, setShowCartNotification] = useState(false);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(true);
-  const [customMeasurements, setCustomMeasurements] = useState({
-    bust: "",
-    waist: "",
-    hips: "",
-    shoulder: "",
-    armLength: "",
-    torsoLength: "",
-    notes: "",
-  });
 
   // Refs for sticky elements
   const imageColumnRef = useRef<HTMLDivElement>(null);
   const similarProductsRef = useRef<HTMLDivElement>(null);
   const productInfoEndRef = useRef<HTMLDivElement>(null);
 
-  // Check if user is logged in
-  const isLoggedIn = () => {
-    const token = localStorage.getItem("authToken");
-    return !!token;
-  };
-
   // Fetch product data based on ID from URL
   useEffect(() => {
     setLoading(true);
 
-    // Simulate API fetch with a small delay
     const timer = setTimeout(() => {
       let productId: number;
 
-      // Try to parse the id as a number
       if (id && !isNaN(Number(id))) {
         productId = Number(id);
       } else {
-        // If id is not a number, try to find by slug or name (for demo, default to 1)
         productId = 1;
       }
 
@@ -302,7 +292,6 @@ const ProductDetails = () => {
       if (foundProduct) {
         setProduct(foundProduct);
       } else {
-        // If product not found, try to show first product as fallback
         const firstProduct = productsDatabase[1];
         if (firstProduct) {
           setProduct(firstProduct);
@@ -326,7 +315,6 @@ const ProductDetails = () => {
         const similarProductsTop = similarProductsRef.current.offsetTop;
         const scrollPosition = window.scrollY + window.innerHeight;
 
-        // Hide sticky bar when reaching similar products section
         if (scrollPosition > similarProductsTop) {
           setIsStickyBarVisible(false);
         } else {
@@ -339,76 +327,72 @@ const ProductDetails = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [product]);
 
-  const handleCreateOrder = () => {
-    if (!selectedSize && !isCustomSize) {
-      alert("Please select a size or choose custom size");
+  // Get cart items from localStorage
+  const getCart = (): CartItem[] => {
+    const cart = localStorage.getItem("cart");
+    return cart ? JSON.parse(cart) : [];
+  };
+
+  // Save cart to localStorage
+  const saveCart = (cart: CartItem[]) => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    // Dispatch event to update cart count in header
+    window.dispatchEvent(new Event("cartUpdated"));
+  };
+
+  // Add to cart function
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      toast.error("Please select a size");
       return;
     }
     if (!selectedColor) {
-      alert("Please select a color");
+      toast.error("Please select a color");
       return;
     }
+    if (!product) return;
 
-    setCreatingOrder(true);
+    setAddingToCart(true);
 
-    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
+    const cart = getCart();
 
-    const orderItem = {
+    const cartItem: CartItem = {
       id: Date.now(),
-      productId: product?.id,
-      name: product?.name,
-      price: product?.price,
+      productId: product.id,
+      name: product.name,
+      price: product.price,
       quantity: quantity,
-      size: isCustomSize ? "Custom Size" : selectedSize,
+      size: selectedSize,
       color: selectedColor,
-      image: product?.images[0].url,
-      sku: product?.sku,
-      orderDate: new Date().toISOString(),
-      status: "pending",
-      isCustomSize: isCustomSize,
-      measurements: isCustomSize ? customMeasurements : null,
+      image: product.images[0].url,
+      sku: product.sku,
     };
 
-    existingOrders.push(orderItem);
-    localStorage.setItem("orders", JSON.stringify(existingOrders));
+    // Check if item already exists in cart (same product, size, color)
+    const existingItemIndex = cart.findIndex(
+      (item) =>
+        item.productId === product.id &&
+        item.size === cartItem.size &&
+        item.color === cartItem.color,
+    );
 
-    window.dispatchEvent(new Event("orderCreated"));
+    if (existingItemIndex !== -1) {
+      // Update quantity if item exists
+      cart[existingItemIndex].quantity += quantity;
+      saveCart(cart);
+      toast.success(`Updated ${product.name} quantity in cart`);
+    } else {
+      // Add new item
+      cart.push(cartItem);
+      saveCart(cart);
+      toast.success(`${product.name} added to cart`);
+    }
 
     setTimeout(() => {
-      setCreatingOrder(false);
-      setShowOrderCreated(true);
-      setTimeout(() => setShowOrderCreated(false), 3000);
-
-      setSelectedSize("");
-      setSelectedColor("");
-      setQuantity(1);
-      setIsCustomSize(false);
+      setAddingToCart(false);
+      setShowCartNotification(true);
+      setTimeout(() => setShowCartNotification(false), 3000);
     }, 500);
-  };
-
-  const handleCustomSizeClick = () => {
-    if (!isLoggedIn()) {
-      navigate("/login", {
-        state: { from: `/product/${id}`, customSizeRequest: true },
-      });
-    } else {
-      setShowCustomSizeModal(true);
-    }
-  };
-
-  const handleCustomSizeSubmit = () => {
-    if (
-      !customMeasurements.bust ||
-      !customMeasurements.waist ||
-      !customMeasurements.hips
-    ) {
-      alert("Please provide at least bust, waist, and hip measurements");
-      return;
-    }
-
-    setIsCustomSize(true);
-    setSelectedSize("custom");
-    setShowCustomSizeModal(false);
   };
 
   const handleQuantityChange = (delta: number) => {
@@ -548,13 +532,13 @@ const ProductDetails = () => {
               <div className="border-t border-gray-100 pt-6">
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-light tracking-wide">
-                    ${product.price.toLocaleString()}
+                    ₦{(product.price * quantity).toLocaleString("en-NG")}
                   </span>
-                  <span className="text-sm text-gray-400">USD</span>
+                  <span className="text-sm text-gray-400">NGN</span>
                 </div>
                 {product.inStock && (
                   <span className="inline-block mt-2 text-xs text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                    Available for Order
+                    In Stock
                   </span>
                 )}
               </div>
@@ -615,12 +599,9 @@ const ProductDetails = () => {
                   {product.sizes.map((size) => (
                     <button
                       key={size}
-                      onClick={() => {
-                        setIsCustomSize(false);
-                        setSelectedSize(size);
-                      }}
+                      onClick={() => setSelectedSize(size)}
                       className={`min-w-[60px] h-12 px-4 border transition-all ${
-                        selectedSize === size && !isCustomSize
+                        selectedSize === size
                           ? "border-black bg-black text-white"
                           : "border-gray-300 hover:border-black text-gray-700"
                       }`}
@@ -628,28 +609,7 @@ const ProductDetails = () => {
                       {size}
                     </button>
                   ))}
-
-                  {/* Custom Size Option */}
-                  {product.allowsCustomSize && (
-                    <button
-                      onClick={handleCustomSizeClick}
-                      className={`min-w-[120px] h-12 px-4 border transition-all flex items-center justify-center gap-2 ${
-                        isCustomSize
-                          ? "border-black bg-black text-white"
-                          : "border-gray-300 hover:border-black text-gray-700"
-                      }`}
-                    >
-                      <Scissors className="w-4 h-4" />
-                      Custom Size
-                    </button>
-                  )}
                 </div>
-                {isCustomSize && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    ✓ Custom size selected. Our atelier will contact you for
-                    detailed measurements.
-                  </p>
-                )}
               </div>
 
               {/* Quantity */}
@@ -679,19 +639,19 @@ const ProductDetails = () => {
               {/* Action Buttons - Regular desktop view */}
               <div className="hidden md:block space-y-3 pt-4">
                 <button
-                  onClick={handleCreateOrder}
-                  disabled={creatingOrder}
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
                   className="w-full bg-black text-white py-4 px-8 tracking-[0.2em] text-sm uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
-                  {creatingOrder ? (
+                  {addingToCart ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                      Processing...
+                      Adding to Cart...
                     </>
                   ) : (
                     <>
                       <ShoppingBag className="w-4 h-4" />
-                      Create Order
+                      Add to Cart
                     </>
                   )}
                 </button>
@@ -703,9 +663,7 @@ const ProductDetails = () => {
                   >
                     <Heart
                       className={`w-4 h-4 transition-all ${
-                        isWishlisted
-                          ? "fill-red-500 text-red-500"
-                          : "group-hover:text-red-500"
+                        isWishlisted ? "fill-red-500 text-red-500" : ""
                       }`}
                     />
                     Wishlist
@@ -715,18 +673,6 @@ const ProductDetails = () => {
                     Share
                   </button>
                 </div>
-              </div>
-
-              {/* Custom Order Notice */}
-              <div className="bg-gray-50 p-4 border-l-4 border-black">
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  <span className="font-medium">
-                    ✨ Custom Orders Available:
-                  </span>{" "}
-                  Need a unique size or personalized fit? Select "Custom Size"
-                  and our master tailors will create a piece exclusively for
-                  you. Custom orders typically take 4-6 weeks for completion.
-                </p>
               </div>
 
               {/* Shipping & Returns */}
@@ -745,7 +691,7 @@ const ProductDetails = () => {
                   <div>
                     <p className="text-sm font-medium">14-Day Returns</p>
                     <p className="text-xs text-gray-500">
-                      Hassle-free returns within 14 days (excludes custom sizes)
+                      Hassle-free returns within 14 days
                     </p>
                   </div>
                 </div>
@@ -818,7 +764,7 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Mobile Sticky Order Button - Only shows when not scrolled past similar products */}
+      {/* Mobile Sticky Add to Cart Button */}
       <AnimatePresence>
         {isStickyBarVisible && (
           <motion.div
@@ -836,16 +782,16 @@ const ProductDetails = () => {
                 </div>
               </div>
               <button
-                onClick={handleCreateOrder}
-                disabled={creatingOrder}
+                onClick={handleAddToCart}
+                disabled={addingToCart}
                 className="flex-1 bg-black text-white py-3 px-6 tracking-[0.2em] text-xs uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {creatingOrder ? (
+                {addingToCart ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                 ) : (
                   <>
                     <ShoppingBag className="w-4 h-4" />
-                    Create Order
+                    Add
                   </>
                 )}
               </button>
@@ -869,25 +815,33 @@ const ProductDetails = () => {
         )}
       </AnimatePresence>
 
-      {/* Size Guide Modal */}
+      {/* Professional Size Guide Modal */}
       <AnimatePresence>
         {showSizeGuide && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6"
+            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6 overflow-y-auto"
             onClick={() => setShowSizeGuide(false)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white max-w-lg w-full p-8"
+              className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-light tracking-wide">Size Guide</h3>
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-light tracking-wide">
+                    Size Guide
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Find your perfect fit with our detailed measurements
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowSizeGuide(false)}
                   className="text-gray-400 hover:text-black transition-colors"
@@ -895,218 +849,203 @@ const ProductDetails = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="space-y-4">
-                <div className="grid grid-cols-4 gap-2 text-sm">
-                  <div className="font-medium">Size</div>
-                  <div className="font-medium">Bust</div>
-                  <div className="font-medium">Waist</div>
-                  <div className="font-medium">Hips</div>
-                  {[
-                    {
-                      size: "XS",
-                      bust: "30-32",
-                      waist: "24-26",
-                      hips: "33-35",
-                    },
-                    { size: "S", bust: "32-34", waist: "26-28", hips: "35-37" },
-                    { size: "M", bust: "34-36", waist: "28-30", hips: "37-39" },
-                    { size: "L", bust: "36-38", waist: "30-32", hips: "39-41" },
-                    {
-                      size: "XL",
-                      bust: "38-40",
-                      waist: "32-34",
-                      hips: "41-43",
-                    },
-                  ].map((row) => (
-                    <>
-                      <div className="text-gray-600">{row.size}</div>
-                      <div className="text-gray-600">{row.bust}"</div>
-                      <div className="text-gray-600">{row.waist}"</div>
-                      <div className="text-gray-600">{row.hips}"</div>
-                    </>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-4">
-                  Measurements are in inches. Model is 5'9" wearing size S.
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Custom Size Modal */}
-      <AnimatePresence>
-        {showCustomSizeModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6 overflow-y-auto"
-            onClick={() => setShowCustomSizeModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-light tracking-wide">
-                  Custom Size Request
-                </h3>
-                <button
-                  onClick={() => setShowCustomSizeModal(false)}
-                  className="text-gray-400 hover:text-black transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <p className="text-sm text-gray-600">
-                  Please provide your measurements for a perfect fit. Our
-                  atelier will contact you to confirm details and may request
-                  additional measurements if needed.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Bust (inches) *
-                    </label>
-                    <input
-                      type="number"
-                      value={customMeasurements.bust}
-                      onChange={(e) =>
-                        setCustomMeasurements({
-                          ...customMeasurements,
-                          bust: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                      placeholder="e.g., 34"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Waist (inches) *
-                    </label>
-                    <input
-                      type="number"
-                      value={customMeasurements.waist}
-                      onChange={(e) =>
-                        setCustomMeasurements({
-                          ...customMeasurements,
-                          waist: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                      placeholder="e.g., 28"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Hips (inches) *
-                    </label>
-                    <input
-                      type="number"
-                      value={customMeasurements.hips}
-                      onChange={(e) =>
-                        setCustomMeasurements({
-                          ...customMeasurements,
-                          hips: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                      placeholder="e.g., 38"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Shoulder Width (inches)
-                    </label>
-                    <input
-                      type="number"
-                      value={customMeasurements.shoulder}
-                      onChange={(e) =>
-                        setCustomMeasurements({
-                          ...customMeasurements,
-                          shoulder: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                      placeholder="e.g., 15"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Arm Length (inches)
-                    </label>
-                    <input
-                      type="number"
-                      value={customMeasurements.armLength}
-                      onChange={(e) =>
-                        setCustomMeasurements({
-                          ...customMeasurements,
-                          armLength: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                      placeholder="e.g., 24"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Torso Length (inches)
-                    </label>
-                    <input
-                      type="number"
-                      value={customMeasurements.torsoLength}
-                      onChange={(e) =>
-                        setCustomMeasurements({
-                          ...customMeasurements,
-                          torsoLength: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                      placeholder="e.g., 18"
-                    />
-                  </div>
-                </div>
-
+              {/* Modal Content */}
+              <div className="p-6 space-y-8">
+                {/* How to Measure Section */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Additional Notes
-                  </label>
-                  <textarea
-                    value={customMeasurements.notes}
-                    onChange={(e) =>
-                      setCustomMeasurements({
-                        ...customMeasurements,
-                        notes: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    className="w-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-black"
-                    placeholder="Any specific requirements or preferences..."
-                  />
+                  <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                    <Maximize2 className="w-5 h-5" />
+                    How to Measure
+                  </h3>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span className="text-sm text-gray-500">
+                          Bust Illustration
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm">Bust</p>
+                      <p className="text-xs text-gray-500">
+                        Measure around the fullest part of your bust, keeping
+                        the tape measure straight across your back.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span className="text-sm text-gray-500">
+                          Waist Illustration
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm">Waist</p>
+                      <p className="text-xs text-gray-500">
+                        Measure around the narrowest part of your natural waist,
+                        typically just above your belly button.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span className="text-sm text-gray-500">
+                          Hips Illustration
+                        </span>
+                      </div>
+                      <p className="font-medium text-sm">Hips</p>
+                      <p className="text-xs text-gray-500">
+                        Measure around the fullest part of your hips, keeping
+                        the tape measure parallel to the floor.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={handleCustomSizeSubmit}
-                    className="flex-1 bg-black text-white py-3 px-6 text-sm uppercase tracking-[0.2em] font-light hover:bg-gray-800 transition-colors"
-                  >
-                    Submit Measurements
-                  </button>
-                  <button
-                    onClick={() => setShowCustomSizeModal(false)}
-                    className="flex-1 border border-gray-300 py-3 px-6 text-sm uppercase tracking-[0.2em] font-light hover:border-black transition-colors"
-                  >
-                    Cancel
-                  </button>
+                {/* Size Chart */}
+                <div>
+                  <h3 className="text-lg font-medium mb-4">
+                    Size Chart (inches)
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
+                            Size
+                          </th>
+                          <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
+                            Bust
+                          </th>
+                          <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
+                            Waist
+                          </th>
+                          <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
+                            Hips
+                          </th>
+                          <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
+                            US Size
+                          </th>
+                          <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
+                            UK Size
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          {
+                            size: "XXS",
+                            bust: "30-31",
+                            waist: "23-24",
+                            hips: "32-33",
+                            us: "0",
+                            uk: "4",
+                          },
+                          {
+                            size: "XS",
+                            bust: "32-33",
+                            waist: "25-26",
+                            hips: "34-35",
+                            us: "2",
+                            uk: "6",
+                          },
+                          {
+                            size: "S",
+                            bust: "34-35",
+                            waist: "27-28",
+                            hips: "36-37",
+                            us: "4-6",
+                            uk: "8-10",
+                          },
+                          {
+                            size: "M",
+                            bust: "36-37",
+                            waist: "29-30",
+                            hips: "38-39",
+                            us: "8-10",
+                            uk: "12-14",
+                          },
+                          {
+                            size: "L",
+                            bust: "38-40",
+                            waist: "31-33",
+                            hips: "40-42",
+                            us: "12-14",
+                            uk: "16-18",
+                          },
+                          {
+                            size: "XL",
+                            bust: "41-43",
+                            waist: "34-36",
+                            hips: "43-45",
+                            us: "16-18",
+                            uk: "20-22",
+                          },
+                          {
+                            size: "XXL",
+                            bust: "44-46",
+                            waist: "37-39",
+                            hips: "46-48",
+                            us: "20-22",
+                            uk: "24-26",
+                          },
+                        ].map((row) => (
+                          <tr key={row.size} className="hover:bg-gray-50">
+                            <td className="border border-gray-200 px-4 py-3 text-sm font-medium">
+                              {row.size}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-sm">
+                              {row.bust}"
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-sm">
+                              {row.waist}"
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-sm">
+                              {row.hips}"
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-sm">
+                              {row.us}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-3 text-sm">
+                              {row.uk}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Tips Section */}
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h3 className="font-medium mb-3 flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Fit Tips
+                  </h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li>
+                      • If you're between sizes, we recommend sizing up for a
+                      comfortable fit.
+                    </li>
+                    <li>
+                      • Our garments are designed with a tailored fit. Please
+                      refer to the size chart for accurate measurements.
+                    </li>
+                    <li>
+                      • For custom fittings, our customer service team is
+                      available to assist you.
+                    </li>
+                    <li>
+                      • Model is 5'9" (175cm) and wearing size S for reference.
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Need Help */}
+                <div className="text-center pt-4">
+                  <p className="text-sm text-gray-500">
+                    Need more help? Contact our{" "}
+                    <button className="text-black underline hover:no-underline">
+                      customer service
+                    </button>{" "}
+                    for personalized assistance.
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -1114,37 +1053,30 @@ const ProductDetails = () => {
         )}
       </AnimatePresence>
 
-      {/* Order Created Notification */}
+      {/* Cart Notification */}
       <AnimatePresence>
-        {showOrderCreated && (
+        {showCartNotification && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
             className="fixed bottom-8 right-8 bg-black text-white px-6 py-4 shadow-xl z-50 max-w-md"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/10 flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5" />
+              <div className="w-12 h-12 bg-white/10 flex items-center justify-center rounded-full">
+                <Check className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Order Created!</p>
+                <p className="text-sm font-medium">Added to Cart!</p>
                 <p className="text-xs text-gray-300 mt-1">
-                  {quantity} × {product.name} -{" "}
-                  {isCustomSize ? "Custom Size" : selectedSize} /{" "}
-                  {selectedColor}
+                  {quantity} × {product.name} - {selectedSize} / {selectedColor}
                 </p>
-                {isCustomSize && (
-                  <p className="text-xs text-gray-300 mt-1">
-                    Our atelier will contact you within 48 hours
-                  </p>
-                )}
               </div>
               <button
-                onClick={() => navigate("/orders")}
+                onClick={() => navigate("/cart")}
                 className="text-xs uppercase tracking-wider border-b border-white pb-1 hover:opacity-70 transition-opacity"
               >
-                View Orders
+                View Cart
               </button>
             </div>
           </motion.div>
