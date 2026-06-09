@@ -16,6 +16,8 @@ import ProductDetails from "./pages/product-details";
 import CustomWear from "./pages/custom-wear";
 import WeAreBack from "./pages/we-are-back";
 import { Toaster } from "sonner";
+import Checkout from "./pages/checkout";
+import NotFound from "./pages/not-found";
 
 function App() {
   return (
@@ -61,13 +63,14 @@ function App() {
         <Route path="/birthday" element={<Birthday />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="*" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/wears/:name" element={<Wears />} />
         <Route path="/custom-wear" element={<CustomWear />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/we-are-back" element={<WeAreBack />} />
+        <Route path="/checkout" element={<Checkout />} />
       </Routes>
     </>
   );
