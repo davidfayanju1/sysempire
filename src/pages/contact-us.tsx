@@ -1,66 +1,63 @@
 import DefaultLayout from "../layout/DefaultLayout";
 import { useState } from "react";
 import { Mail, Phone, MapPin, Send, Briefcase } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { submitContact, type ContactPayload } from "../services";
 
 export const phoneNumber = "+234 (0) 816 152 5506";
 export const email = "sysempire@gmail.com";
-export const address = "123 Fashion Street, Lagos, Nigeria";
+export const address = "Ajah, Lagos, Nigeria";
+
+const EMPTY_FORM: ContactPayload = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  service: "",
+  message: "",
+};
+
+const serviceOptions = [
+  "Custom Tailoring",
+  "Ready-to-Wear Collection",
+  "Bridal Collection",
+  "Accessories",
+  "Consultation",
+  "Other",
+];
 
 const ContactUs = () => {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    serviceOption: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [formData, setFormData] = useState<ContactPayload>(EMPTY_FORM);
 
-  const serviceOptions = [
-    "Custom Tailoring",
-    "Ready-to-Wear Collection",
-    "Bridal Collection",
-    "Accessories",
-    "Consultation",
-    "Other",
-  ];
+  const { mutate, isPending } = useMutation({
+    mutationFn: submitContact,
+    onSuccess: () => {
+      toast.success("Message sent! We'll be in touch soon.");
+      setFormData(EMPTY_FORM);
+    },
+    onError: () => {
+      toast.error("Failed to send message. Please try again.");
+    },
+  });
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      console.log("Form submitted:", formData);
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        serviceOption: "",
-        message: "",
-      });
-      setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1500);
+    mutate(formData);
   };
 
   return (
     <DefaultLayout>
       {/* Hero Section */}
-      <section className="relative pt-[10rem] h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
+      <section className="relative pt-40 h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -68,11 +65,7 @@ const ContactUs = () => {
               "url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80')",
           }}
         />
-
-        {/* Dark Overlay */}
         <div className="absolute inset-0 bg-black/50" />
-
-        {/* Content */}
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 border border-white/20 mb-6">
             <span className="text-[9px] tracking-[0.2em] uppercase text-white/80 font-['Times_New_Roman',serif]">
@@ -86,10 +79,6 @@ const ContactUs = () => {
             </span>
           </h1>
           <div className="w-16 h-px bg-white/30 mx-auto my-6" />
-          {/* <p className="text-white/70 text-sm leading-relaxed max-w-lg mx-auto">
-            Whether you're looking for a custom piece, have a question about our
-            collections, or want to collaborate — we'd love to hear from you.
-          </p> */}
         </div>
       </section>
 
@@ -105,7 +94,7 @@ const ContactUs = () => {
                 </h2>
                 <div className="space-y-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 border border-black/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 border border-black/10 flex items-center justify-center shrink-0">
                       <Phone className="w-4 h-4 text-black/60" />
                     </div>
                     <div>
@@ -119,7 +108,7 @@ const ContactUs = () => {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 border border-black/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 border border-black/10 flex items-center justify-center shrink-0">
                       <Mail className="w-4 h-4 text-black/60" />
                     </div>
                     <div>
@@ -136,7 +125,7 @@ const ContactUs = () => {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 border border-black/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 border border-black/10 flex items-center justify-center shrink-0">
                       <MapPin className="w-4 h-4 text-black/60" />
                     </div>
                     <div>
@@ -163,7 +152,6 @@ const ContactUs = () => {
                 </div>
               </div>
 
-              {/* Brand Quote */}
               <div className="pt-6">
                 <p className="text-[9px] tracking-[0.2em] uppercase text-black/30 italic">
                   "Where fashion meets artistry"
@@ -209,19 +197,35 @@ const ContactUs = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 bg-white border border-black/10 focus:border-black/30 outline-none transition-colors text-sm text-black placeholder:text-black/30"
-                    placeholder="your@email.com"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 bg-white border border-black/10 focus:border-black/30 outline-none transition-colors text-sm text-black placeholder:text-black/30"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 bg-white border border-black/10 focus:border-black/30 outline-none transition-colors text-sm text-black placeholder:text-black/30"
+                      placeholder="+234 800 000 0000"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -230,8 +234,8 @@ const ContactUs = () => {
                   </label>
                   <div className="relative">
                     <select
-                      name="serviceOption"
-                      value={formData.serviceOption}
+                      name="service"
+                      value={formData.service}
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 bg-white border border-black/10 focus:border-black/30 outline-none transition-colors text-sm text-black appearance-none cursor-pointer"
@@ -267,11 +271,14 @@ const ContactUs = () => {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isPending}
                   className="w-full py-4 bg-black text-white hover:bg-black/90 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? (
-                    "Sending..."
+                  {isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Sending...
+                    </>
                   ) : (
                     <>
                       Send Message
@@ -279,12 +286,6 @@ const ContactUs = () => {
                     </>
                   )}
                 </button>
-
-                {isSubmitted && (
-                  <div className="text-center text-black/60 text-xs py-2 animate-pulse">
-                    Thank you! We'll get back to you shortly.
-                  </div>
-                )}
               </form>
             </div>
           </div>
