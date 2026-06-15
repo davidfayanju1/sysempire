@@ -1,80 +1,84 @@
 const WeAreBack = () => {
   return (
-    <div className="min-h-screen bg-[#fcf8f2] flex items-center justify-center p-4 md:p-8 antialiased">
-      {/* Main Flier Container */}
-      <div className="w-full max-w-4xl min-h-[600px] shadow-2xl relative overflow-hidden border border-[#58182d]/10 flex items-stretch">
-        {/* Full background image - full width, top visible */}
-        <div className="absolute inset-0 z-0">
+    <div className="min-h-screen bg-[#ddd8d2] flex items-center justify-center p-6 md:p-12 antialiased">
+      {/* Phone / door-hanger card */}
+      <div
+        className="relative w-full max-w-[380px] rounded-[2.5rem] overflow-hidden shadow-2xl"
+        style={{ aspectRatio: "9 / 16" }}
+      >
+        {/* ── Background image + overlay ── */}
+        <div className="absolute inset-0">
           <img
-            src="/images/female-clothing/sky-blue.png"
-            alt="Background"
+            src="/images/female-clothing/wedding-pose.png"
+            alt=""
             className="w-full h-full object-cover object-top"
-            style={{ objectPosition: "left top" }}
           />
+          <div className="absolute inset-0 bg-black/60" />
         </div>
 
-        {/* Reduced gradient overlays */}
-        <div className="absolute inset-0 bg-linear-to-r from-[#2a0b15]/60 via-[#58182d]/50 to-transparent z-10" />
-        <div className="absolute inset-0 bg-[#2a0b15]/5 z-10" />
+        {/* ── Content ── */}
+        <div className="relative z-10 h-full flex flex-col px-7 pt-6 pb-6">
+          {/* Logo */}
+          <div className="mb-2 -ml-6">
+            <img
+              src="/images/logo_light.png"
+              alt="SYS EMPIRE"
+              className="h-22 w-auto object-contain object-left"
+            />
+          </div>
 
-        {/* Absolute TOP-LEFT Logo Placement */}
-        <div className="absolute top-6 left-6 md:top-10 md:left-10 z-30 max-w-[140px] md:max-w-[185px]">
-          <img
-            src="/images/logo_dark.png"
-            alt="SYS EMPIRE Logo"
-            className="w-full h-auto brightness-0 invert opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
-          />
-        </div>
-
-        {/* Text Content Overlay Container - Shifted to the right side */}
-        <div className="w-full md:w-[65%] lg:w-[65%] md:ml-auto text-[#fbf5eb] p-8 md:p-16 relative z-20 flex flex-col justify-between min-h-[600px]">
-          {/* Top Section: Heading */}
-          <div className="mt-16 md:mt-4">
-            <p className="text-xs tracking-[0.25em] uppercase text-[#fbf5eb]/70 font-sans mb-3 font-medium drop-shadow-sm">
-              An exciting update
-            </p>
-            <h1 className="text-5xl md:text-6xl font-serif font-light tracking-tight leading-[1.1] text-[#fbf5eb] drop-shadow-sm">
-              We're back to <br />
-              <span className="italic font-normal text-white drop-shadow-md">
-                take your orders
+          {/* Headline — WE'RE OPEN */}
+          <div className="mt-16 text-center mb-8 flex flex-col justify-center">
+            <h1 className="font-black text-white leading-[0.88] tracking-tight">
+              <span className="block text-[4.5rem] -rotate-6 origin-left mb-[-.5rem]">
+                WE'RE
+              </span>
+              <span
+                className="block text-[6.25rem]"
+                style={{
+                  transform: "scaleY(1.25)",
+                  transformOrigin: "top left",
+                }}
+              >
+                OPEN
               </span>
             </h1>
-            <div className="w-16 h-[2px] bg-[#fbf5eb]/40 mt-6 mb-8" />
           </div>
 
-          {/* Middle Section: Premium Copywriting */}
-          <div className="space-y-6 max-w-xl my-auto py-4 drop-shadow-sm">
-            <p className="text-lg md:text-xl font-serif font-light leading-relaxed text-white text-balance">
-              Our doors and digital channels are completely open. We are ready
-              to bring your fashion visions to life with the precision you
-              expect.
-            </p>
-            <p className="text-sm md:text-base font-light leading-relaxed text-white tracking-wide text-balance">
-              Every detail has been refined. From custom tailoring to premium
-              delivery, we have stepped up our standards to ensure we serve you
-              consistently, efficiently, and{" "}
-              <span className="text-white font-medium underline decoration-[#fbf5eb]/40 underline-offset-4">
-                even better than before.
-              </span>
+          {/* Hours */}
+          <div className="space-y-2 mb-[7rem] flex items-center flex-col mx-auto mb-5">
+            <span className="inline-block bg-white text-black text-[10px] font-bold tracking-[0.22em] uppercase px-5 py-1.5 rounded-full">
+              Monday to Friday
+            </span>
+            <p className="text-[1.25rem] font-[500] text-white leading-none tracking-tight">
+              9AM – 5PM
             </p>
           </div>
 
-          {/* Bottom Section: Call to Action & Operational Hours */}
-          <div className="border-t border-[#fbf5eb]/20 pt-8 mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-white font-sans font-medium">
-                Experience the Empire
-              </p>
-              <p className="text-base font-serif font-medium tracking-wide text-white mt-0.5 drop-shadow-sm">
-                Now accepting requests
-              </p>
-            </div>
+          {/* Address */}
+          <div className="mb-2 text-center">
+            <p className="text-white/55 text-[9px] font-bold tracking-[0.28em] uppercase mb-1.5">
+              Visit Us At
+            </p>
+            <p className="text-white text-[13px] font-semibold leading-snug">
+              No.8 Adewale Adegbosin, Ajah.
+            </p>
+            <p className="text-white text-[13px] font-semibold">Lagos state</p>
+          </div>
 
-            <div className="bg-[#2a0b15]/40 px-4 py-2 border border-[#fbf5eb]/30 backdrop-blur-md rounded-sm shadow-inner">
-              <p className="text-[11px] font-mono tracking-wider text-center text-white uppercase font-bold">
-                Daily 8AM — 7PM
-              </p>
-            </div>
+          {/* Footer info bar */}
+          <div className="border border-white/35 rounded-full px-3 py-2 flex items-center justify-between gap-1">
+            <span className="text-white/65 text-[8.5px] font-medium tracking-wide whitespace-nowrap">
+              Further Information
+            </span>
+            <div className="w-px h-3 bg-white/25 shrink-0" />
+            <span className="text-white text-[8.5px] font-semibold whitespace-nowrap">
+              ☎ 09162588511
+            </span>
+            <div className="w-px h-3 bg-white/25 shrink-0" />
+            <span className="text-white text-[8.5px] whitespace-nowrap">
+              sysempire.vercel.app
+            </span>
           </div>
         </div>
       </div>
