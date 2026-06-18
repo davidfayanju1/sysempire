@@ -13,14 +13,15 @@ const Feedback = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: () => {
       const nameParts = formData.name.trim().split(" ");
-      return submitContact({
+      const payload = {
         firstName: nameParts[0] || "Anonymous",
         lastName: nameParts.slice(1).join(" ") || "",
         email: formData.email || "",
-        phone: "",
-        service: "Feedback",
+        phone: "08161525556",
+        service: "Custom Tailoring",
         message: formData.message,
-      });
+      };
+      return submitContact(payload);
     },
     onSuccess: () => {
       toast.success("Thank you! Your feedback has been received.");
@@ -58,7 +59,13 @@ const Feedback = () => {
           </p>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          className="space-y-6"
+        >
           <div>
             <label
               htmlFor="name"

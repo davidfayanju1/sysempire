@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Hand, Ruler, CheckCircle2 } from "lucide-react";
+import { X, Hand, Ruler, CheckCircle2, AlertTriangle, User } from "lucide-react";
 import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 interface MeasurementModalProps {
   onClose: () => void;
-  onComplete: (measurements: any[]) => void;
+  onComplete: (measurements: Measurement[]) => void;
   gender: "male" | "female" | null;
 }
 
@@ -16,159 +16,144 @@ interface Measurement {
   description: string;
 }
 
-const MeasurementModal = ({
-  onClose,
-  onComplete,
-  gender,
-}: MeasurementModalProps) => {
+const LANDMARKS = {
+  NOSE: 0,
+  LEFT_SHOULDER: 11,
+  RIGHT_SHOULDER: 12,
+  LEFT_ELBOW: 13,
+  RIGHT_ELBOW: 14,
+  LEFT_WRIST: 15,
+  RIGHT_WRIST: 16,
+  LEFT_HIP: 23,
+  RIGHT_HIP: 24,
+  LEFT_KNEE: 25,
+  RIGHT_KNEE: 26,
+  LEFT_ANKLE: 27,
+  RIGHT_ANKLE: 28,
+  LEFT_HEEL: 29,
+  RIGHT_HEEL: 30,
+  LEFT_FOOT_INDEX: 31,
+  RIGHT_FOOT_INDEX: 32,
+} as const;
+
+const DISCLAIMER =
+  "These measurements are AI-generated estimates derived from computer vision analysis. Expected accuracy: ±2–5 cm depending on camera angle, distance, clothing, body position, and lighting. These measurements are a tailoring guide only — not a substitute for professional measurements. For precision garments, verify with an experienced tailor before fabric is cut. SYS EMPIRE accepts no liability for fit discrepancies based solely on AI-estimated measurements.";
+
+// Gender-aware calculation — same formulas as MeasurementTab
+function buildMeasurements(
+  worldLandmarks: any[],
+  heightCm: number,
+  gender: "male" | "female",
+): Measurement[] {
+  const w = worldLandmarks;
+  const ls = w[LANDMARKS.LEFT_SHOULDER];
+  const rs = w[LANDMARKS.RIGHT_SHOULDER];
+  const lh = w[LANDMARKS.LEFT_HIP];
+  const rh = w[LANDMARKS.RIGHT_HIP];
+  const lw = w[LANDMARKS.LEFT_WRIST];
+  const rw = w[LANDMARKS.RIGHT_WRIST];
+  const la = w[LANDMARKS.LEFT_ANKLE];
+  const ra = w[LANDMARKS.RIGHT_ANKLE];
+
+  const sw = Math.abs((ls?.x || 0) - (rs?.x || 0)) * 100;   // shoulder width
+  const hw = Math.abs((lh?.x || 0) - (rh?.x || 0)) * 100;   // hip width
+  const tl = Math.abs((ls?.y || 0) - (lh?.y || 0)) * 100;   // torso length
+  const leftArm = Math.abs((ls?.y || 0) - (lw?.y || 0)) * 100;
+  const rightArm = Math.abs((rs?.y || 0) - (rw?.y || 0)) * 100;
+  const avgArm = (leftArm + rightArm) / 2;
+  const leftLeg = Math.abs((lh?.y || 0) - (la?.y || 0)) * 100;
+  const rightLeg = Math.abs((rh?.y || 0) - (ra?.y || 0)) * 100;
+  const avgLeg = (leftLeg + rightLeg) / 2;
+
+  const sf = heightCm / 170;
+
+  if (gender === "female") {
+    return [
+      { name: "Height", value: heightCm, unit: "cm", description: "Total standing height" },
+      { name: "Shoulder Width", value: Math.round(sw * sf), unit: "cm", description: "Shoulder point to shoulder point (back)" },
+      { name: "Bust", value: Math.round(sw * 2.5 * sf), unit: "cm", description: "Fullest part of chest — at nipple line" },
+      { name: "Under Bust", value: Math.round(sw * 2.1 * sf), unit: "cm", description: "Directly below bust" },
+      { name: "Waist", value: Math.round(hw * 2.0 * sf), unit: "cm", description: "Narrowest part of natural waist" },
+      { name: "Hips", value: Math.round(hw * 2.8 * sf), unit: "cm", description: "Fullest part of hips and seat" },
+      { name: "Neck", value: Math.round(sw * 0.58 * sf), unit: "cm", description: "Around the base of neck" },
+      { name: "Arm Length", value: Math.round(avgArm * sf), unit: "cm", description: "Shoulder point to wrist bone" },
+      { name: "Wrist", value: Math.round(avgArm * 0.11 * sf), unit: "cm", description: "Around the wrist bone" },
+      { name: "Thigh", value: Math.round(avgLeg * 0.32 * sf), unit: "cm", description: "Fullest part of upper thigh" },
+      { name: "Calf", value: Math.round(avgLeg * 0.20 * sf), unit: "cm", description: "Fullest part of calf" },
+      { name: "Dress Length", value: Math.round((tl + avgLeg * 0.85) * sf), unit: "cm", description: "Shoulder to floor (full-length garment)" },
+    ];
+  }
+
+  // Male
+  return [
+    { name: "Height", value: heightCm, unit: "cm", description: "Total standing height" },
+    { name: "Shoulder Width", value: Math.round(sw * sf), unit: "cm", description: "Shoulder point to shoulder point (back)" },
+    { name: "Chest", value: Math.round(sw * 2.45 * sf), unit: "cm", description: "Fullest part of chest — across shoulder blades" },
+    { name: "Waist", value: Math.round(hw * 2.3 * sf), unit: "cm", description: "Narrowest part of natural waist" },
+    { name: "Hips", value: Math.round(hw * 2.6 * sf), unit: "cm", description: "Fullest part of the seat" },
+    { name: "Neck", value: Math.round(sw * 0.67 * sf), unit: "cm", description: "Around base of neck + 1 cm ease" },
+    { name: "Sleeve Length", value: Math.round(avgArm * sf), unit: "cm", description: "Shoulder point to wrist (arm slightly bent)" },
+    { name: "Wrist", value: Math.round(avgArm * 0.13 * sf), unit: "cm", description: "Around the wrist bone" },
+    { name: "Thigh", value: Math.round(avgLeg * 0.28 * sf), unit: "cm", description: "Fullest part of upper thigh" },
+    { name: "Inseam", value: Math.round(avgLeg * sf), unit: "cm", description: "Crotch to ankle (inner leg)" },
+    { name: "Jacket Length", value: Math.round(tl * 1.75 * sf), unit: "cm", description: "Natural waist to hem (suit / agbada)" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps) => {
+  const effectiveGender: "male" | "female" = gender ?? "female";
+
   const [step, setStep] = useState<"camera" | "results">("camera");
   const [measurements, setMeasurements] = useState<Measurement[] | null>(null);
   const [gestureDetected, setGestureDetected] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [detectedHeight, setDetectedHeight] = useState<number | null>(null);
   const [poseQuality, setPoseQuality] = useState(0);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const poseLandmarkerRef = useRef<any>(null);
   const animationRef = useRef<number | null>(null);
+  const countdownActiveRef = useRef(false);
 
-  // MediaPipe Pose Landmark indices
-  const LANDMARKS = {
-    NOSE: 0,
-    LEFT_SHOULDER: 11,
-    RIGHT_SHOULDER: 12,
-    LEFT_ELBOW: 13,
-    RIGHT_ELBOW: 14,
-    LEFT_WRIST: 15,
-    RIGHT_WRIST: 16,
-    LEFT_HIP: 23,
-    RIGHT_HIP: 24,
-    LEFT_KNEE: 25,
-    RIGHT_KNEE: 26,
-    LEFT_ANKLE: 27,
-    RIGHT_ANKLE: 28,
-    LEFT_HEEL: 29,
-    RIGHT_HEEL: 30,
-    LEFT_FOOT_INDEX: 31,
-    RIGHT_FOOT_INDEX: 32,
-  };
+  // Refs to avoid stale closure issues inside animation loop / interval
+  const detectedHeightRef = useRef<number | null>(null);
+  const latestWorldLandmarksRef = useRef<any[] | null>(null);
 
-  // Nigerian tailor measurements based on gender
-  const getMeasurementFields = () => {
-    if (gender === "female") {
-      return [
-        { name: "Height", unit: "cm", description: "Total height" },
-        { name: "Bust", unit: "cm", description: "Fullest part of chest" },
-        { name: "Under Bust", unit: "cm", description: "Just below bust" },
-        { name: "Waist", unit: "cm", description: "Narrowest part of torso" },
-        { name: "Hips", unit: "cm", description: "Widest part of hips/seat" },
-        { name: "Shoulder Width", unit: "cm", description: "Across the back" },
-        { name: "Arm Length", unit: "cm", description: "Shoulder to wrist" },
-        { name: "Wrist", unit: "cm", description: "Wrist circumference" },
-        { name: "Thigh", unit: "cm", description: "Upper leg circumference" },
-        { name: "Calf", unit: "cm", description: "Lower leg circumference" },
-      ];
-    } else {
-      return [
-        { name: "Height", unit: "cm", description: "Total height" },
-        { name: "Chest", unit: "cm", description: "Fullest part of chest" },
-        { name: "Waist", unit: "cm", description: "Narrowest part of torso" },
-        { name: "Hips", unit: "cm", description: "Widest part of hips/seat" },
-        { name: "Shoulder Width", unit: "cm", description: "Across the back" },
-        { name: "Neck", unit: "cm", description: "Neck circumference" },
-        { name: "Sleeve Length", unit: "cm", description: "Shoulder to wrist" },
-        { name: "Wrist", unit: "cm", description: "Wrist circumference" },
-        { name: "Thigh", unit: "cm", description: "Upper leg circumference" },
-        { name: "Inseam", unit: "cm", description: "Inner leg length" },
-      ];
-    }
-  };
+  const stopCamera = useCallback(() => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+  }, []);
 
-  const calculateMeasurementsFromLandmarks = (
-    worldLandmarks: any[],
-    heightCm: number,
-  ): Measurement[] => {
-    const w = worldLandmarks;
-    const fields = getMeasurementFields();
+  const calculateHeightFromLandmarks = useCallback((wl: any[]): number | null => {
+    if (!wl || wl.length < 32) return null;
+    const nose = wl[LANDMARKS.NOSE];
+    const lHeel = wl[LANDMARKS.LEFT_HEEL];
+    const rHeel = wl[LANDMARKS.RIGHT_HEEL];
+    const lFoot = wl[LANDMARKS.LEFT_FOOT_INDEX];
+    const rFoot = wl[LANDMARKS.RIGHT_FOOT_INDEX];
+    if (!nose || !lHeel || !rHeel) return null;
+    const feetY = Math.max(lHeel.y ?? 0, rHeel.y ?? 0, lFoot?.y ?? 0, rFoot?.y ?? 0);
+    const h = Math.abs(feetY - nose.y) * 100 * 1.8;
+    return h > 140 && h < 220 ? Math.round(h) : 170;
+  }, []);
 
-    const leftShoulder = w[LANDMARKS.LEFT_SHOULDER];
-    const rightShoulder = w[LANDMARKS.RIGHT_SHOULDER];
-    const leftHip = w[LANDMARKS.LEFT_HIP];
-    const rightHip = w[LANDMARKS.RIGHT_HIP];
-    const leftWrist = w[LANDMARKS.LEFT_WRIST];
-    const rightWrist = w[LANDMARKS.RIGHT_WRIST];
-    const leftAnkle = w[LANDMARKS.LEFT_ANKLE];
-    const rightAnkle = w[LANDMARKS.RIGHT_ANKLE];
+  const detectRaisedHand = useCallback((lms: any[]): boolean => {
+    const lw = lms[LANDMARKS.LEFT_WRIST];
+    const rw = lms[LANDMARKS.RIGHT_WRIST];
+    const ls = lms[LANDMARKS.LEFT_SHOULDER];
+    const rs = lms[LANDMARKS.RIGHT_SHOULDER];
+    const leftUp = lw && ls && lw.visibility > 0.5 && lw.y < ls.y;
+    const rightUp = rw && rs && rw.visibility > 0.5 && rw.y < rs.y;
+    return leftUp || rightUp;
+  }, []);
 
-    const shoulderWidth =
-      Math.abs((leftShoulder?.x || 0) - (rightShoulder?.x || 0)) * 100;
-    const hipWidth = Math.abs((leftHip?.x || 0) - (rightHip?.x || 0)) * 100;
-    const leftArmLength =
-      Math.abs((leftShoulder?.y || 0) - (leftWrist?.y || 0)) * 100;
-    const rightArmLength =
-      Math.abs((rightShoulder?.y || 0) - (rightWrist?.y || 0)) * 100;
-    const leftLegLength =
-      Math.abs((leftHip?.y || 0) - (leftAnkle?.y || 0)) * 100;
-    const rightLegLength =
-      Math.abs((rightHip?.y || 0) - (rightAnkle?.y || 0)) * 100;
-
-    const scaleFactor = heightCm / 170;
-
-    const calculatedValues: Record<string, number> = {
-      Height: heightCm,
-      "Shoulder Width": Math.round(shoulderWidth * scaleFactor),
-      "Arm Length": Math.round(
-        ((leftArmLength + rightArmLength) / 2) * scaleFactor,
-      ),
-      "Sleeve Length": Math.round(
-        ((leftArmLength + rightArmLength) / 2) * scaleFactor,
-      ),
-      Inseam: Math.round(((leftLegLength + rightLegLength) / 2) * scaleFactor),
-      Thigh: Math.round(leftLegLength * 0.28 * scaleFactor),
-      Calf: Math.round(leftLegLength * 0.18 * scaleFactor),
-      Chest: Math.round(shoulderWidth * 2.4 * scaleFactor),
-      Bust: Math.round(shoulderWidth * 2.4 * scaleFactor),
-      "Under Bust": Math.round(shoulderWidth * 2.1 * scaleFactor),
-      Waist: Math.round(hipWidth * 2.2 * scaleFactor),
-      Hips: Math.round(hipWidth * 2.6 * scaleFactor),
-      Neck: Math.round(shoulderWidth * 0.65 * scaleFactor),
-      Wrist: Math.round(leftArmLength * 0.12 * scaleFactor),
-    };
-
-    return fields.map((field) => ({
-      name: field.name,
-      value:
-        calculatedValues[field.name] ||
-        Math.round(calculatedValues.Chest || 90),
-      unit: field.unit,
-      description: field.description,
-    }));
-  };
-
-  const detectRaisedHand = (landmarks: any[]): boolean => {
-    const leftWrist = landmarks[LANDMARKS.LEFT_WRIST];
-    const rightWrist = landmarks[LANDMARKS.RIGHT_WRIST];
-    const leftShoulder = landmarks[LANDMARKS.LEFT_SHOULDER];
-    const rightShoulder = landmarks[LANDMARKS.RIGHT_SHOULDER];
-
-    let leftRaised = false;
-    let rightRaised = false;
-
-    if (leftWrist && leftShoulder && leftWrist.visibility > 0.5) {
-      leftRaised = leftWrist.y < leftShoulder.y;
-    }
-    if (rightWrist && rightShoulder && rightWrist.visibility > 0.5) {
-      rightRaised = rightWrist.y < rightShoulder.y;
-    }
-
-    return leftRaised || rightRaised;
-  };
-
-  const calculatePoseQuality = (landmarks: any[]): number => {
-    let validLandmarks = 0;
-    const keyLandmarks = [
+  const calculatePoseQuality = useCallback((lms: any[]): number => {
+    const key = [
       LANDMARKS.LEFT_SHOULDER,
       LANDMARKS.RIGHT_SHOULDER,
       LANDMARKS.LEFT_HIP,
@@ -176,192 +161,198 @@ const MeasurementModal = ({
       LANDMARKS.LEFT_KNEE,
       LANDMARKS.RIGHT_KNEE,
     ];
+    return key.filter((i) => lms[i]?.visibility > 0.5).length / key.length;
+  }, []);
 
-    keyLandmarks.forEach((idx) => {
-      if (landmarks[idx] && landmarks[idx].visibility > 0.5) {
-        validLandmarks++;
-      }
-    });
+  const triggerCapture = useCallback(() => {
+    if (countdownActiveRef.current) return;
+    countdownActiveRef.current = true;
+    setCountdown(3);
 
-    return validLandmarks / keyLandmarks.length;
-  };
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          countdownActiveRef.current = false;
 
-  const calculateHeightFromLandmarks = (
-    worldLandmarks: any[],
-  ): number | null => {
-    if (!worldLandmarks || worldLandmarks.length < 32) return null;
-
-    const nose = worldLandmarks[LANDMARKS.NOSE];
-    const leftHeel = worldLandmarks[LANDMARKS.LEFT_HEEL];
-    const rightHeel = worldLandmarks[LANDMARKS.RIGHT_HEEL];
-
-    if (!nose || !leftHeel || !rightHeel) return null;
-
-    const feetY = Math.max(leftHeel?.y || 0, rightHeel?.y || 0);
-    const heightInMeters = Math.abs(feetY - nose.y) * 100;
-    const heightInCm = heightInMeters * 1.8;
-
-    if (heightInCm > 140 && heightInCm < 220) {
-      return Math.round(heightInCm);
-    }
-    return 170;
-  };
-
-  const startRealTimeDetection = async () => {
-    const vision = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",
-    );
-
-    const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath:
-          "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
-        delegate: "GPU",
-      },
-      runningMode: "VIDEO",
-      numPoses: 1,
-      minPoseDetectionConfidence: 0.5,
-      minPosePresenceConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
-
-    poseLandmarkerRef.current = poseLandmarker;
-
-    let lastTimestamp = -1;
-
-    const detectPose = async (timestamp: number) => {
-      if (
-        !videoRef.current ||
-        !poseLandmarkerRef.current ||
-        !canvasRef.current
-      ) {
-        animationRef.current = requestAnimationFrame(detectPose);
-        return;
-      }
-
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx || !video.videoWidth || !video.videoHeight) {
-        animationRef.current = requestAnimationFrame(detectPose);
-        return;
-      }
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      if (timestamp !== lastTimestamp && video.readyState >= 2) {
-        lastTimestamp = timestamp;
-
-        try {
-          const results = await poseLandmarkerRef.current.detectForVideo(
-            video,
-            timestamp,
-          );
-
-          if (results.landmarks && results.landmarks.length > 0) {
-            const landmarks = results.landmarks[0];
-            const worldLandmarks = results.worldLandmarks?.[0];
-
-            const gesture = detectRaisedHand(landmarks);
-            setGestureDetected(gesture);
-
-            const quality = calculatePoseQuality(landmarks);
-            setPoseQuality(quality);
-
-            if (worldLandmarks && quality > 0.5) {
-              const height = calculateHeightFromLandmarks(worldLandmarks);
-              if (height) {
-                setDetectedHeight(height);
-              }
-
-              if (gesture && !countdown && quality > 0.6) {
-                setCountdown(3);
-                const interval = setInterval(() => {
-                  setCountdown((prev) => {
-                    if (prev === null || prev <= 1) {
-                      clearInterval(interval);
-                      if (prev === 1 && worldLandmarks && detectedHeight) {
-                        const measurements = calculateMeasurementsFromLandmarks(
-                          worldLandmarks,
-                          detectedHeight,
-                        );
-                        setMeasurements(measurements);
-                        setStep("results");
-                        stopCamera();
-                      }
-                      return null;
-                    }
-                    return prev - 1;
-                  });
-                }, 1000);
-              }
+          if (prev === 1) {
+            // Use refs — not stale state — to capture measurements
+            const h = detectedHeightRef.current ?? 170;
+            const wl = latestWorldLandmarksRef.current;
+            if (wl) {
+              const result = buildMeasurements(wl, h, effectiveGender);
+              setMeasurements(result);
+              setStep("results");
+              stopCamera();
             }
           }
-        } catch (err) {
-          console.error("Detection error:", err);
+          return null;
         }
-      }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [effectiveGender, stopCamera]);
 
-      animationRef.current = requestAnimationFrame(detectPose);
-    };
+  const startRealTimeDetection = useCallback(
+    (poseLandmarker: any) => {
+      let lastTs = -1;
 
-    animationRef.current = requestAnimationFrame(detectPose);
-  };
+      const loop = async (ts: number) => {
+        if (!videoRef.current || !canvasRef.current) {
+          animationRef.current = requestAnimationFrame(loop);
+          return;
+        }
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
 
-  const startCamera = async () => {
+        if (!ctx || !video.videoWidth || !video.videoHeight) {
+          animationRef.current = requestAnimationFrame(loop);
+          return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (ts !== lastTs && video.readyState >= 2) {
+          lastTs = ts;
+          try {
+            const res = await poseLandmarker.detectForVideo(video, ts);
+            if (res.landmarks?.length > 0) {
+              const lms = res.landmarks[0];
+              const wlms = res.worldLandmarks?.[0];
+
+              const gesture = detectRaisedHand(lms);
+              setGestureDetected(gesture);
+
+              const quality = calculatePoseQuality(lms);
+              setPoseQuality(quality);
+
+              // Draw skeleton
+              const connections: [number, number][] = [
+                [LANDMARKS.LEFT_SHOULDER, LANDMARKS.RIGHT_SHOULDER],
+                [LANDMARKS.LEFT_SHOULDER, LANDMARKS.LEFT_ELBOW],
+                [LANDMARKS.LEFT_ELBOW, LANDMARKS.LEFT_WRIST],
+                [LANDMARKS.RIGHT_SHOULDER, LANDMARKS.RIGHT_ELBOW],
+                [LANDMARKS.RIGHT_ELBOW, LANDMARKS.RIGHT_WRIST],
+                [LANDMARKS.LEFT_SHOULDER, LANDMARKS.LEFT_HIP],
+                [LANDMARKS.RIGHT_SHOULDER, LANDMARKS.RIGHT_HIP],
+                [LANDMARKS.LEFT_HIP, LANDMARKS.RIGHT_HIP],
+                [LANDMARKS.LEFT_HIP, LANDMARKS.LEFT_KNEE],
+                [LANDMARKS.LEFT_KNEE, LANDMARKS.LEFT_ANKLE],
+                [LANDMARKS.RIGHT_HIP, LANDMARKS.RIGHT_KNEE],
+                [LANDMARKS.RIGHT_KNEE, LANDMARKS.RIGHT_ANKLE],
+              ];
+              connections.forEach(([a, b]) => {
+                const s = lms[a];
+                const e = lms[b];
+                if (s && e && s.visibility > 0.3 && e.visibility > 0.3) {
+                  ctx.beginPath();
+                  ctx.moveTo(s.x * canvas.width, s.y * canvas.height);
+                  ctx.lineTo(e.x * canvas.width, e.y * canvas.height);
+                  ctx.strokeStyle = gesture ? "#10b981" : "#6b7280";
+                  ctx.lineWidth = 3;
+                  ctx.stroke();
+                }
+              });
+              lms.forEach((lm: any) => {
+                if (lm.visibility > 0.3) {
+                  ctx.beginPath();
+                  ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5, 0, 2 * Math.PI);
+                  ctx.fillStyle = gesture ? "#10b981" : "#ffffff";
+                  ctx.fill();
+                }
+              });
+
+              if (wlms && quality > 0.5) {
+                latestWorldLandmarksRef.current = wlms;
+                const h = calculateHeightFromLandmarks(wlms);
+                if (h) {
+                  setDetectedHeight(h);
+                  detectedHeightRef.current = h; // keep ref in sync
+                }
+                if (gesture && !countdownActiveRef.current && quality > 0.6) {
+                  triggerCapture();
+                }
+              }
+            }
+          } catch {
+            /* suppress frame errors */
+          }
+        }
+
+        animationRef.current = requestAnimationFrame(loop);
+      };
+
+      animationRef.current = requestAnimationFrame(loop);
+    },
+    [detectRaisedHand, calculatePoseQuality, calculateHeightFromLandmarks, triggerCapture],
+  );
+
+  const startCamera = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+      const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",
+      );
+      const pl = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath:
+            "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+          delegate: "GPU",
         },
+        runningMode: "VIDEO",
+        numPoses: 1,
+        minPoseDetectionConfidence: 0.5,
+        minPosePresenceConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      });
+      poseLandmarkerRef.current = pl;
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
       });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play();
-          startRealTimeDetection();
+          setCameraReady(true);
+          startRealTimeDetection(pl);
         };
       }
     } catch (err) {
-      console.error("Camera error:", err);
+      console.error("Camera/model init error:", err);
     }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-  };
+  }, [startRealTimeDetection]);
 
   useEffect(() => {
     startCamera();
     return () => {
       stopCamera();
-      if (poseLandmarkerRef.current) {
-        poseLandmarkerRef.current.close();
-      }
+      poseLandmarkerRef.current?.close();
     };
-  }, []);
+  }, [startCamera, stopCamera]);
 
-  const handleSave = () => {
-    if (measurements) {
-      onComplete(measurements);
-      onClose();
-    }
-  };
+  const handleSave = useCallback(() => {
+    if (!measurements) return;
+
+    // Console output
+    console.group("📏 SYS EMPIRE — Body Measurements (Custom Wear Flow)");
+    console.log(
+      `%cGender: ${effectiveGender} | Method: AI Body Scan | ${new Date().toLocaleString()}`,
+      "color:#888;font-size:11px",
+    );
+    if (detectedHeight) console.log(`Detected height: ${detectedHeight} cm`);
+    console.table(
+      Object.fromEntries(measurements.map((m) => [m.name, `${m.value} ${m.unit}`])),
+    );
+    console.groupEnd();
+
+    onComplete(measurements);
+    onClose();
+  }, [measurements, effectiveGender, detectedHeight, onComplete, onClose]);
 
   return (
     <AnimatePresence>
@@ -373,24 +364,16 @@ const MeasurementModal = ({
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
+          initial={{ scale: 0.97, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
+          exit={{ scale: 0.97, opacity: 0 }}
           className="relative w-full h-full bg-black"
         >
+          {/* ── Camera step ───────────────────────────────────────────────── */}
           {step === "camera" && (
             <>
-              <video
-                ref={videoRef}
-                style={{ display: "none" }}
-                autoPlay
-                playsInline
-                muted
-              />
-              <canvas
-                ref={canvasRef}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              <video ref={videoRef} style={{ display: "none" }} autoPlay playsInline muted />
+              <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
 
               <button
                 onClick={onClose}
@@ -399,146 +382,194 @@ const MeasurementModal = ({
                 <X className="w-5 h-5 text-white" />
               </button>
 
-              {detectedHeight && (
-                <div className="absolute top-20 left-4 z-10 bg-white/10 backdrop-blur px-4 py-2">
-                  <div className="flex items-center gap-2">
-                    <Ruler className="w-4 h-4 text-green-400" />
-                    <span className="text-white text-sm">
-                      Height: {detectedHeight}cm
-                    </span>
+              {/* Gender + camera status */}
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
+                {cameraReady && (
+                  <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 backdrop-blur">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-white/60 text-[10px] uppercase tracking-wider">Live</span>
                   </div>
-                </div>
-              )}
-
-              <div
-                className={`absolute bottom-28 left-1/2 transform -translate-x-1/2 z-10 px-6 py-3 backdrop-blur transition-all ${
-                  gestureDetected
-                    ? "bg-green-600 text-white"
-                    : "bg-white/10 text-white/80"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Hand className="w-5 h-5" />
-                  <span className="text-sm font-light tracking-wide">
-                    {gestureDetected
-                      ? "✓ Hand detected! Stay still..."
-                      : "Raise your hand to capture"}
+                )}
+                <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 backdrop-blur">
+                  <User className="w-3 h-3 text-white/50" />
+                  <span className="text-white/60 text-[10px] uppercase tracking-wider">
+                    {effectiveGender}
                   </span>
                 </div>
               </div>
 
+              {detectedHeight && (
+                <div className="absolute top-20 left-4 z-10 bg-white/10 backdrop-blur px-4 py-2">
+                  <div className="flex items-center gap-2">
+                    <Ruler className="w-4 h-4 text-green-400" />
+                    <span className="text-white text-sm">Height: {detectedHeight} cm</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Guide text */}
+              {!cameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-white/40 text-sm">Initialising camera & AI model…</div>
+                </div>
+              )}
+
+              <div
+                className={`absolute bottom-28 left-1/2 -translate-x-1/2 z-10 px-6 py-3 backdrop-blur transition-all ${
+                  gestureDetected ? "bg-green-600" : "bg-white/10"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Hand className="w-5 h-5 text-white" />
+                  <span className="text-sm font-light tracking-wide text-white">
+                    {gestureDetected
+                      ? "✓ Hand detected — hold still…"
+                      : "Raise your hand above shoulder level to capture"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Pose quality ring */}
               <div className="absolute bottom-8 right-8 z-10">
                 <div className="relative w-16 h-16">
-                  <svg className="w-full h-full transform -rotate-90">
+                  <svg className="w-full h-full -rotate-90">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
                     <circle
-                      cx="32"
-                      cy="32"
-                      r="28"
-                      fill="none"
-                      stroke="rgba(255,255,255,0.2)"
-                      strokeWidth="4"
-                    />
-                    <circle
-                      cx="32"
-                      cy="32"
-                      r="28"
-                      fill="none"
-                      stroke={poseQuality > 0.6 ? "#10b981" : "#6b7280"}
+                      cx="32" cy="32" r="28" fill="none"
+                      stroke={poseQuality > 0.7 ? "#10b981" : poseQuality > 0.4 ? "#6b7280" : "#ef4444"}
                       strokeWidth="4"
                       strokeDasharray={`${poseQuality * 175.9} 175.9`}
                       strokeLinecap="round"
+                      className="transition-all duration-300"
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-xs">
-                      {Math.round(poseQuality * 100)}%
-                    </span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-white text-xs">{Math.round(poseQuality * 100)}%</span>
+                    <span className="text-white/30 text-[7px] uppercase tracking-wider">Pose</span>
                   </div>
                 </div>
               </div>
 
+              {/* Manual capture button */}
+              <div className="absolute bottom-4 left-4 right-4 z-10 flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 bg-white/10 text-white text-sm uppercase tracking-[0.15em] hover:bg-white/20 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={triggerCapture}
+                  disabled={!cameraReady || countdownActiveRef.current}
+                  className="flex-1 py-3 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Capture Now
+                </button>
+              </div>
+
+              {/* Countdown overlay */}
               <AnimatePresence>
                 {countdown !== null && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0, opacity: 0 }}
-                    className="absolute inset-0 flex items-center justify-center bg-black/90 z-20"
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20"
                   >
-                    <div className="text-white text-8xl font-light">
-                      {countdown}
-                    </div>
+                    <p className="text-white/50 text-sm uppercase tracking-widest mb-4">
+                      Hold still — capturing in
+                    </p>
+                    <div className="text-white text-8xl font-light">{countdown}</div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </>
           )}
 
+          {/* ── Results step ──────────────────────────────────────────────── */}
           {step === "results" && measurements && (
             <div className="h-full overflow-y-auto py-12 px-6">
-              <div className="max-w-5xl mx-auto">
-                <div className="space-y-8">
-                  <div className="flex justify-end">
-                    <button
-                      onClick={onClose}
-                      className="p-2 hover:bg-white/10 transition"
-                    >
-                      <X className="w-6 h-6 text-white/60 hover:text-white" />
-                    </button>
-                  </div>
+              <div className="max-w-5xl mx-auto space-y-8">
+                <div className="flex justify-end">
+                  <button onClick={onClose} className="p-2 hover:bg-white/10 transition">
+                    <X className="w-6 h-6 text-white/60 hover:text-white" />
+                  </button>
+                </div>
 
-                  <div className="text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 mb-4">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-[10px] tracking-[0.2em] uppercase text-green-400">
-                        Measurements Complete
+                {/* Header */}
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 mb-3">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span className="text-[10px] tracking-[0.2em] uppercase text-green-400">
+                      Measurements Complete
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <span className="text-[9px] tracking-[0.25em] uppercase text-white/30 border border-white/15 px-3 py-1">
+                      {effectiveGender} Profile
+                    </span>
+                    {detectedHeight && (
+                      <span className="text-[9px] tracking-[0.25em] uppercase text-white/30 border border-white/15 px-3 py-1">
+                        Height {detectedHeight} cm
                       </span>
+                    )}
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-light tracking-tight text-white">
+                    Your Body Profile
+                  </h2>
+                </div>
+
+                {/* Measurements grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {measurements.map((m, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="border border-white/10 p-4 hover:border-white/25 transition-all"
+                    >
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/35 mb-2">
+                        {m.name}
+                      </p>
+                      <p className="text-2xl font-light text-white">
+                        {m.value}
+                        <span className="text-xs text-white/35 ml-1">{m.unit}</span>
+                      </p>
+                      <p className="text-[9px] text-white/25 mt-1.5 leading-snug">
+                        {m.description}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Industry-grade disclaimer */}
+                <div className="border border-yellow-500/20 bg-yellow-500/5 p-5">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500/60 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] text-yellow-400/80 font-medium uppercase tracking-[0.2em] mb-2">
+                        Important Disclaimer
+                      </p>
+                      <p className="text-[11px] text-white/35 leading-relaxed">{DISCLAIMER}</p>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-light tracking-tight text-white">
-                      Your Body Profile
-                    </h2>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {measurements.map((m, idx) => (
-                      <div
-                        key={idx}
-                        className="border border-white/10 p-5 hover:border-white/30 transition"
-                      >
-                        <p className="text-[9px] uppercase tracking-[0.2em] text-white/40 mb-2">
-                          {m.name}
-                        </p>
-                        <p className="text-3xl font-light text-white">
-                          {m.value}
-                          <span className="text-sm text-white/40 ml-1">
-                            {m.unit}
-                          </span>
-                        </p>
-                        <p className="text-[10px] text-white/30 mt-2">
-                          {m.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-4 pt-8">
-                    <button
-                      onClick={onClose}
-                      className="flex-1 py-4 border border-white/20 text-white/60 hover:border-white/40 text-sm uppercase tracking-[0.15em] transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      className="flex-1 py-4 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition"
-                    >
-                      Save Measurements
-                    </button>
-                  </div>
-
-                  <p className="text-center text-[10px] text-white/30">
-                    AI-powered estimates • Accuracy within 1-3cm
-                  </p>
+                {/* Actions */}
+                <div className="flex gap-4 pt-2">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 py-4 border border-white/20 text-white/50 hover:border-white/35 text-sm uppercase tracking-[0.15em] transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 py-4 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition font-medium"
+                  >
+                    Confirm & Use These Measurements
+                  </button>
                 </div>
               </div>
             </div>
