@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { useAuthStore } from "../store/authStore";
 
 // Create base Axios instance
 const api = axios.create({
@@ -43,25 +44,17 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Logout function to clear all session data
 const logoutUser = () => {
-  // Clear all storage
-  // sessionStorage.clear();
-  // localStorage.clear();
-  // // Clear axios default header
-  // delete api.defaults.headers.common["Authorization"];
-  // // Show toast notification
-  // toast.error("Your session has expired. Please log in again.", {
-  //   duration: 4000,
-  //   position: "bottom-right",
-  // });
-  // // Redirect to login page if not already there
-  // if (
-  //   window.location.pathname !== "/" &&
-  //   !window.location.pathname.includes("/signup")
-  // ) {
-  //   setTimeout(() => {
-  //     window.location.href = "/";
-  //   }, 1500);
-  // }
+  useAuthStore.getState().logout();
+  delete api.defaults.headers.common["Authorization"];
+  toast.error("Your session has expired. Please sign in again.", {
+    duration: 4000,
+    position: "bottom-right",
+  });
+  if (!window.location.pathname.includes("/login")) {
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 1500);
+  }
 };
 
 // Response Interceptor: Handle token expiration and refresh attempts

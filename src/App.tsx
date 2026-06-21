@@ -9,6 +9,9 @@ import LookBookPage from "./pages/look-book";
 import Birthday from "./pages/birthday";
 import Login from "./pages/auth/login";
 import Signup from "./pages/auth/signup";
+import ForgotPassword from "./pages/auth/forgot-password";
+import ResetPassword from "./pages/auth/reset-password";
+import VerifyEmail from "./pages/auth/verify-email";
 import Cart from "./pages/cart";
 import UserProfile from "./pages/user-profile";
 import Wears from "./pages/wears";
@@ -63,6 +66,9 @@ function App() {
         <Route path="/birthday" element={<Birthday />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/profile" element={<UserProfile />} />

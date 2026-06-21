@@ -14,6 +14,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCart } from "../../util/useCart";
+import { useAuthStore } from "../../store/authStore";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,6 +24,7 @@ const Nav = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { cartItems, cartCount, removeFromCart, updateQuantity } = useCart();
+  const user = useAuthStore((s) => s.user);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -219,10 +221,22 @@ const Nav = () => {
               </button>
 
               <button
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate(user ? "/profile" : "/login")}
                 className={`${isDarkTheme ? "text-gray-800" : "text-white"} cursor-pointer`}
               >
-                <User size={18} strokeWidth={1} />
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : user ? (
+                  <span className={`text-[10px] font-medium tracking-wider border px-1.5 py-0.5 ${isDarkTheme ? "border-gray-800 text-gray-800" : "border-white text-white"}`}>
+                    {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                  </span>
+                ) : (
+                  <User size={18} strokeWidth={1} />
+                )}
               </button>
 
               <button

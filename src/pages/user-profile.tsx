@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Package, Heart, MapPin, Settings, Camera } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 import DefaultLayout from "../layout/DefaultLayout";
 import MeasurementTab from "../components/profile-tabs/MeasurementTab";
 import OrderHistoryTab from "../components/profile-tabs/OrderHistoryTab";
@@ -13,6 +14,7 @@ import SettingsTab from "../components/profile-tabs/SettingsTab";
 const UserProfile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("profile");
+  const user = useAuthStore((s) => s.user);
 
   const tabs = [
     { id: "profile", label: "Profile", icon: <User className="w-4 h-4" /> },
@@ -94,7 +96,8 @@ const UserProfile = () => {
 
               {/* Main title */}
               <h1 className="text-4xl md:text-6xl font-light text-white tracking-tight font-['Times_New_Roman',serif] leading-[1.2]">
-                Jessica <span className="font-normal italic">Doe</span>
+                {user?.firstName ?? "My"}{" "}
+                <span className="font-normal italic">{user?.lastName ?? "Profile"}</span>
               </h1>
 
               {/* Divider line */}
