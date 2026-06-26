@@ -71,7 +71,7 @@ const Feedback = () => {
               htmlFor="name"
               className="block text-xs uppercase tracking-wider text-gray-400 mb-2"
             >
-              Name (Optional)
+              Name *
             </label>
             <input
               type="text"
@@ -88,7 +88,7 @@ const Feedback = () => {
               htmlFor="email"
               className="block text-xs uppercase tracking-wider text-gray-400 mb-2"
             >
-              Email (Optional)
+              Email *
             </label>
             <input
               type="email"
