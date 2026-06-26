@@ -1,11 +1,13 @@
 import { ArrowRight, Heart, MapPin, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   submitAppointment,
+  getServices,
   type AppointmentPayload,
   type AppointmentType,
+  type Service,
 } from "../../services";
 
 interface ConsultationProps {
@@ -41,6 +43,15 @@ const EMPTY_FORM = {
 
 const Consultation = ({ className = "bg-gray-100" }: ConsultationProps) => {
   const [formData, setFormData] = useState(EMPTY_FORM);
+
+  const { data: servicesRes, isLoading: loadingServices } = useQuery<{
+    data: Service[];
+  }>({
+    queryKey: ["services"],
+    queryFn: getServices,
+    staleTime: 10 * 60 * 1000,
+  });
+  const services: Service[] = servicesRes?.data ?? [];
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: typeof formData) => {
@@ -249,17 +260,28 @@ const Consultation = ({ className = "bg-gray-100" }: ConsultationProps) => {
               {/* Service */}
               <div>
                 <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
-                  What Do You Need? *
+                  Service *
                 </label>
-                <input
-                  type="text"
+                <select
                   name="service"
                   required
                   value={formData.service}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black placeholder:text-black/30"
-                  placeholder="e.g. Custom bridal gown for September wedding"
-                />
+                  disabled={loadingServices}
+                  className="w-full px-4 py-2.5 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer disabled:opacity-50"
+                >
+                  <option value="" disabled>
+                    {loadingServices ? "Loading services..." : "Select a service"}
+                  </option>
+                  {services.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name}
+                      {s.startingPrice
+                        ? ` — from ₦${s.startingPrice.toLocaleString("en-NG")}`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Date & Duration */}

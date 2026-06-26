@@ -1,5 +1,24 @@
 import api from "../lib/axios";
 
+// ── Services ──────────────────────────────────────────────────────────────────
+
+export interface Service {
+  _id: string;
+  name: string;
+  summary: string;
+  description: string;
+  image: string;
+  startingPrice: number;
+  currency: string;
+  features: string[];
+  slug: string;
+  isActive: boolean;
+  order: number;
+}
+
+export const getServices = () =>
+  api.get("/services").then((res) => res.data);
+
 // ── Contact ──────────────────────────────────────────────────────────────────
 
 export interface ContactPayload {
