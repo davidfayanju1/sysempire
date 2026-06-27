@@ -1,4 +1,4 @@
-import { ArrowRight, Heart, MapPin, Phone, Calendar } from "lucide-react";
+import { ArrowRight, Heart, MapPin, Phone, Calendar, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -241,19 +241,22 @@ const Consultation = ({ className = "bg-gray-100" }: ConsultationProps) => {
                   <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
                     Appointment Type *
                   </label>
-                  <select
-                    name="appointmentType"
-                    required
-                    value={formData.appointmentType}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer"
-                  >
-                    {APPOINTMENT_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="appointmentType"
+                      required
+                      value={formData.appointmentType}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 pr-9 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer"
+                    >
+                      {APPOINTMENT_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/40" />
+                  </div>
                 </div>
               </div>
 
@@ -262,26 +265,26 @@ const Consultation = ({ className = "bg-gray-100" }: ConsultationProps) => {
                 <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
                   Service *
                 </label>
-                <select
-                  name="service"
-                  required
-                  value={formData.service}
-                  onChange={handleChange}
-                  disabled={loadingServices}
-                  className="w-full px-4 py-2.5 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer disabled:opacity-50"
-                >
-                  <option value="" disabled>
-                    {loadingServices ? "Loading services..." : "Select a service"}
-                  </option>
-                  {services.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                      {s.startingPrice
-                        ? ` — from ₦${s.startingPrice.toLocaleString("en-NG")}`
-                        : ""}
+                <div className="relative">
+                  <select
+                    name="service"
+                    required
+                    value={formData.service}
+                    onChange={handleChange}
+                    disabled={loadingServices}
+                    className="w-full px-4 py-2.5 pr-9 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="" disabled>
+                      {loadingServices ? "Loading services..." : "Select a service"}
                     </option>
-                  ))}
-                </select>
+                    {services.map((s) => (
+                      <option key={s._id} value={s._id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/40" />
+                </div>
               </div>
 
               {/* Date & Duration */}
@@ -304,19 +307,22 @@ const Consultation = ({ className = "bg-gray-100" }: ConsultationProps) => {
                   <label className="block text-[10px] tracking-[0.15em] uppercase text-black/50 mb-2">
                     Duration *
                   </label>
-                  <select
-                    name="durationMinutes"
-                    required
-                    value={formData.durationMinutes}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer"
-                  >
-                    {DURATION_OPTIONS.map((d) => (
-                      <option key={d.value} value={d.value}>
-                        {d.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="durationMinutes"
+                      required
+                      value={formData.durationMinutes}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 pr-9 border border-black/20 focus:border-black/60 outline-none transition-colors bg-transparent text-sm text-black appearance-none cursor-pointer"
+                    >
+                      {DURATION_OPTIONS.map((d) => (
+                        <option key={d.value} value={d.value}>
+                          {d.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/40" />
+                  </div>
                 </div>
               </div>
 
