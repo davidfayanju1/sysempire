@@ -7,7 +7,9 @@ import {
   PenTool,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import { getBrowseStyles } from "../../lib/style-inspiration";
+import { uploadMedia } from "../../services";
 
 interface StepInspirationProps {
   onBack: () => void;
@@ -28,12 +30,15 @@ const StepInspiration = ({
     "upload" | "describe" | "browse" | null
   >(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setUploadedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedImage(reader.result as string);
@@ -42,9 +47,22 @@ const StepInspiration = ({
     }
   };
 
-  const handleSubmit = () => {
-    if (selectedMethod === "upload" && uploadedImage) {
-      onNext(true, uploadedImage);
+  const handleSubmit = async () => {
+    if (selectedMethod === "upload" && uploadedFile) {
+      setIsUploading(true);
+      try {
+        const res = await uploadMedia(uploadedFile);
+        const cdnUrl: string =
+          res.data?.url ??
+          res.data?.file?.url ??
+          res.data?.secure_url ??
+          res.data;
+        onNext(true, cdnUrl);
+      } catch {
+        toast.error("Image upload failed. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     } else if (selectedMethod === "describe" && description.trim()) {
       onNext(true, undefined, description);
     } else if (selectedMethod === "browse" && selectedStyle) {
@@ -52,7 +70,6 @@ const StepInspiration = ({
     }
   };
 
-  // Get outfit type display name
   const getOutfitTypeName = () => {
     switch (outfitType) {
       case "native-wear":
@@ -73,8 +90,6 @@ const StepInspiration = ({
         return "outfit";
     }
   };
-
-  // Browse style templates based on outfit type
 
   const browseStyles = getBrowseStyles(outfitType);
 
@@ -197,7 +212,10 @@ const StepInspiration = ({
                 className="w-full max-h-96 object-contain bg-gray-50"
               />
               <button
-                onClick={() => setUploadedImage(null)}
+                onClick={() => {
+                  setUploadedImage(null);
+                  setUploadedFile(null);
+                }}
                 className="absolute top-2 right-2 p-1 bg-white/80 hover:bg-white"
               >
                 <X className="w-4 h-4 text-black" />
@@ -265,13 +283,23 @@ const StepInspiration = ({
         <button
           onClick={handleSubmit}
           disabled={
+            isUploading ||
             (selectedMethod === "upload" && !uploadedImage) ||
             (selectedMethod === "describe" && !description.trim()) ||
             (selectedMethod === "browse" && !selectedStyle)
           }
-          className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Continue <ArrowRight className="w-4 h-4 inline ml-2" />
+          {isUploading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              Continue <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </button>
       </div>
     </section>

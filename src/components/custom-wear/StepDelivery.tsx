@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { ArrowRight, ChevronLeft, Calendar, Truck, Zap } from "lucide-react";
 
+interface ShippingAddress {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+}
+
 interface StepDeliveryProps {
   onBack: () => void;
   onNext: (
     eventDate: string,
     deliveryPreference: "pickup" | "delivery",
     isExpress: boolean,
+    shippingAddress?: ShippingAddress,
   ) => void;
 }
 
@@ -16,6 +25,28 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
     "pickup" | "delivery"
   >("delivery");
   const [isExpress, setIsExpress] = useState(false);
+  const [address, setAddress] = useState<ShippingAddress>({
+    street: "",
+    city: "",
+    state: "",
+    country: "Nigeria",
+    postalCode: "",
+  });
+
+  const addressComplete =
+    deliveryPreference === "pickup" ||
+    (address.street.trim() !== "" &&
+      address.city.trim() !== "" &&
+      address.state.trim() !== "");
+
+  const handleContinue = () => {
+    onNext(
+      eventDate,
+      deliveryPreference,
+      isExpress,
+      deliveryPreference === "delivery" ? address : undefined,
+    );
+  };
 
   return (
     <section className="py-20 px-6 max-w-2xl mx-auto">
@@ -29,7 +60,7 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
 
       <div className="text-center mb-12">
         <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
-          Step 05
+          Step 06
         </span>
         <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
           When do you need this?
@@ -87,6 +118,64 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
           </div>
         </div>
 
+        {/* Shipping Address — only when delivery is selected */}
+        {deliveryPreference === "delivery" && (
+          <div className="space-y-4">
+            <label className="block text-xs uppercase tracking-wider text-gray-400">
+              Delivery Address
+            </label>
+            <input
+              type="text"
+              value={address.street}
+              onChange={(e) =>
+                setAddress({ ...address, street: e.target.value })
+              }
+              placeholder="Street address"
+              className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                value={address.city}
+                onChange={(e) =>
+                  setAddress({ ...address, city: e.target.value })
+                }
+                placeholder="City"
+                className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+              />
+              <input
+                type="text"
+                value={address.state}
+                onChange={(e) =>
+                  setAddress({ ...address, state: e.target.value })
+                }
+                placeholder="State"
+                className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                value={address.country}
+                onChange={(e) =>
+                  setAddress({ ...address, country: e.target.value })
+                }
+                placeholder="Country"
+                className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+              />
+              <input
+                type="text"
+                value={address.postalCode}
+                onChange={(e) =>
+                  setAddress({ ...address, postalCode: e.target.value })
+                }
+                placeholder="Postal code (optional)"
+                className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Express Option */}
         <div>
           <button
@@ -134,8 +223,8 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
           Back
         </button>
         <button
-          onClick={() => onNext(eventDate, deliveryPreference, isExpress)}
-          disabled={!eventDate}
+          onClick={handleContinue}
+          disabled={!eventDate || !addressComplete}
           className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continue <ArrowRight className="w-4 h-4 inline ml-2" />

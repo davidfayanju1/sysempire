@@ -46,10 +46,16 @@ export interface OrderData {
   eventDate?: string;
   deliveryPreference?: "pickup" | "delivery";
   isExpress?: boolean;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode?: string;
+  };
 
-  // Step 7: Payment
+  // Step 8: Payment
   paymentMethod?: "full" | "deposit";
-  paymentStatus?: "pending" | "completed";
 }
 
 const CustomWear = () => {
@@ -193,8 +199,8 @@ const CustomWear = () => {
           <div ref={stepRefs[6]}>
             <StepDelivery
               onBack={goToPreviousStep}
-              onNext={(eventDate, deliveryPreference, isExpress) => {
-                updateOrderData({ eventDate, deliveryPreference, isExpress });
+              onNext={(eventDate, deliveryPreference, isExpress, shippingAddress) => {
+                updateOrderData({ eventDate, deliveryPreference, isExpress, shippingAddress });
                 goToNextStep();
               }}
             />
@@ -219,12 +225,7 @@ const CustomWear = () => {
               orderData={orderData}
               onBack={goToPreviousStep}
               onSubmit={(paymentMethod) => {
-                updateOrderData({ paymentMethod, paymentStatus: "completed" });
-                // Navigate to order tracking or success page
-                console.log("Order submitted:", {
-                  ...orderData,
-                  paymentMethod,
-                });
+                updateOrderData({ paymentMethod });
               }}
             />
           </div>

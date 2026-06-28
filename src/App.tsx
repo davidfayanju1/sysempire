@@ -18,6 +18,7 @@ import Wears from "./pages/wears";
 import ProductDetails from "./pages/product-details";
 import CustomWear from "./pages/custom-wear";
 import WeAreBack from "./pages/we-are-back";
+import OrderConfirmation from "./pages/order-confirmation";
 import { Toaster } from "sonner";
 import Checkout from "./pages/checkout";
 import NotFound from "./pages/not-found";
@@ -77,6 +78,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/we-are-back" element={<WeAreBack />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
       </Routes>
     </>
   );

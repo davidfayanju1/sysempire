@@ -145,3 +145,60 @@ export const verifyEmail = (token: string) =>
 
 export const resendVerification = () =>
   api.post("/auth/resend-verification").then((res) => res.data);
+
+// ── Media ─────────────────────────────────────────────────────────────────────
+
+export const uploadMedia = (file: File) => {
+  const form = new FormData();
+  form.append("file", file);
+  return api
+    .post("/media", form, { headers: { "Content-Type": "multipart/form-data" } })
+    .then((res) => res.data);
+};
+
+// ── Orders ────────────────────────────────────────────────────────────────────
+
+export interface OrderItemPayload {
+  product: string;
+  quantity: number;
+  size: string;
+  color: string;
+  measurements?: Record<string, string>;
+}
+
+export interface AddressPayload {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode?: string;
+}
+
+export interface CreateOrderPayload {
+  items: OrderItemPayload[];
+  shippingAddress: AddressPayload;
+  billingAddress?: AddressPayload;
+  shippingFee?: number;
+  tax?: number;
+  discount?: number;
+  shippingMethod?: "standard" | "express";
+  paymentMethod: string;
+  guestName?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  notes?: string;
+}
+
+export const createOrder = (data: CreateOrderPayload) =>
+  api.post("/orders", data).then((res) => res.data);
+
+// ── Payments ──────────────────────────────────────────────────────────────────
+
+export const initiateFlutterwavePayment = (orderId: string) =>
+  api
+    .post(
+      "/payments/flutterwave/initiate",
+      { orderId },
+      { headers: { "Idempotency-Key": crypto.randomUUID() } },
+    )
+    .then((res) => res.data);

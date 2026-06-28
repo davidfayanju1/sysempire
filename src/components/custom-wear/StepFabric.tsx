@@ -28,6 +28,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
   });
   const [fabricPreferences, setFabricPreferences] = useState({
     colors: [] as string[],
+    colorCount: "single" as "single" | "multiple",
     material: "",
     budget: "",
     quality: "standard" as "standard" | "premium",
@@ -241,25 +242,69 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
         <div className="space-y-6">
           <div>
             <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-              Preferred Colors
+              How Many Colors?
+            </label>
+            <div className="flex gap-3 mb-4">
+              <button
+                onClick={() =>
+                  setFabricPreferences({
+                    ...fabricPreferences,
+                    colorCount: "single",
+                    colors: fabricPreferences.colors.slice(0, 1),
+                  })
+                }
+                className={`flex-1 py-2.5 border text-xs transition ${
+                  fabricPreferences.colorCount === "single"
+                    ? "border-black bg-black text-white"
+                    : "border-black/20 text-black/60 hover:border-black/40"
+                }`}
+              >
+                Single Color
+              </button>
+              <button
+                onClick={() =>
+                  setFabricPreferences({
+                    ...fabricPreferences,
+                    colorCount: "multiple",
+                  })
+                }
+                className={`flex-1 py-2.5 border text-xs transition ${
+                  fabricPreferences.colorCount === "multiple"
+                    ? "border-black bg-black text-white"
+                    : "border-black/20 text-black/60 hover:border-black/40"
+                }`}
+              >
+                Multiple Colors
+              </button>
+            </div>
+
+            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+              Preferred Color{fabricPreferences.colorCount === "multiple" ? "s" : ""}
             </label>
             <div className="flex flex-wrap gap-2">
               {colorOptions.map((color) => (
                 <button
                   key={color}
                   onClick={() => {
-                    if (fabricPreferences.colors.includes(color)) {
+                    if (fabricPreferences.colorCount === "single") {
                       setFabricPreferences({
                         ...fabricPreferences,
-                        colors: fabricPreferences.colors.filter(
-                          (c) => c !== color,
-                        ),
+                        colors: [color],
                       });
                     } else {
-                      setFabricPreferences({
-                        ...fabricPreferences,
-                        colors: [...fabricPreferences.colors, color],
-                      });
+                      if (fabricPreferences.colors.includes(color)) {
+                        setFabricPreferences({
+                          ...fabricPreferences,
+                          colors: fabricPreferences.colors.filter(
+                            (c) => c !== color,
+                          ),
+                        });
+                      } else {
+                        setFabricPreferences({
+                          ...fabricPreferences,
+                          colors: [...fabricPreferences.colors, color],
+                        });
+                      }
                     }
                   }}
                   className={`px-3 py-1.5 text-xs border transition ${
@@ -272,6 +317,11 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
                 </button>
               ))}
             </div>
+            {fabricPreferences.colorCount === "single" && fabricPreferences.colors.length > 0 && (
+              <p className="text-[10px] text-gray-400 mt-2">
+                Selected: {fabricPreferences.colors[0]}
+              </p>
+            )}
           </div>
 
           <div>

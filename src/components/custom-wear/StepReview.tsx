@@ -207,18 +207,24 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
 
           {orderData.measurements && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
-              {orderData.measurements.slice(0, 6).map((m: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex justify-between border-b border-black/5 py-2"
-                >
-                  <span className="text-xs text-gray-500">{m.name}</span>
-                  <span className="text-sm font-light">
-                    {m.value}
-                    {m.unit}
-                  </span>
-                </div>
-              ))}
+              {orderData.measurements.slice(0, 6).map((m: any, idx: number) => {
+                const altValue =
+                  m.unit === "cm"
+                    ? `${(m.value / 2.54).toFixed(1)} in`
+                    : `${(m.value * 2.54).toFixed(0)} cm`;
+                return (
+                  <div
+                    key={idx}
+                    className="flex justify-between border-b border-black/5 py-2 gap-2"
+                  >
+                    <span className="text-xs text-gray-500 shrink-0">{m.name}</span>
+                    <span className="text-xs font-light text-right">
+                      {m.value} {m.unit}
+                      <span className="text-gray-400 ml-1">({altValue})</span>
+                    </span>
+                  </div>
+                );
+              })}
               {orderData.measurements.length > 6 && (
                 <div className="col-span-full text-center text-xs text-gray-400 pt-2">
                   +{orderData.measurements.length - 6} more measurements
