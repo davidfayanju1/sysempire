@@ -6,6 +6,7 @@ import {
   Image,
   PenTool,
   X,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getBrowseStyles } from "../../lib/style-inspiration";
@@ -243,28 +244,50 @@ const StepInspiration = ({
             <button
               key={style.id}
               onClick={() => setSelectedStyle(style.image)}
-              className={`group relative aspect-[3/4] overflow-hidden bg-gray-100 border transition-all ${
+              className={`group relative aspect-[3/4] overflow-hidden bg-gray-100 border-2 transition-all duration-200 ${
                 selectedStyle === style.image
                   ? "border-black"
-                  : "border-black/5 hover:border-black/20"
+                  : "border-transparent hover:border-black/20"
               }`}
             >
               <img
                 src={style.image}
                 alt={style.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className={`w-full h-full object-cover transition-transform duration-500 ${
+                  selectedStyle === style.image ? "scale-105" : "group-hover:scale-105"
+                }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+              {/* Base gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+              {/* Selection overlay */}
+              {selectedStyle === style.image && (
+                <div className="absolute inset-0 bg-black/45 transition-opacity duration-200" />
+              )}
+
+              {/* Checkbox top-right */}
+              <div
+                className={`absolute top-3 right-3 w-6 h-6 border-2 flex items-center justify-center transition-all duration-200 ${
+                  selectedStyle === style.image
+                    ? "bg-white border-white"
+                    : "bg-black/30 border-white/50 group-hover:border-white"
+                }`}
+              >
+                {selectedStyle === style.image && (
+                  <Check className="w-3.5 h-3.5 text-black" strokeWidth={3} />
+                )}
+              </div>
+
+              {/* Label */}
               <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
                 <p className="text-white text-sm font-light">{style.name}</p>
+                {selectedStyle === style.image && (
+                  <p className="text-white/70 text-[10px] uppercase tracking-widest mt-0.5">
+                    Selected
+                  </p>
+                )}
               </div>
-              {selectedStyle === style.image && (
-                <div className="absolute top-3 right-3 w-5 h-5 bg-black border border-white">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white" />
-                  </div>
-                </div>
-              )}
             </button>
           ))}
         </div>
