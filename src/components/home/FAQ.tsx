@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -108,9 +109,12 @@ const FAQ = () => {
           <p className="text-sm text-gray-500 font-light mb-4">
             Still have questions?
           </p>
-          <button className="inline-flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase text-black/60 hover:text-black transition-colors border border-black/20 px-6 py-3 hover:border-black/40">
+          <Link
+            to="mailto:fayanjufemi@gmail.com"
+            className="inline-flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase text-black/60 hover:text-black transition-colors border border-black/20 px-6 py-3 hover:border-black/40"
+          >
             Contact Our Team
-          </button>
+          </Link>
         </div>
       </div>
     </section>

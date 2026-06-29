@@ -16,8 +16,7 @@ export interface Service {
   order: number;
 }
 
-export const getServices = () =>
-  api.get("/services").then((res) => res.data);
+export const getServices = () => api.get("/services").then((res) => res.data);
 
 // ── Contact ──────────────────────────────────────────────────────────────────
 
@@ -115,8 +114,7 @@ export const authLogin = (data: LoginPayload) =>
 export const authLogout = () =>
   api.post("/auth/logout").then((res) => res.data);
 
-export const getMe = () =>
-  api.get("/auth/me").then((res) => res.data);
+export const getMe = () => api.get("/auth/me").then((res) => res.data);
 
 export const updateMe = (data: UpdateProfilePayload) =>
   api.patch("/auth/me", data).then((res) => res.data);
@@ -152,7 +150,9 @@ export const uploadMedia = (file: File) => {
   const form = new FormData();
   form.append("file", file);
   return api
-    .post("/media", form, { headers: { "Content-Type": "multipart/form-data" } })
+    .post("/media", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
     .then((res) => res.data);
 };
 

@@ -19,6 +19,8 @@ import ProductDetails from "./pages/product-details";
 import CustomWear from "./pages/custom-wear";
 import WeAreBack from "./pages/we-are-back";
 import OrderConfirmation from "./pages/order-confirmation";
+import PrivacyPolicy from "./pages/privacy-policy";
+import TermsOfUse from "./pages/terms-of-use";
 import { Toaster } from "sonner";
 import Checkout from "./pages/checkout";
 import NotFound from "./pages/not-found";
@@ -79,6 +81,8 @@ function App() {
         <Route path="/we-are-back" element={<WeAreBack />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfUse />} />
       </Routes>
     </>
   );
