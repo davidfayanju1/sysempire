@@ -289,6 +289,79 @@ function getMockMeasurements(gender: "female" | "male"): Measurement[] {
   ];
 }
 
+function drawStandingGuide(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  goodPose: boolean,
+): void {
+  const cx = w / 2;
+  const color = goodPose ? "rgba(16,185,129,0.55)" : "rgba(255,255,255,0.28)";
+  const zoneW = Math.min(w * 0.38, 280);
+  const zoneH = h * 0.90;
+  const zoneX = cx - zoneW / 2;
+  const zoneY = h * 0.05;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 5]);
+  ctx.strokeRect(zoneX, zoneY, zoneW, zoneH);
+
+  const headR = zoneW * 0.12;
+  const headCY = zoneY + headR * 1.8;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(cx, headCY, headR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const shoulderY = headCY + headR + 4;
+  const hipY = zoneY + zoneH * 0.58;
+  const kneeY = zoneY + zoneH * 0.77;
+  const footY = zoneY + zoneH - 8;
+  const shoulderW = zoneW * 0.36;
+  const hipW = zoneW * 0.26;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, shoulderY);
+  ctx.lineTo(cx, hipY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - shoulderW, shoulderY + 4);
+  ctx.lineTo(cx + shoulderW, shoulderY + 4);
+  ctx.stroke();
+
+  const armBottomY = hipY - 20;
+  ctx.beginPath();
+  ctx.moveTo(cx - shoulderW, shoulderY + 4);
+  ctx.lineTo(cx - shoulderW * 0.9, armBottomY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + shoulderW, shoulderY + 4);
+  ctx.lineTo(cx + shoulderW * 0.9, armBottomY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - hipW, hipY);
+  ctx.lineTo(cx + hipW, hipY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - hipW * 0.7, hipY);
+  ctx.lineTo(cx - hipW * 0.55, kneeY);
+  ctx.lineTo(cx - hipW * 0.5, footY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + hipW * 0.7, hipY);
+  ctx.lineTo(cx + hipW * 0.55, kneeY);
+  ctx.lineTo(cx + hipW * 0.5, footY);
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 const MeasurementTab = () => {
   const [gender, setGender] = useState<"female" | "male">("female");
@@ -323,6 +396,12 @@ const MeasurementTab = () => {
   const poseLandmarkerRef = useRef<any>(null);
   const animationRef = useRef<number | null>(null);
   const countdownActiveRef = useRef(false);
+  const liveMeasurementsRef = useRef<Measurement[] | null>(null);
+  const detectedHeightRef = useRef<number | null>(null);
+  const lastGestureRaisedRef = useRef(false);
+  const lastQualityBandRef = useRef(-1);
+  const currentPromptRef = useRef(0);
+  const frameCountRef = useRef(0);
 
   // Sync gender ref whenever state changes
   useEffect(() => {
@@ -492,13 +571,9 @@ const MeasurementTab = () => {
         if (cx > 0.3 && cx < 0.7) score += 0.2;
       }
 
-      if (valid < 6 && currentPrompt !== 0) setCurrentPrompt(0);
-      else if (valid >= 6 && valid < 10 && currentPrompt !== 1) setCurrentPrompt(1);
-      else if (valid >= 10 && currentPrompt !== 2) setCurrentPrompt(2);
-
       return Math.min(score, 1);
     },
-    [currentPrompt],
+    [],
   );
 
   // ── Skeleton overlay ─────────────────────────────────────────────────────
@@ -588,27 +663,66 @@ const MeasurementTab = () => {
             const wlms = res.worldLandmarks?.[0];
 
             const gesture = detectRaisedHand(lms);
-            setGestureDetected(gesture);
-
             const quality = calculatePoseQuality(lms);
-            setPoseQuality(quality);
 
+            // Only update state when values change — prevents per-frame re-renders
+            if (gesture.isRaised !== lastGestureRaisedRef.current) {
+              lastGestureRaisedRef.current = gesture.isRaised;
+              setGestureDetected(gesture);
+            }
+            const qBand = quality > 0.7 ? 2 : quality > 0.4 ? 1 : 0;
+            if (qBand !== lastQualityBandRef.current) {
+              lastQualityBandRef.current = qBand;
+              setPoseQuality(quality);
+            }
+
+            // Update prompt text only when band changes (no stale closure — uses ref)
+            const newPrompt = quality < 0.5 ? 0 : quality < 0.75 ? 1 : quality < 0.9 ? 2 : 3;
+            if (newPrompt !== currentPromptRef.current) {
+              currentPromptRef.current = newPrompt;
+              setCurrentPrompt(newPrompt);
+            }
+
+            drawStandingGuide(ctx, canvas.width, canvas.height, quality > 0.6);
             drawSkeleton(ctx, lms, canvas.width, canvas.height, gesture);
 
             if (wlms && quality > 0.6) {
               const h = calculateHeightFromLandmarks(wlms);
               if (h && h > 140 && h < 220) {
-                setDetectedHeight(h);
                 const m = calculateAllMeasurements(wlms, h, genderRef.current);
-                setLiveMeasurements(m);
+                liveMeasurementsRef.current = m;
+                if (h !== detectedHeightRef.current) {
+                  detectedHeightRef.current = h;
+                  setDetectedHeight(h);
+                }
+                // Refresh display panel ~every 1.5 s (45 frames) — not every frame
+                frameCountRef.current++;
+                if (frameCountRef.current % 45 === 0) {
+                  setLiveMeasurements(m);
+                }
               }
               if (gesture.isRaised && !countdownActiveRef.current && quality > 0.7) {
                 startCountdown();
               }
+            } else {
+              if (lastQualityBandRef.current !== 0) {
+                lastQualityBandRef.current = 0;
+                setPoseQuality(0);
+              }
+              if (lastGestureRaisedRef.current) {
+                lastGestureRaisedRef.current = false;
+                setGestureDetected({ isRaised: false, handSide: null, confidence: 0 });
+              }
             }
           } else {
-            setPoseQuality(0);
-            setGestureDetected({ isRaised: false, handSide: null, confidence: 0 });
+            if (lastQualityBandRef.current !== 0) {
+              lastQualityBandRef.current = 0;
+              setPoseQuality(0);
+            }
+            if (lastGestureRaisedRef.current) {
+              lastGestureRaisedRef.current = false;
+              setGestureDetected({ isRaised: false, handSide: null, confidence: 0 });
+            }
           }
         } catch {
           /* suppress frame errors */
@@ -644,14 +758,21 @@ const MeasurementTab = () => {
   }, []);
 
   const capturePhoto = useCallback(() => {
-    if (canvasRef.current && videoRef.current && liveMeasurements) {
+    if (canvasRef.current && videoRef.current && liveMeasurementsRef.current) {
       setCapturedImage(canvasRef.current.toDataURL("image/jpeg", 0.95));
-      stopCamera();
-      setMeasurements(liveMeasurements);
+      // Inline stop to avoid forward reference to stopCamera
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      setIsCameraActive(false);
+      setShowVideo(false);
+      setCountdown(null);
+      setIsAutoCapturing(false);
+      countdownActiveRef.current = false;
+      setMeasurements(liveMeasurementsRef.current);
       setActiveStep(3);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveMeasurements]);
+  }, []);
 
   // ── Camera control ───────────────────────────────────────────────────────
   const stopCamera = useCallback(() => {
@@ -679,6 +800,14 @@ const MeasurementTab = () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
+
+      // Zoom to widest angle on cameras that support hardware zoom (e.g. phone cameras)
+      const track = stream.getVideoTracks()[0];
+      const cap = (track as any).getCapabilities?.();
+      if (cap?.zoom?.min !== undefined) {
+        track.applyConstraints({ advanced: [{ zoom: cap.zoom.min }] } as unknown as MediaTrackConstraints);
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
@@ -1013,7 +1142,7 @@ const MeasurementTab = () => {
 
                   {/* Prompt card */}
                   <motion.div
-                    key={currentPrompt}
+                    key="pose-prompt"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="absolute top-20 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-md"
@@ -1071,6 +1200,18 @@ const MeasurementTab = () => {
                     </motion.div>
                   )}
 
+                  {/* Standing distance instruction */}
+                  <div className="absolute bottom-48 left-1/2 -translate-x-1/2 z-10 w-[92%] max-w-sm">
+                    <div className="bg-black/70 backdrop-blur px-5 py-3 text-center space-y-1">
+                      <p className="text-white/85 text-[11px] leading-relaxed tracking-wide">
+                        Step back until your <span className="text-white font-medium">full body — head to toe</span> fits inside the dashed outline
+                      </p>
+                      <p className="text-white/40 text-[10px] tracking-widest uppercase">
+                        Recommended distance · 2–2.5 m (6–8 ft) from camera
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Gesture status */}
                   <div
                     className={`absolute bottom-28 left-1/2 -translate-x-1/2 z-10 px-6 py-3 backdrop-blur transition-all ${
@@ -1081,8 +1222,8 @@ const MeasurementTab = () => {
                       <Hand className="w-5 h-5 text-white" />
                       <span className="text-sm font-light tracking-wide text-white">
                         {gestureDetected.isRaised
-                          ? `✓ ${gestureDetected.handSide === "left" ? "Left" : "Right"} hand detected!`
-                          : "Raise your hand to capture"}
+                          ? `✓ ${gestureDetected.handSide === "left" ? "Left" : "Right"} hand detected — hold perfectly still`
+                          : "Raise either hand above shoulder level to capture"}
                       </span>
                     </div>
                   </div>

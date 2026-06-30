@@ -39,6 +39,79 @@ const LANDMARKS = {
 const DISCLAIMER =
   "These measurements are AI-generated estimates derived from computer vision analysis. Expected accuracy: ±2–5 cm depending on camera angle, distance, clothing, body position, and lighting. These measurements are a tailoring guide only — not a substitute for professional measurements. For precision garments, verify with an experienced tailor before fabric is cut. SYS EMPIRE accepts no liability for fit discrepancies based solely on AI-estimated measurements.";
 
+function drawStandingGuide(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  goodPose: boolean,
+): void {
+  const cx = w / 2;
+  const color = goodPose ? "rgba(16,185,129,0.55)" : "rgba(255,255,255,0.28)";
+  const zoneW = Math.min(w * 0.38, 280);
+  const zoneH = h * 0.90;
+  const zoneX = cx - zoneW / 2;
+  const zoneY = h * 0.05;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 5]);
+  ctx.strokeRect(zoneX, zoneY, zoneW, zoneH);
+
+  const headR = zoneW * 0.12;
+  const headCY = zoneY + headR * 1.8;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(cx, headCY, headR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const shoulderY = headCY + headR + 4;
+  const hipY = zoneY + zoneH * 0.58;
+  const kneeY = zoneY + zoneH * 0.77;
+  const footY = zoneY + zoneH - 8;
+  const shoulderW = zoneW * 0.36;
+  const hipW = zoneW * 0.26;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, shoulderY);
+  ctx.lineTo(cx, hipY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - shoulderW, shoulderY + 4);
+  ctx.lineTo(cx + shoulderW, shoulderY + 4);
+  ctx.stroke();
+
+  const armBottomY = hipY - 20;
+  ctx.beginPath();
+  ctx.moveTo(cx - shoulderW, shoulderY + 4);
+  ctx.lineTo(cx - shoulderW * 0.9, armBottomY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + shoulderW, shoulderY + 4);
+  ctx.lineTo(cx + shoulderW * 0.9, armBottomY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - hipW, hipY);
+  ctx.lineTo(cx + hipW, hipY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - hipW * 0.7, hipY);
+  ctx.lineTo(cx - hipW * 0.55, kneeY);
+  ctx.lineTo(cx - hipW * 0.5, footY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + hipW * 0.7, hipY);
+  ctx.lineTo(cx + hipW * 0.55, kneeY);
+  ctx.lineTo(cx + hipW * 0.5, footY);
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
 // Gender-aware calculation — same formulas as MeasurementTab
 function buildMeasurements(
   worldLandmarks: any[],
@@ -122,6 +195,8 @@ const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps
   // Refs to avoid stale closure issues inside animation loop / interval
   const detectedHeightRef = useRef<number | null>(null);
   const latestWorldLandmarksRef = useRef<any[] | null>(null);
+  const lastGestureRef = useRef(false);
+  const lastQualityBandRef = useRef(-1);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -224,10 +299,19 @@ const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps
               const wlms = res.worldLandmarks?.[0];
 
               const gesture = detectRaisedHand(lms);
-              setGestureDetected(gesture);
-
               const quality = calculatePoseQuality(lms);
-              setPoseQuality(quality);
+
+              if (gesture !== lastGestureRef.current) {
+                lastGestureRef.current = gesture;
+                setGestureDetected(gesture);
+              }
+              const qBand = quality > 0.7 ? 2 : quality > 0.4 ? 1 : 0;
+              if (qBand !== lastQualityBandRef.current) {
+                lastQualityBandRef.current = qBand;
+                setPoseQuality(quality);
+              }
+
+              drawStandingGuide(ctx, canvas.width, canvas.height, quality > 0.6);
 
               // Draw skeleton
               const connections: [number, number][] = [
@@ -268,9 +352,9 @@ const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps
               if (wlms && quality > 0.5) {
                 latestWorldLandmarksRef.current = wlms;
                 const h = calculateHeightFromLandmarks(wlms);
-                if (h) {
+                if (h && h !== detectedHeightRef.current) {
+                  detectedHeightRef.current = h;
                   setDetectedHeight(h);
-                  detectedHeightRef.current = h; // keep ref in sync
                 }
                 if (gesture && !countdownActiveRef.current && quality > 0.6) {
                   triggerCapture();
@@ -312,6 +396,13 @@ const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
       });
+
+      // Zoom to widest angle on cameras that support hardware zoom (e.g. phone rear/front)
+      const track = stream.getVideoTracks()[0];
+      const cap = (track as any).getCapabilities?.();
+      if (cap?.zoom?.min !== undefined) {
+        track.applyConstraints({ advanced: [{ zoom: cap.zoom.min }] } as unknown as MediaTrackConstraints);
+      }
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -414,6 +505,20 @@ const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps
                 </div>
               )}
 
+              {/* Standing distance instruction */}
+              {cameraReady && (
+                <div className="absolute bottom-48 left-1/2 -translate-x-1/2 z-10 w-[92%] max-w-sm">
+                  <div className="bg-black/70 backdrop-blur px-5 py-3 text-center space-y-1">
+                    <p className="text-white/85 text-[11px] leading-relaxed tracking-wide">
+                      Step back until your <span className="text-white font-medium">full body — head to toe</span> fits inside the dashed outline
+                    </p>
+                    <p className="text-white/40 text-[10px] tracking-widest uppercase">
+                      Recommended distance · 2–2.5 m (6–8 ft) from camera
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div
                 className={`absolute bottom-28 left-1/2 -translate-x-1/2 z-10 px-6 py-3 backdrop-blur transition-all ${
                   gestureDetected ? "bg-green-600" : "bg-white/10"
@@ -423,8 +528,8 @@ const MeasurementModal = ({ onClose, onComplete, gender }: MeasurementModalProps
                   <Hand className="w-5 h-5 text-white" />
                   <span className="text-sm font-light tracking-wide text-white">
                     {gestureDetected
-                      ? "✓ Hand detected — hold still…"
-                      : "Raise your hand above shoulder level to capture"}
+                      ? "✓ Hand detected — hold perfectly still…"
+                      : "Raise either hand above shoulder level to capture"}
                   </span>
                 </div>
               </div>
