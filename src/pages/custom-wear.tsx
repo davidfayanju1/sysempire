@@ -199,8 +199,18 @@ const CustomWear = () => {
           <div ref={stepRefs[6]}>
             <StepDelivery
               onBack={goToPreviousStep}
-              onNext={(eventDate, deliveryPreference, isExpress, shippingAddress) => {
-                updateOrderData({ eventDate, deliveryPreference, isExpress, shippingAddress });
+              onNext={(
+                eventDate,
+                deliveryPreference,
+                isExpress,
+                shippingAddress,
+              ) => {
+                updateOrderData({
+                  eventDate,
+                  deliveryPreference,
+                  isExpress,
+                  shippingAddress,
+                });
                 goToNextStep();
               }}
             />
