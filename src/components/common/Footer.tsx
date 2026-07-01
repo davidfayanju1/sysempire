@@ -23,23 +23,23 @@ const Footer = () => {
 
   const footerLinks = {
     shop: [
-      { label: "New Arrivals", href: "/collection/new" },
-      { label: "Best Sellers", href: "/collection/best-sellers" },
-      { label: "Limited Edition", href: "/collection/limited" },
-      { label: "Sale", href: "/collection/sale" },
-      { label: "Accessories", href: "/collection/accessories" },
+      { label: "New Arrivals", href: "/wears/new-arrivals" },
+      { label: "Best Sellers", href: "/collection" },
+      { label: "Limited Edition", href: "/collection" },
+      { label: "Sale", href: "/collection" },
+      { label: "Accessories", href: "/collection" },
     ],
     company: [
       { label: "About Us", href: "/about" },
-      { label: "Sustainability", href: "/sustainability" },
-      { label: "Careers", href: "/careers" },
-      { label: "Press", href: "/press" },
+      // { label: "Sustainability", href: "/sustainability" },
+      // { label: "Careers", href: "/careers" },
+      // { label: "Press", href: "/press" },
       { label: "Contact", href: "/contact" },
     ],
     support: [
-      { label: "Size Guide", href: "/size-guide" },
-      { label: "Shipping & Returns", href: "/shipping" },
-      { label: "FAQ", href: "/faq" },
+      // { label: "Size Guide", href: "/size-guide" },
+      // { label: "Shipping & Returns", href: "/shipping" },
+      { label: "FAQ", href: "/#faq" },
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms & Conditions", href: "/terms" },
     ],
@@ -207,12 +207,12 @@ const Footer = () => {
             >
               Terms of Use
             </Link>
-            <Link
+            {/* <Link
               to="/cookies"
               className="text-[10px] text-white/30 hover:text-white tracking-[0.1em] uppercase transition-colors"
             >
               Cookie Policy
-            </Link>
+            </Link> */}
           </div>
           <div className="flex items-center gap-1">
             <span className="text-[9px] text-white/20 tracking-[0.15em] uppercase">

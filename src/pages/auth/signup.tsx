@@ -20,7 +20,14 @@ const Signup = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: () =>
-      authRegister({ firstName, lastName, email, phone, password, role: "client" }),
+      authRegister({
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+        role: "client",
+      }),
     onSuccess: (res) => {
       const { user, accessToken, refreshToken } = res.data;
       if (accessToken) {
@@ -38,7 +45,8 @@ const Signup = () => {
     },
     onError: (err: any) => {
       const msg =
-        err?.response?.data?.message ?? "Registration failed. Please try again.";
+        err?.response?.data?.message ??
+        "Registration failed. Please try again.";
       toast.error(msg);
     },
   });
@@ -220,11 +228,17 @@ const Signup = () => {
 
           <p className="text-[8px] text-black/25 text-center mt-6 leading-relaxed">
             By signing up, you agree to our{" "}
-            <Link to="/terms" className="underline hover:text-black/50 transition-colors">
+            <Link
+              to="/terms"
+              className="underline hover:text-black/50 transition-colors"
+            >
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link to="/privacy" className="underline hover:text-black/50 transition-colors">
+            <Link
+              to="/privacy"
+              className="underline hover:text-black/50 transition-colors"
+            >
               Privacy Policy
             </Link>
           </p>
