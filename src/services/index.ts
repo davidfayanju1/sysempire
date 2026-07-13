@@ -111,6 +111,9 @@ export const authRegister = (data: RegisterPayload) =>
 export const authLogin = (data: LoginPayload) =>
   api.post("/auth/login", data).then((res) => res.data);
 
+export const authGoogleLogin = (credential: string) =>
+  api.post("/auth/google", { credential }).then((res) => res.data);
+
 export const authLogout = () =>
   api.post("/auth/logout").then((res) => res.data);
 
@@ -163,6 +166,7 @@ export interface OrderItemPayload {
   quantity: number;
   size: string;
   color: string;
+  price?: number;
   measurements?: Record<string, string>;
 }
 
@@ -181,6 +185,7 @@ export interface CreateOrderPayload {
   shippingFee?: number;
   tax?: number;
   discount?: number;
+  totalAmount?: number;
   shippingMethod?: "standard" | "express";
   paymentMethod: string;
   guestName?: string;
@@ -194,11 +199,11 @@ export const createOrder = (data: CreateOrderPayload) =>
 
 // ── Payments ──────────────────────────────────────────────────────────────────
 
-export const initiateFlutterwavePayment = (orderId: string) =>
+export const initiateFlutterwavePayment = (orderId: string, amount?: number) =>
   api
     .post(
       "/payments/flutterwave/initiate",
-      { orderId },
+      { orderId, amount },
       { headers: { "Idempotency-Key": crypto.randomUUID() } },
     )
     .then((res) => res.data);

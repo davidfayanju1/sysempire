@@ -3,7 +3,8 @@ import { Heart, Mail, Lock } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { authLogin } from "../../services";
+import { GoogleLogin } from "@react-oauth/google";
+import { authLogin, authGoogleLogin } from "../../services";
 import { useAuthStore } from "../../store/authStore";
 
 const Login = () => {
@@ -24,6 +25,22 @@ const Login = () => {
     onError: (err: any) => {
       const msg =
         err?.response?.data?.message ?? "Sign in failed. Please try again.";
+      toast.error(msg);
+    },
+  });
+
+  const { mutate: mutateGoogle, isPending: isGooglePending } = useMutation({
+    mutationFn: (credential: string) => authGoogleLogin(credential),
+    onSuccess: (res) => {
+      const { user, accessToken, refreshToken } = res.data;
+      login(user, accessToken, refreshToken);
+      toast.success(`Welcome back, ${user.firstName}.`);
+      navigate("/profile");
+    },
+    onError: (err: any) => {
+      const msg =
+        err?.response?.data?.message ??
+        "Google sign in failed. Please try again.";
       toast.error(msg);
     },
   });
@@ -121,6 +138,43 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          <div className="flex items-center gap-4 my-8">
+            <div className="flex-1 h-px bg-black/10" />
+            <span className="text-[9px] tracking-[0.2em] uppercase text-black/30 font-['Times_New_Roman',serif]">
+              Or
+            </span>
+            <div className="flex-1 h-px bg-black/10" />
+          </div>
+
+          <div className="flex justify-center">
+            {isGooglePending ? (
+              <div className="w-full py-4 flex items-center justify-center gap-2 border border-black/20">
+                <div className="w-3.5 h-3.5 border-2 border-black/20 border-t-black/60 rounded-full animate-spin" />
+                <span className="text-[10px] tracking-[0.2em] uppercase text-black/60 font-['Times_New_Roman',serif]">
+                  Signing In...
+                </span>
+              </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  if (!credentialResponse.credential) {
+                    toast.error("Google sign in failed. Please try again.");
+                    return;
+                  }
+                  mutateGoogle(credentialResponse.credential);
+                }}
+                onError={() => {
+                  toast.error("Google sign in failed. Please try again.");
+                }}
+                theme="outline"
+                shape="rectangular"
+                size="large"
+                width="384"
+                text="signin_with"
+              />
+            )}
+          </div>
 
           <div className="text-center mt-12">
             <p className="text-[9px] tracking-[0.15em] text-black/40 uppercase">

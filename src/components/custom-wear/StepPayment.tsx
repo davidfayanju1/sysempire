@@ -195,6 +195,8 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         postalCode: "",
       };
 
+      const chargeAmount = paymentMethod === "deposit" ? depositAmount : estimatedPrice;
+
       const payload: CreateOrderPayload = {
         items: [
           {
@@ -202,6 +204,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
             quantity: 1,
             size: "custom",
             color: primaryColor,
+            price: estimatedPrice,
             measurements: measurementsObj,
           },
         ],
@@ -210,6 +213,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         shippingFee: 0,
         tax: 0,
         discount: 0,
+        totalAmount: chargeAmount,
         shippingMethod: orderData.isExpress ? "express" : "standard",
         paymentMethod: "flutterwave",
         guestName: guestName.trim(),
@@ -218,12 +222,14 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         notes: buildOrderNotes(orderData, paymentMethod),
       };
 
+      console.log("Order payload:", payload);
+
       const orderRes = await createOrder(payload);
       const orderId: string = orderRes.data?._id ?? orderRes.data?.id;
 
       if (!orderId) throw new Error("Order creation failed. Please try again.");
 
-      const paymentRes = await initiateFlutterwavePayment(orderId);
+      const paymentRes = await initiateFlutterwavePayment(orderId, chargeAmount);
       const paymentLink: string =
         paymentRes.data?.paymentLink ??
         paymentRes.data?.link ??
