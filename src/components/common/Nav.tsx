@@ -10,11 +10,13 @@ import {
   Trash2,
   Plus,
   Minus,
+  Heart,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCart } from "../../util/useCart";
 import { useAuthStore } from "../../store/authStore";
+import api from "../../lib/axios";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,6 +35,22 @@ const Nav = () => {
 
   const isProductPage = location.pathname.startsWith("/product");
   const isDarkTheme = isScrolled || isProductPage;
+  const isKidsPage = location.pathname.startsWith("/little-royals");
+  // const kidsAccent = "#c96b82";
+
+  const handleFetchCart = async () => {
+    try {
+      const response = await api.get("/cart");
+
+      console.log(response, "Cart Response");
+    } catch (error) {
+      console.log(error, "Cart error");
+    }
+  };
+
+  useEffect(() => {
+    handleFetchCart();
+  }, []);
 
   // Helper function to check if a link is active
   const isActiveLink = (to: string) => {
@@ -108,6 +126,10 @@ const Nav = () => {
         { name: "Tailoring", to: "/wears/men-tailoring" },
       ],
     },
+    {
+      title: "KIDS",
+      items: [{ name: "Little Royals", to: "/little-royals" }],
+    },
   ];
 
   const occasions = [
@@ -158,15 +180,25 @@ const Nav = () => {
           <div className="flex items-center justify-between relative h-14">
             {/* Logo - Always visible left */}
             <Link to="/" className="z-50 shrink-0">
-              <img
-                src={
-                  isDarkTheme || isMobileMenuOpen
-                    ? "/images/logo_dark.png"
-                    : "/images/logo_light.png"
-                }
-                alt="SYS_EMPIRE_LOGO"
-                className="w-16 h-14 md:ml-0 ml-[-.5rem] md:w-20 md:h-14 object-contain transition-all duration-500"
-              />
+              {isKidsPage ? (
+                <div className="w-12 h-12 md:ml-0 ml-[-.25rem] md:w-14 md:h-14 rounded-full overflow-hidden ring-1 ring-[#c96b82]/50 transition-all duration-500">
+                  <img
+                    src="/images/sys_children_logo_mark.png"
+                    alt="Little Royals by SYS Empire"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <img
+                  src={
+                    isDarkTheme || isMobileMenuOpen
+                      ? "/images/logo_dark.png"
+                      : "/images/logo_light.png"
+                  }
+                  alt="SYS_EMPIRE_LOGO"
+                  className="w-16 h-14 md:ml-0 ml-[-.5rem] md:w-20 md:h-14 object-contain transition-all duration-500"
+                />
+              )}
             </Link>
 
             {/* Desktop Nav - Absolute center */}
@@ -231,7 +263,9 @@ const Nav = () => {
                     className="w-6 h-6 rounded-full object-cover"
                   />
                 ) : user ? (
-                  <span className={`text-[10px] font-medium tracking-wider border px-1.5 py-0.5 ${isDarkTheme ? "border-gray-800 text-gray-800" : "border-white text-white"}`}>
+                  <span
+                    className={`text-[10px] font-medium tracking-wider border px-1.5 py-0.5 ${isDarkTheme ? "border-gray-800 text-gray-800" : "border-white text-white"}`}
+                  >
                     {`${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()}
                   </span>
                 ) : (
@@ -295,10 +329,16 @@ const Nav = () => {
             >
               <div className="max-w-[1600px] mx-auto px-12 py-12">
                 {activeDropdown === "collections" && (
-                  <div className="grid grid-cols-2 gap-16">
+                  <div className="grid grid-cols-3 gap-16">
                     {collections.map((col) => (
                       <div key={col.title}>
-                        <p className="text-[10px] tracking-[0.2em] text-gray-400 mb-6 font-medium">
+                        <p
+                          className={`text-[10px] tracking-[0.2em] mb-6 font-medium ${
+                            col.title === "KIDS"
+                              ? "text-[#c96b82]"
+                              : "text-gray-400"
+                          }`}
+                        >
                           {col.title}
                         </p>
                         <div className="space-y-4">
@@ -306,9 +346,16 @@ const Nav = () => {
                             <Link
                               key={item.name}
                               to={item.to}
-                              className="block text-sm text-gray-600 hover:text-black font-light transition-colors"
+                              className={`flex items-center gap-1.5 text-sm font-light transition-colors ${
+                                col.title === "KIDS"
+                                  ? "text-gray-600 hover:text-[#c96b82]"
+                                  : "text-gray-600 hover:text-black"
+                              }`}
                             >
                               {item.name}
+                              {col.title === "KIDS" && (
+                                <Heart className="w-3 h-3 text-[#c96b82]/60" />
+                              )}
                             </Link>
                           ))}
                         </div>
@@ -406,7 +453,13 @@ const Nav = () => {
                               {link.dropdown === "collections" &&
                                 collections.map((col) => (
                                   <div key={col.title}>
-                                    <p className="text-[9px] tracking-widest text-gray-400 uppercase mb-3">
+                                    <p
+                                      className={`text-[9px] tracking-widest uppercase mb-3 ${
+                                        col.title === "KIDS"
+                                          ? "text-[#c96b82]"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
                                       {col.title}
                                     </p>
                                     <div className="space-y-4">
@@ -416,13 +469,18 @@ const Nav = () => {
                                           onClick={() =>
                                             handleNavigation(item.to)
                                           }
-                                          className={`block text-lg font-light transition-colors ${
+                                          className={`flex items-center gap-1.5 text-lg font-light transition-colors ${
                                             isActiveLink(item.to)
-                                              ? "text-black font-medium"
+                                              ? col.title === "KIDS"
+                                                ? "text-[#c96b82] font-medium"
+                                                : "text-black font-medium"
                                               : "text-gray-600"
                                           }`}
                                         >
                                           {item.name}
+                                          {col.title === "KIDS" && (
+                                            <Heart className="w-3 h-3 text-[#c96b82]/60" />
+                                          )}
                                         </button>
                                       ))}
                                     </div>

@@ -5,6 +5,7 @@ import Testimonial from "../components/home/Testimonial";
 import Founder from "../components/home/Founder";
 import Consultation from "../components/home/Consultation";
 import GenderClothes from "../components/home/GenderClothes";
+// import LittleRoyals from "../components/home/LittleRoyals";
 import ThreeWaysToOrder from "../components/home/ThreeWaysToOrder";
 import Feedback from "../components/home/Feedback";
 import FAQ from "../components/home/FAQ";
@@ -23,6 +24,10 @@ const Home = () => {
       <SectionReveal>
         <GenderClothes />
       </SectionReveal>
+
+      {/* <SectionReveal>
+        <LittleRoyals />
+      </SectionReveal> */}
 
       <SectionReveal>
         <ThreeWaysToOrder />

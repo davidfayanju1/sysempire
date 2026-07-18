@@ -4,6 +4,7 @@ import Home from "./pages/home";
 import ContactUs from "./pages/contact-us";
 import AboutPage from "./pages/about-page";
 import Collections from "./pages/collections";
+import LittleRoyalsPage from "./pages/little-royals";
 import ScrollToTop from "./lib/ScrollToTop";
 import LookBookPage from "./pages/look-book";
 import Birthday from "./pages/birthday";
@@ -65,6 +66,7 @@ function App() {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/collection" element={<Collections />} />
+        <Route path="/little-royals" element={<LittleRoyalsPage />} />
         <Route path="/lookbook" element={<LookBookPage />} />
         <Route path="/birthday" element={<Birthday />} />
         <Route path="/login" element={<Login />} />

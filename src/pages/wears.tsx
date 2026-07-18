@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
 import { getCategoryBySlug } from "../data/category-data";
+import api from "../lib/axios";
 
 const Wears = () => {
   const { name } = useParams();
@@ -22,6 +23,20 @@ const Wears = () => {
       navigate("/");
     }
   }, [name, navigate]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get(`products`);
+
+      console.log(response.data?.data, "Products Response");
+    } catch (error) {
+      console.log(error, "Products Error");
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   if (!category) {
     return (

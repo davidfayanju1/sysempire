@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Mail, Phone, MapPin } from "lucide-react";
 import {
   FacebookLogo,
@@ -9,6 +9,8 @@ import {
 import { email } from "../../data/contact";
 
 const Footer = () => {
+  const location = useLocation();
+  const isKidsPage = location.pathname.startsWith("/little-royals");
   //   const [email, setEmail] = useState("");
   //   const [, setSubscribed] = useState(false);
 
@@ -76,16 +78,29 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand Column */}
           <div className="col-span-2">
-            <Link to="/" className="inline-block mb-4 ml-[-2rem]">
-              <img
-                src="/images/logo_light.png"
-                alt="Logo"
-                className="w-36 h-36 object-contain"
-              />
-            </Link>
+            {isKidsPage ? (
+              <Link to="/little-royals" className="inline-block mb-4">
+                <div className="w-28 h-28 rounded-full overflow-hidden ring-1 ring-[#c96b82]/40">
+                  <img
+                    src="/images/sys_children_logo.JPG"
+                    alt="Little Royals by SYS Empire"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </Link>
+            ) : (
+              <Link to="/" className="inline-block mb-4 ml-[-2rem]">
+                <img
+                  src="/images/logo_light.png"
+                  alt="Logo"
+                  className="w-36 h-36 object-contain"
+                />
+              </Link>
+            )}
             <p className="text-white/40 text-sm mb-4 leading-relaxed max-w-xs">
-              Where timeless elegance meets contemporary edge. Crafting luxury
-              fashion for the modern visionary.
+              {isKidsPage
+                ? "Playful silhouettes and atelier craftsmanship for the smallest members of the family, a Little Royals original, proudly under the SYS Empire house."
+                : "Where timeless elegance meets contemporary edge. Crafting luxury fashion for the modern visionary."}
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social, idx) => (
