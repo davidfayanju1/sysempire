@@ -165,14 +165,14 @@ const LittleRoyalsPage = () => {
         <div className="absolute inset-0 bg-linear-to-t from-[#2a1219]/85 via-[#2a1219]/35 to-[#2a1219]/25" />
 
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
-          <motion.img
+          {/* <motion.img
             initial={{ opacity: 0, y: -14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: EASE }}
             src="/images/sys_children_logo.JPG"
             alt="Little Royals by SYS Empire"
             className="w-28 md:w-36 h-auto object-contain mx-auto mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
-          />
+          /> */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
