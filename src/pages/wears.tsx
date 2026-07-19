@@ -310,7 +310,7 @@ const Wears = () => {
               </div>
             )}
 
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -324,7 +324,7 @@ const Wears = () => {
                 Explore Full Collection
                 <ArrowRight className="w-4 h-4" />
               </button>
-            </motion.div>
+            </motion.div> */}
           </div>
         </section>
 
@@ -371,12 +371,12 @@ const Wears = () => {
                 >
                   Book Appointment
                 </button>
-                <button
+                {/* <button
                   onClick={() => navigate(`/collection/${category.slug}`)}
                   className="border border-black text-black px-8 py-3 text-xs tracking-[0.25em] uppercase font-light hover:bg-black hover:text-white transition-all duration-500"
                 >
                   View Lookbook
-                </button>
+                </button> */}
               </div>
             </motion.div>
           </div>

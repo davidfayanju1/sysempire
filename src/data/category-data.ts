@@ -46,7 +46,7 @@ export const categoryData: CategoryData = {
       video:
         "https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-43676-large.mp4",
       fallbackImage:
-        "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070",
+        "https://images.unsplash.com/photo-1632991685860-75fad7326f5f?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     story: {
       title: "The Latest in Luxury",
