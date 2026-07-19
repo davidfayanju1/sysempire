@@ -2,37 +2,16 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-
-// interface Product {
-//   id: number;
-//   name: string;
-//   price: number;
-//   image: string;
-//   category: string;
-// }
+import type { Product } from "../../types/product";
 
 interface SimilarProductsProps {
-  currentProductId: number;
-  currentCategory: string;
-  productsDatabase: { [key: number]: any };
+  products: Product[];
 }
 
-const SimilarProducts = ({
-  currentProductId,
-  currentCategory,
-  productsDatabase,
-}: SimilarProductsProps) => {
+const SimilarProducts = ({ products }: SimilarProductsProps) => {
   const navigate = useNavigate();
 
-  // Get similar products from the same category, excluding current product
-  const similarProducts = Object.values(productsDatabase)
-    .filter(
-      (product: any) =>
-        product.category === currentCategory && product.id !== currentProductId,
-    )
-    .slice(0, 4);
-
-  if (similarProducts.length === 0) {
+  if (products.length === 0) {
     return null;
   }
 
@@ -46,7 +25,7 @@ const SimilarProducts = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {similarProducts.map((product: any, index: number) => (
+        {products.map((product, index) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, y: 30 }}

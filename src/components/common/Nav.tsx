@@ -16,7 +16,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCart } from "../../util/useCart";
 import { useAuthStore } from "../../store/authStore";
-import api from "../../lib/axios";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,20 +36,6 @@ const Nav = () => {
   const isDarkTheme = isScrolled || isProductPage;
   const isKidsPage = location.pathname.startsWith("/little-royals");
   // const kidsAccent = "#c96b82";
-
-  const handleFetchCart = async () => {
-    try {
-      const response = await api.get("/cart");
-
-      console.log(response, "Cart Response");
-    } catch (error) {
-      console.log(error, "Cart error");
-    }
-  };
-
-  useEffect(() => {
-    handleFetchCart();
-  }, []);
 
   // Helper function to check if a link is active
   const isActiveLink = (to: string) => {
@@ -90,7 +75,7 @@ const Nav = () => {
     dropdownTimeoutRef.current = setTimeout(() => setActiveDropdown(null), 200);
   };
 
-  const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
+  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) {
       removeFromCart(itemId);
     } else {
@@ -98,8 +83,8 @@ const Nav = () => {
     }
   };
 
-  const handleRemoveItem = (itemId: number, itemName: string) => {
-    removeFromCart(itemId);
+  const handleRemoveItem = async (itemId: string, itemName: string) => {
+    await removeFromCart(itemId);
     toast.success(`${itemName} removed from cart`);
   };
 

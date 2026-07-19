@@ -12,7 +12,8 @@ import {
   Heart,
   Share2,
 } from "lucide-react";
-import type { Product } from "../../types/product";
+import type { Product, ProductColor } from "../../types/product";
+import ColorSelector from "./ColorSelector";
 
 interface ProductInfoProps {
   product: Product;
@@ -45,6 +46,14 @@ const ProductInfo = ({
   onSizeGuideClick,
   onShareClick,
 }: ProductInfoProps) => {
+  const isColorAvailable = (color: ProductColor) => {
+    if (!selectedSize) return true;
+    return product.variants.some(
+      (variant) =>
+        variant.color === color.name && variant.sizes.includes(selectedSize),
+    );
+  };
+
   // Debug function to check if button is clickable
   const handleAddToCartClick = () => {
     console.log("=== Add to Cart Button Clicked ===");
@@ -116,38 +125,12 @@ const ProductInfo = ({
       </p>
 
       {/* Color Selection */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium tracking-wide">Color</span>
-          <span className="text-sm text-gray-500">
-            {selectedColor || "Select a color"}
-          </span>
-        </div>
-        <div className="flex gap-3">
-          {product.colors.map((color) => (
-            <button
-              key={color.name}
-              onClick={() => {
-                console.log("Color selected:", color.name);
-                onColorSelect(color.name);
-              }}
-              className="relative group"
-            >
-              <div
-                className={`w-12 h-12 rounded-full transition-all ${
-                  selectedColor === color.name
-                    ? "ring-2 ring-black ring-offset-2"
-                    : "ring-1 ring-gray-200 hover:ring-gray-400"
-                }`}
-                style={{ backgroundColor: color.code }}
-              />
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs whitespace-nowrap rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                {color.name}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+      <ColorSelector
+        colors={product.colors}
+        selectedColor={selectedColor}
+        isColorAvailable={isColorAvailable}
+        onSelect={onColorSelect}
+      />
 
       {/* Size Selection */}
       <div className="space-y-3">

@@ -11,8 +11,14 @@ export interface ProductColor {
   image?: string;
 }
 
+export interface ProductVariant {
+  id: string;
+  color: string;
+  sizes: string[];
+}
+
 export interface Product {
-  id: number;
+  id: number | string;
   name: string;
   price: number;
   description: string;
@@ -20,6 +26,7 @@ export interface Product {
   category: string;
   sizes: string[];
   colors: ProductColor[];
+  variants: ProductVariant[];
   rating: number;
   reviews: number;
   inStock: boolean;
@@ -27,16 +34,4 @@ export interface Product {
   material: string;
   careInstructions: string[];
   fit: string;
-}
-
-export interface CartItem {
-  id: number;
-  productId: number;
-  name: string;
-  price: number;
-  quantity: number;
-  size: string;
-  color: string;
-  image: string;
-  sku: string;
 }

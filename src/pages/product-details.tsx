@@ -1,7 +1,6 @@
 // pages/ProductDetails.tsx
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
 import ProductImageGallery from "../components/product-details/ProductImageGallery";
 import ProductInfo from "../components/product-details/ProductInfo";
@@ -12,8 +11,10 @@ import ProductDetailsSkeleton from "../components/product-details/ProductDetails
 import SimilarProducts from "../components/product/SimilarProducts";
 import { toast } from "sonner";
 import type { Product } from "../types/product";
+import type { ApiProduct } from "../types/api-product";
 import { useCart } from "../util/useCart";
-import { productsDatabase } from "../data/productsDatabase";
+import api from "../lib/axios";
+import { mapApiProductToProduct } from "../lib/productAdapter";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +22,7 @@ const ProductDetails = () => {
   const { addToCart, cartItems, cartCount } = useCart(); // Use addToCart from the hook
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
@@ -47,23 +49,49 @@ const ProductDetails = () => {
 
   // Fetch product data
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const productId = id && !isNaN(Number(id)) ? Number(id) : 1;
-      const foundProduct = productsDatabase[productId];
-
-      console.log("Product ID:", productId);
-      console.log("Found product:", foundProduct);
-
-      if (foundProduct) {
-        setProduct(foundProduct);
-      } else {
-        setProduct(productsDatabase[1] || null);
-      }
+    if (!id || !/^[a-f\d]{24}$/i.test(id)) {
+      setProduct(null);
       setLoading(false);
-    }, 300);
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/products/${id}`);
+        const apiProduct: ApiProduct = response.data?.data;
+        setProduct(mapApiProductToProduct(apiProduct));
+
+        if (apiProduct.category) {
+          try {
+            const listResponse = await api.get(`/products`);
+            const allProducts: ApiProduct[] = listResponse.data?.data ?? [];
+            const similar = allProducts
+              .filter(
+                (p) =>
+                  p.id !== apiProduct.id &&
+                  p.category?.id === apiProduct.category?.id,
+              )
+              .slice(0, 4)
+              .map(mapApiProductToProduct);
+            setSimilarProducts(similar);
+          } catch (similarError) {
+            console.log(similarError, "Similar Products Error");
+            setSimilarProducts([]);
+          }
+        } else {
+          setSimilarProducts([]);
+        }
+      } catch (error) {
+        console.log(error, "Product Error");
+        setProduct(null);
+        setSimilarProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
   // Handle scroll for sticky bar
@@ -88,13 +116,7 @@ const ProductDetails = () => {
   };
 
   // Handle add to cart using the hook's addToCart function
-  const handleAddToCart = () => {
-    console.log("=== handleAddToCart called in parent ===");
-    console.log("Selected Size:", selectedSize);
-    console.log("Selected Color:", selectedColor);
-    console.log("Quantity:", quantity);
-    console.log("Product:", product);
-
+  const handleAddToCart = async () => {
     if (!selectedSize) {
       toast.error("Please select a size");
       return;
@@ -108,10 +130,23 @@ const ProductDetails = () => {
       return;
     }
 
+    const variant = product.variants.find(
+      (v) => v.color === selectedColor && v.sizes.includes(selectedSize),
+    );
+    if (!variant) {
+      toast.error("This size and color combination is unavailable");
+      return;
+    }
+
     setAddingToCart(true);
 
-    // Use the addToCart function from the hook
-    const success = addToCart(product, selectedSize, selectedColor, quantity);
+    const success = await addToCart({
+      productId: String(product.id),
+      variantId: variant.id,
+      size: selectedSize,
+      color: selectedColor,
+      quantity,
+    });
 
     if (success) {
       setNotificationData({
@@ -128,9 +163,7 @@ const ProductDetails = () => {
       }, 3000);
     }
 
-    setTimeout(() => {
-      setAddingToCart(false);
-    }, 500);
+    setAddingToCart(false);
   };
 
   const handleShare = async () => {
@@ -173,13 +206,13 @@ const ProductDetails = () => {
       <div className="min-h-screen bg-white pt-24 pb-16">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           {/* Back Button */}
-          <button
+          {/* <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors mb-8 group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm tracking-wide">Back</span>
-          </button>
+          </button> */}
 
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             <ProductImageGallery
@@ -208,11 +241,7 @@ const ProductDetails = () => {
 
           {/* Similar Products Section */}
           <div ref={similarProductsRef}>
-            <SimilarProducts
-              currentProductId={product.id}
-              currentCategory={product.category}
-              productsDatabase={productsDatabase}
-            />
+            <SimilarProducts products={similarProducts} />
           </div>
         </div>
       </div>

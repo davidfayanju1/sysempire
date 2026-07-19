@@ -5,12 +5,16 @@ import { ArrowRight } from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
 import { getCategoryBySlug } from "../data/category-data";
 import api from "../lib/axios";
+import ProductGridSkeleton from "../components/product/ProductGridSkeleton";
+import type { ApiProduct } from "../types/api-product";
 
 const Wears = () => {
   const { name } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState<any>(null);
   const [videoError, setVideoError] = useState(false);
+  const [products, setProducts] = useState<ApiProduct[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
   useEffect(() => {
     const categoryData = getCategoryBySlug(name ?? "");
@@ -26,17 +30,34 @@ const Wears = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get(`products`);
-
-      console.log(response.data?.data, "Products Response");
+      setProductsLoading(true);
+      const response = await api.get(`/products`);
+      setProducts(response.data?.data ?? []);
     } catch (error) {
       console.log(error, "Products Error");
+    } finally {
+      setProductsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const productImages = products
+    .map((product) => {
+      const primary = product.images?.find((img) => img.isPrimary)?.url;
+      return primary ?? product.images?.[0]?.url;
+    })
+    .filter((url): url is string => Boolean(url));
+
+  const getStoryImage = (index: number) => {
+    if (productsLoading) return undefined;
+    if (productImages.length > 0) {
+      return productImages[index % productImages.length];
+    }
+    return category?.featured?.[index]?.image;
+  };
 
   if (!category) {
     return (
@@ -156,35 +177,51 @@ const Wears = () => {
                 className="grid grid-cols-2 gap-4"
               >
                 <div className="space-y-4">
-                  <div className="aspect-[3/4] overflow-hidden">
-                    <img
-                      src={category.featured[0]?.image}
-                      alt="Collection preview 1"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    />
+                  <div className="aspect-[3/4] overflow-hidden bg-gray-100">
+                    {getStoryImage(0) ? (
+                      <img
+                        src={getStoryImage(0)}
+                        alt="Collection preview 1"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full animate-pulse" />
+                    )}
                   </div>
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={category.featured[1]?.image}
-                      alt="Collection preview 2"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    />
+                  <div className="aspect-square overflow-hidden bg-gray-100">
+                    {getStoryImage(1) ? (
+                      <img
+                        src={getStoryImage(1)}
+                        alt="Collection preview 2"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full animate-pulse" />
+                    )}
                   </div>
                 </div>
                 <div className="space-y-4 pt-12">
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={category.featured[2]?.image}
-                      alt="Collection preview 3"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    />
+                  <div className="aspect-square overflow-hidden bg-gray-100">
+                    {getStoryImage(2) ? (
+                      <img
+                        src={getStoryImage(2)}
+                        alt="Collection preview 3"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full animate-pulse" />
+                    )}
                   </div>
-                  <div className="aspect-[3/4] overflow-hidden">
-                    <img
-                      src={category.featured[3]?.image}
-                      alt="Collection preview 4"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    />
+                  <div className="aspect-[3/4] overflow-hidden bg-gray-100">
+                    {getStoryImage(3) ? (
+                      <img
+                        src={getStoryImage(3)}
+                        alt="Collection preview 4"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full animate-pulse" />
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -210,50 +247,68 @@ const Wears = () => {
               </h3>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 md:gap-8 gap-4">
-              {category.featured?.map((product: any, index: number) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="group cursor-pointer"
-                  onClick={() => navigate(`/product/${product.id}`)}
-                >
-                  <div className="relative aspect-[3/4] overflow-hidden bg-white mb-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                    >
-                      <button className="bg-white text-black px-6 py-2 text-xs tracking-[0.2em] uppercase font-light hover:bg-gray-100 transition-colors flex items-center gap-2">
-                        View Details
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </motion.div>
-                  </div>
+            {productsLoading ? (
+              <ProductGridSkeleton count={8} />
+            ) : products.length === 0 ? (
+              <p className="text-center text-gray-400 text-sm font-light tracking-wide">
+                No products available right now. Check back soon.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 md:gap-8 gap-4">
+                {products.slice(0, 8).map((product, index) => {
+                  const primaryImage =
+                    product.images?.find((img) => img.isPrimary)?.url ??
+                    product.images?.[0]?.url;
 
-                  <div className="text-center">
-                    <p className="text-[9px] tracking-[0.25em] uppercase text-gray-400 mb-2 font-light">
-                      {product.category}
-                    </p>
-                    <h4 className="text-sm font-light mb-2 text-gray-800">
-                      {product.name}
-                    </h4>
-                    <p className="text-sm text-gray-900 font-light">
-                      ₦{product.price.toLocaleString("en-NG")}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                  return (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      className="group cursor-pointer"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
+                      <div className="relative aspect-[3/4] overflow-hidden bg-white mb-4">
+                        {primaryImage ? (
+                          <img
+                            src={primaryImage}
+                            alt={product.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100" />
+                        )}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          whileHover={{ opacity: 1, y: 0 }}
+                          className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        >
+                          <button className="bg-white text-black px-6 py-2 text-xs tracking-[0.2em] uppercase font-light hover:bg-gray-100 transition-colors flex items-center gap-2">
+                            View Details
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </motion.div>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-[9px] tracking-[0.25em] uppercase text-gray-400 mb-2 font-light">
+                          {product.category?.name ?? ""}
+                        </p>
+                        <h4 className="text-sm font-light mb-2 text-gray-800">
+                          {product.name}
+                        </h4>
+                        <p className="text-sm text-gray-900 font-light">
+                          ₦{product.finalPrice.toLocaleString("en-NG")}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -274,7 +329,7 @@ const Wears = () => {
         </section>
 
         {/* Full-Width Image Divider */}
-        {category.featured && category.featured[0] && (
+        {getStoryImage(0) && (
           <section className="relative h-[60vh] overflow-hidden">
             <motion.div
               initial={{ scale: 1.1 }}
@@ -284,7 +339,7 @@ const Wears = () => {
               className="w-full h-full"
             >
               <img
-                src={category.featured[0]?.image}
+                src={getStoryImage(0)}
                 alt="Collection showcase"
                 className="w-full h-full object-cover"
               />

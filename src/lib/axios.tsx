@@ -11,7 +11,9 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// Request Interceptor: Attach access token to headers if it exists
+const CART_SESSION_KEY = "cartSessionId";
+
+// Request Interceptor: Attach access token and guest cart session to headers
 api.interceptors.request.use(
   (config) => {
     const token =
@@ -20,12 +22,29 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    const cartSessionId = localStorage.getItem(CART_SESSION_KEY);
+    if (cartSessionId && config.headers) {
+      config.headers["X-Cart-Session"] = cartSessionId;
+    }
+
     return config;
   },
   (error) => {
     return Promise.reject(error);
   },
 );
+
+// Response Interceptor: Persist the guest cart session id the backend hands back.
+// SameSite=Lax cookies don't survive cross-origin XHR, so the backend also
+// exposes it as a response header for the client to echo back manually.
+api.interceptors.response.use((response) => {
+  const cartSessionId = response.headers["x-cart-session"];
+  if (cartSessionId) {
+    localStorage.setItem(CART_SESSION_KEY, cartSessionId);
+  }
+  return response;
+});
 
 // State to track token refresh queueing
 let isRefreshing = false;

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { GoogleLogin } from "@react-oauth/google";
 import { authLogin, authGoogleLogin } from "../../services";
 import { useAuthStore } from "../../store/authStore";
+import { useCart } from "../../util/useCart";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,12 +14,14 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
+  const { mergeCart } = useCart();
 
   const { mutate, isPending } = useMutation({
     mutationFn: () => authLogin({ email, password }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const { user, accessToken, refreshToken } = res.data;
       login(user, accessToken, refreshToken);
+      await mergeCart();
       toast.success(`Welcome back, ${user.firstName}.`);
       navigate("/profile");
     },
@@ -31,9 +34,10 @@ const Login = () => {
 
   const { mutate: mutateGoogle, isPending: isGooglePending } = useMutation({
     mutationFn: (credential: string) => authGoogleLogin(credential),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const { user, accessToken, refreshToken } = res.data;
       login(user, accessToken, refreshToken);
+      await mergeCart();
       toast.success(`Welcome back, ${user.firstName}.`);
       navigate("/profile");
     },

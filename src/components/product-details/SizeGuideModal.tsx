@@ -1,11 +1,156 @@
 // components/product/SizeGuideModal.tsx
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Maximize2, Info } from "lucide-react";
+import { X } from "lucide-react";
 
 interface SizeGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+interface SizeRow {
+  size: string;
+  shoulder: number;
+  bust: number;
+  length: number;
+}
+
+const FEMALE_SIZES: SizeRow[] = [
+  { size: "XS", shoulder: 14, bust: 31.5, length: 23 },
+  { size: "S", shoulder: 15.5, bust: 35, length: 25 },
+  { size: "M", shoulder: 16.5, bust: 39, length: 26 },
+  { size: "L", shoulder: 18, bust: 44, length: 27 },
+  { size: "XL", shoulder: 19, bust: 47, length: 28 },
+  { size: "XXL", shoulder: 20.5, bust: 52, length: 29 },
+];
+
+const MALE_SIZES: SizeRow[] = [
+  { size: "S", shoulder: 16.5, bust: 35, length: 28 },
+  { size: "M", shoulder: 19, bust: 39, length: 28.5 },
+  { size: "L", shoulder: 21, bust: 45, length: 31 },
+  { size: "XL", shoulder: 23.5, bust: 49.5, length: 31 },
+  { size: "XXL", shoulder: 25, bust: 52, length: 32 },
+];
+
+const TShirtDiagram = () => (
+  <svg
+    viewBox="-20 0 140 118"
+    className="w-full max-w-[170px] mx-auto"
+    fill="none"
+    stroke="currentColor"
+  >
+    <path
+      d="M10 15 L10 30 L30 32 L30 100 L70 100 L70 32 L90 30 L90 15 L65 8 Q50 18 35 8 Z"
+      strokeWidth="1.5"
+    />
+
+    {/* Shoulder */}
+    <line
+      x1="25"
+      y1="19"
+      x2="75"
+      y2="19"
+      strokeWidth="1"
+      strokeDasharray="3 2"
+    />
+    <text
+      x="50"
+      y="8"
+      textAnchor="middle"
+      fontSize="8"
+      stroke="none"
+      fill="currentColor"
+    >
+      Shoulder
+    </text>
+
+    {/* Bust */}
+    <line
+      x1="30"
+      y1="46"
+      x2="70"
+      y2="46"
+      strokeWidth="1"
+      strokeDasharray="3 2"
+    />
+    <text x="102" y="49" fontSize="8" stroke="none" fill="currentColor">
+      Bust
+    </text>
+
+    {/* Length */}
+    <line
+      x1="0"
+      y1="15"
+      x2="0"
+      y2="100"
+      strokeWidth="1"
+      strokeDasharray="3 2"
+    />
+    <text
+      x="-12"
+      y="60"
+      fontSize="8"
+      stroke="none"
+      fill="currentColor"
+      transform="rotate(-90 -12 60)"
+      textAnchor="middle"
+    >
+      Length
+    </text>
+  </svg>
+);
+
+const SizeTable = ({ title, rows }: { title: string; rows: SizeRow[] }) => (
+  <div>
+    <h3 className="text-xl font-bold uppercase tracking-wide text-center mb-4">
+      {title}
+    </h3>
+    <div className="grid grid-cols-[1fr_auto] gap-6 items-center">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th className="border border-gray-300 px-3 py-2"></th>
+              <th className="border border-gray-300 px-3 py-2 font-normal text-gray-600">
+                Shoulder
+                <br />
+                (inch)
+              </th>
+              <th className="border border-gray-300 px-3 py-2 font-normal text-gray-600">
+                Bust
+                <br />
+                (inch)
+              </th>
+              <th className="border border-gray-300 px-3 py-2 font-normal text-gray-600">
+                Length
+                <br />
+                (inch)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.size}>
+                <td className="border border-gray-300 px-3 py-2 font-medium">
+                  {row.size}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-center">
+                  {row.shoulder}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-center">
+                  {row.bust}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-center">
+                  {row.length}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <TShirtDiagram />
+    </div>
+  </div>
+);
 
 const SizeGuideModal = ({ isOpen, onClose }: SizeGuideModalProps) => {
   if (!isOpen) return null;
@@ -23,220 +168,24 @@ const SizeGuideModal = ({ isOpen, onClose }: SizeGuideModalProps) => {
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
           <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-light tracking-wide">Size Guide</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Find your perfect fit with our detailed measurements
-              </p>
-            </div>
+            <h2 className="text-2xl font-bold tracking-wide">Size Guide</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-black transition-colors"
+              className="text-gray-400 hover:text-black transition-colors border border-gray-200 p-1"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Modal Content */}
-          <div className="p-6 space-y-8">
-            {/* How to Measure Section */}
-            <div>
-              <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <Maximize2 className="w-5 h-5" />
-                How to Measure
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span className="text-sm text-gray-500">
-                      Bust Illustration
-                    </span>
-                  </div>
-                  <p className="font-medium text-sm">Bust</p>
-                  <p className="text-xs text-gray-500">
-                    Measure around the fullest part of your bust, keeping the
-                    tape measure straight across your back.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span className="text-sm text-gray-500">
-                      Waist Illustration
-                    </span>
-                  </div>
-                  <p className="font-medium text-sm">Waist</p>
-                  <p className="text-xs text-gray-500">
-                    Measure around the narrowest part of your natural waist,
-                    typically just above your belly button.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span className="text-sm text-gray-500">
-                      Hips Illustration
-                    </span>
-                  </div>
-                  <p className="font-medium text-sm">Hips</p>
-                  <p className="text-xs text-gray-500">
-                    Measure around the fullest part of your hips, keeping the
-                    tape measure parallel to the floor.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Size Chart */}
-            <div>
-              <h3 className="text-lg font-medium mb-4">Size Chart (inches)</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
-                        Size
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
-                        Bust
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
-                        Waist
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
-                        Hips
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
-                        US Size
-                      </th>
-                      <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium">
-                        UK Size
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      {
-                        size: "XXS",
-                        bust: "30-31",
-                        waist: "23-24",
-                        hips: "32-33",
-                        us: "0",
-                        uk: "4",
-                      },
-                      {
-                        size: "XS",
-                        bust: "32-33",
-                        waist: "25-26",
-                        hips: "34-35",
-                        us: "2",
-                        uk: "6",
-                      },
-                      {
-                        size: "S",
-                        bust: "34-35",
-                        waist: "27-28",
-                        hips: "36-37",
-                        us: "4-6",
-                        uk: "8-10",
-                      },
-                      {
-                        size: "M",
-                        bust: "36-37",
-                        waist: "29-30",
-                        hips: "38-39",
-                        us: "8-10",
-                        uk: "12-14",
-                      },
-                      {
-                        size: "L",
-                        bust: "38-40",
-                        waist: "31-33",
-                        hips: "40-42",
-                        us: "12-14",
-                        uk: "16-18",
-                      },
-                      {
-                        size: "XL",
-                        bust: "41-43",
-                        waist: "34-36",
-                        hips: "43-45",
-                        us: "16-18",
-                        uk: "20-22",
-                      },
-                      {
-                        size: "XXL",
-                        bust: "44-46",
-                        waist: "37-39",
-                        hips: "46-48",
-                        us: "20-22",
-                        uk: "24-26",
-                      },
-                    ].map((row) => (
-                      <tr key={row.size} className="hover:bg-gray-50">
-                        <td className="border border-gray-200 px-4 py-3 text-sm font-medium">
-                          {row.size}
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-sm">
-                          {row.bust}"
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-sm">
-                          {row.waist}"
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-sm">
-                          {row.hips}"
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-sm">
-                          {row.us}
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-sm">
-                          {row.uk}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Tips Section */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="font-medium mb-3 flex items-center gap-2">
-                <Info className="w-4 h-4" />
-                Fit Tips
-              </h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  • If you're between sizes, we recommend sizing up for a
-                  comfortable fit.
-                </li>
-                <li>
-                  • Our garments are designed with a tailored fit. Please refer
-                  to the size chart for accurate measurements.
-                </li>
-                <li>
-                  • For custom fittings, our customer service team is available
-                  to assist you.
-                </li>
-                <li>
-                  • Model is 5'9" (175cm) and wearing size S for reference.
-                </li>
-              </ul>
-            </div>
-
-            {/* Need Help */}
-            <div className="text-center pt-4">
-              <p className="text-sm text-gray-500">
-                Need more help? Contact our{" "}
-                <button className="text-black underline hover:no-underline">
-                  customer service
-                </button>{" "}
-                for personalized assistance.
-              </p>
-            </div>
+          <div className="p-6 space-y-10">
+            <SizeTable title="Female" rows={FEMALE_SIZES} />
+            <SizeTable title="Male" rows={MALE_SIZES} />
           </div>
         </motion.div>
       </motion.div>

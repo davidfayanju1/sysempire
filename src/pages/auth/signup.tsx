@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { GoogleLogin } from "@react-oauth/google";
 import { authRegister, authGoogleLogin } from "../../services";
 import { useAuthStore } from "../../store/authStore";
+import { useCart } from "../../util/useCart";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,7 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
+  const { mergeCart } = useCart();
 
   const { mutate, isPending } = useMutation({
     mutationFn: () =>
@@ -29,10 +31,11 @@ const Signup = () => {
         password,
         role: "client",
       }),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const { user, accessToken, refreshToken } = res.data;
       if (accessToken) {
         login(user, accessToken, refreshToken);
+        await mergeCart();
         toast.success("Welcome to SYS EMPIRE.", {
           description: "Your account has been created.",
         });
@@ -54,9 +57,10 @@ const Signup = () => {
 
   const { mutate: mutateGoogle, isPending: isGooglePending } = useMutation({
     mutationFn: (credential: string) => authGoogleLogin(credential),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const { user, accessToken, refreshToken } = res.data;
       login(user, accessToken, refreshToken);
+      await mergeCart();
       toast.success("Welcome to SYS EMPIRE.", {
         description: "Your account has been created.",
       });
