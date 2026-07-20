@@ -25,7 +25,7 @@ const ColorSelector = ({
           return (
             <div key={color.name} className="relative">
               <button
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all relative ${
+                className={`w-8 h-8 rounded-full flex border-gray-100 border-solid border items-center justify-center transition-all relative ${
                   isSelected ? "ring-2 ring-black ring-offset-2" : ""
                 } ${
                   !isAvailable

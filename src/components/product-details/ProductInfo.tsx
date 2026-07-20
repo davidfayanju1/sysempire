@@ -1,7 +1,6 @@
 // components/product/ProductInfo.tsx
 import {
   Star,
-  Truck,
   RotateCcw,
   Shield,
   ChevronRight,
@@ -9,7 +8,6 @@ import {
   Plus,
   Minus,
   ShoppingBag,
-  Heart,
   Share2,
 } from "lucide-react";
 import type { Product, ProductColor } from "../../types/product";
@@ -36,12 +34,12 @@ const ProductInfo = ({
   quantity,
   selectedSize,
   selectedColor,
-  isWishlisted,
+  // isWishlisted,
   addingToCart,
   onQuantityChange,
   onSizeSelect,
   onColorSelect,
-  onWishlistToggle,
+  // onWishlistToggle,
   onAddToCart,
   onSizeGuideClick,
   onShareClick,
@@ -213,7 +211,7 @@ const ProductInfo = ({
         </button>
 
         <div className="flex gap-3">
-          <button
+          {/* <button
             onClick={() => {
               console.log("Wishlist toggled");
               onWishlistToggle();
@@ -226,7 +224,7 @@ const ProductInfo = ({
               }`}
             />
             Wishlist
-          </button>
+          </button> */}
           <button
             onClick={() => {
               console.log("Share clicked");
@@ -264,13 +262,13 @@ const ProductInfo = ({
 
       {/* Shipping & Returns */}
       <div className="border-t border-gray-100 pt-6 space-y-4">
-        <div className="flex items-start gap-3">
+        {/* <div className="flex items-start gap-3">
           <Truck className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium">Free Shipping</p>
             <p className="text-xs text-gray-500">On all orders over $500</p>
           </div>
-        </div>
+        </div> */}
         <div className="flex items-start gap-3">
           <RotateCcw className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
           <div>
@@ -311,21 +309,23 @@ const ProductInfo = ({
           </div>
         </details>
 
-        <details className="group">
-          <summary className="flex justify-between items-center cursor-pointer list-none py-2">
-            <span className="text-sm font-medium tracking-wide">
-              Care Instructions
-            </span>
-            <ChevronRight className="w-4 h-4 group-open:rotate-90 transition-transform" />
-          </summary>
-          <div className="pt-4">
-            <ul className="space-y-2 text-sm text-gray-600 list-disc list-inside">
-              {product.careInstructions.map((instruction, index) => (
-                <li key={index}>{instruction}</li>
-              ))}
-            </ul>
-          </div>
-        </details>
+        {product.careInstructions.length > 0 && (
+          <details className="group">
+            <summary className="flex justify-between items-center cursor-pointer list-none py-2">
+              <span className="text-sm font-medium tracking-wide">
+                Care Instructions
+              </span>
+              <ChevronRight className="w-4 h-4 group-open:rotate-90 transition-transform" />
+            </summary>
+            <div className="pt-4">
+              <ul className="space-y-2 text-sm text-gray-600 list-disc list-inside">
+                {product.careInstructions.map((instruction, index) => (
+                  <li key={index}>{instruction}</li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        )}
       </div>
     </div>
   );
