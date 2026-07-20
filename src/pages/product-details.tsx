@@ -9,6 +9,7 @@ import AddToCartNotification from "../components/product-details/AddToCartNotifi
 import MobileStickyBar from "../components/product-details/MobileStickyBar";
 import ProductDetailsSkeleton from "../components/product-details/ProductDetailsSkeleton";
 import SimilarProducts from "../components/product/SimilarProducts";
+import PageLoadingOverlay from "../components/common/PageLoadingOverlay";
 import { toast } from "sonner";
 import type { Product } from "../types/product";
 import type { ApiProduct } from "../types/api-product";
@@ -179,98 +180,97 @@ const ProductDetails = () => {
     }
   };
 
-  if (loading) {
-    return <ProductDetailsSkeleton />;
-  }
-
-  if (!product) {
-    return (
-      <DefaultLayout>
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-light mb-4">Product Not Found</h2>
-            <button
-              onClick={() => navigate("/")}
-              className="text-black border-b border-black pb-1 hover:opacity-70 transition-opacity"
-            >
-              Return to Shop
-            </button>
-          </div>
-        </div>
-      </DefaultLayout>
-    );
-  }
-
   return (
-    <DefaultLayout>
-      <div className="min-h-screen bg-white pt-24 pb-16">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          {/* Back Button */}
-          {/* <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors mb-8 group"
-          >
-            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm tracking-wide">Back</span>
-          </button> */}
+    <>
+      <PageLoadingOverlay isLoading={loading} />
+      {loading ? (
+        <ProductDetailsSkeleton />
+      ) : !product ? (
+        <DefaultLayout>
+          <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-light mb-4">Product Not Found</h2>
+              <button
+                onClick={() => navigate("/")}
+                className="text-black border-b border-black pb-1 hover:opacity-70 transition-opacity"
+              >
+                Return to Shop
+              </button>
+            </div>
+          </div>
+        </DefaultLayout>
+      ) : (
+        <DefaultLayout>
+          <div className="min-h-screen bg-white pt-24 pb-16">
+            <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+              {/* Back Button */}
+              {/* <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors mb-8 group"
+              >
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span className="text-sm tracking-wide">Back</span>
+              </button> */}
 
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-            <ProductImageGallery
-              images={product.images}
-              productName={product.name}
-              selectedImage={selectedImage}
-              onImageSelect={setSelectedImage}
-            />
+              <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+                <ProductImageGallery
+                  images={product.images}
+                  productName={product.name}
+                  selectedImage={selectedImage}
+                  onImageSelect={setSelectedImage}
+                />
 
-            <ProductInfo
-              product={product}
-              quantity={quantity}
-              selectedSize={selectedSize}
-              selectedColor={selectedColor}
-              isWishlisted={isWishlisted}
-              addingToCart={addingToCart}
-              onQuantityChange={handleQuantityChange}
-              onSizeSelect={setSelectedSize}
-              onColorSelect={setSelectedColor}
-              onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
-              onAddToCart={handleAddToCart}
-              onSizeGuideClick={() => setShowSizeGuide(true)}
-              onShareClick={handleShare}
-            />
+                <ProductInfo
+                  product={product}
+                  quantity={quantity}
+                  selectedSize={selectedSize}
+                  selectedColor={selectedColor}
+                  isWishlisted={isWishlisted}
+                  addingToCart={addingToCart}
+                  onQuantityChange={handleQuantityChange}
+                  onSizeSelect={setSelectedSize}
+                  onColorSelect={setSelectedColor}
+                  onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
+                  onAddToCart={handleAddToCart}
+                  onSizeGuideClick={() => setShowSizeGuide(true)}
+                  onShareClick={handleShare}
+                />
+              </div>
+
+              {/* Similar Products Section */}
+              <div ref={similarProductsRef}>
+                <SimilarProducts products={similarProducts} />
+              </div>
+            </div>
           </div>
 
-          {/* Similar Products Section */}
-          <div ref={similarProductsRef}>
-            <SimilarProducts products={similarProducts} />
-          </div>
-        </div>
-      </div>
+          <MobileStickyBar
+            isVisible={isStickyBarVisible}
+            productPrice={product.price}
+            quantity={quantity}
+            addingToCart={addingToCart}
+            isWishlisted={isWishlisted}
+            onAddToCart={handleAddToCart}
+            onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
+            onShareClick={handleShare}
+          />
 
-      <MobileStickyBar
-        isVisible={isStickyBarVisible}
-        productPrice={product.price}
-        quantity={quantity}
-        addingToCart={addingToCart}
-        isWishlisted={isWishlisted}
-        onAddToCart={handleAddToCart}
-        onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
-        onShareClick={handleShare}
-      />
+          <SizeGuideModal
+            isOpen={showSizeGuide}
+            onClose={() => setShowSizeGuide(false)}
+          />
 
-      <SizeGuideModal
-        isOpen={showSizeGuide}
-        onClose={() => setShowSizeGuide(false)}
-      />
-
-      <AddToCartNotification
-        isVisible={showCartNotification}
-        productName={notificationData.productName}
-        quantity={notificationData.quantity}
-        size={notificationData.size}
-        color={notificationData.color}
-        onClose={() => setShowCartNotification(false)}
-      />
-    </DefaultLayout>
+          <AddToCartNotification
+            isVisible={showCartNotification}
+            productName={notificationData.productName}
+            quantity={notificationData.quantity}
+            size={notificationData.size}
+            color={notificationData.color}
+            onClose={() => setShowCartNotification(false)}
+          />
+        </DefaultLayout>
+      )}
+    </>
   );
 };
 

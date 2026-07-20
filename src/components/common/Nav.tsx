@@ -99,7 +99,7 @@ const Nav = () => {
     {
       title: "WOMEN",
       items: [
-        { name: "Ready-to-Wear", to: "/wears/women-ready-to-wear" },
+        // { name: "Ready-to-Wear", to: "/wears/women-ready-to-wear" },
         { name: "Dresses", to: "/wears/women-dresses" },
         { name: "Separates", to: "/wears/women-separates" },
       ],
@@ -107,7 +107,7 @@ const Nav = () => {
     {
       title: "MEN",
       items: [
-        { name: "Ready-to-Wear", to: "/wears/men-ready-to-wear" },
+        // { name: "Ready-to-Wear", to: "/wears/men-ready-to-wear" },
         { name: "Tailoring", to: "/wears/men-tailoring" },
       ],
     },
