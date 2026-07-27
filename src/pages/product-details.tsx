@@ -130,6 +130,10 @@ const ProductDetails = () => {
       toast.error("Product not found");
       return;
     }
+    if (!product.inStock) {
+      toast.error("This product is out of stock");
+      return;
+    }
 
     const variant = product.variants.find(
       (v) => v.color === selectedColor && v.sizes.includes(selectedSize),
@@ -250,6 +254,7 @@ const ProductDetails = () => {
             quantity={quantity}
             addingToCart={addingToCart}
             isWishlisted={isWishlisted}
+            inStock={product.inStock}
             onAddToCart={handleAddToCart}
             onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
             onShareClick={handleShare}

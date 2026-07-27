@@ -110,9 +110,13 @@ const ProductInfo = ({
           </span>
           <span className="text-sm text-gray-400">NGN</span>
         </div>
-        {product.inStock && (
+        {product.inStock ? (
           <span className="inline-block mt-2 text-xs text-green-600 bg-green-50 px-3 py-1 rounded-full">
             In Stock
+          </span>
+        ) : (
+          <span className="inline-block mt-2 text-xs text-red-600 bg-red-50 px-3 py-1 rounded-full">
+            Out of Stock
           </span>
         )}
       </div>
@@ -194,7 +198,7 @@ const ProductInfo = ({
       <div className="hidden md:block space-y-3 pt-4">
         <button
           onClick={handleAddToCartClick}
-          disabled={addingToCart}
+          disabled={addingToCart || !product.inStock}
           className="w-full bg-black text-white py-4 px-8 tracking-[0.2em] text-sm uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
           {addingToCart ? (
@@ -202,6 +206,8 @@ const ProductInfo = ({
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
               Adding to Cart...
             </>
+          ) : !product.inStock ? (
+            "Out of Stock"
           ) : (
             <>
               <ShoppingBag className="w-4 h-4" />
@@ -242,7 +248,7 @@ const ProductInfo = ({
       <div className="md:hidden space-y-3 pt-4">
         <button
           onClick={handleAddToCartClick}
-          disabled={addingToCart}
+          disabled={addingToCart || !product.inStock}
           className="w-full bg-black text-white py-3 px-6 tracking-[0.2em] text-sm uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
           {addingToCart ? (
@@ -250,6 +256,8 @@ const ProductInfo = ({
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
               Adding...
             </>
+          ) : !product.inStock ? (
+            "Out of Stock"
           ) : (
             <>
               <ShoppingBag className="w-4 h-4" />

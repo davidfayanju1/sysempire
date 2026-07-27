@@ -306,6 +306,7 @@ const Wears = () => {
                     const primaryImage =
                       product.images?.find((img) => img.isPrimary)?.url ??
                       product.images?.[0]?.url;
+                    const isOutOfStock = product.stock <= 0;
 
                     return (
                       <motion.div
@@ -322,10 +323,17 @@ const Wears = () => {
                             <img
                               src={primaryImage}
                               alt={product.name}
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                              className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+                                isOutOfStock ? "grayscale opacity-60" : ""
+                              }`}
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-100" />
+                          )}
+                          {isOutOfStock && (
+                            <span className="absolute top-3 left-3 bg-black/80 text-white text-[10px] tracking-[0.15em] uppercase px-3 py-1">
+                              Out of Stock
+                            </span>
                           )}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
                           <motion.div

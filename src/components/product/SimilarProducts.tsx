@@ -39,8 +39,15 @@ const SimilarProducts = ({ products }: SimilarProductsProps) => {
               <img
                 src={product.images[0]?.url}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+                  !product.inStock ? "grayscale opacity-60" : ""
+                }`}
               />
+              {!product.inStock && (
+                <span className="absolute top-3 left-3 bg-black/80 text-white text-[10px] tracking-[0.15em] uppercase px-3 py-1">
+                  Out of Stock
+                </span>
+              )}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

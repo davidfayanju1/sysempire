@@ -8,6 +8,7 @@ interface MobileStickyBarProps {
   quantity: number;
   addingToCart: boolean;
   isWishlisted: boolean;
+  inStock: boolean;
   onAddToCart: () => void;
   onWishlistToggle: () => void;
   onShareClick: () => void;
@@ -19,6 +20,7 @@ const MobileStickyBar = ({
   quantity,
   addingToCart,
   isWishlisted,
+  inStock,
   onAddToCart,
   onWishlistToggle,
   onShareClick,
@@ -42,11 +44,13 @@ const MobileStickyBar = ({
             </div>
             <button
               onClick={onAddToCart}
-              disabled={addingToCart}
+              disabled={addingToCart || !inStock}
               className="flex-1 bg-black text-white py-3 px-6 tracking-[0.2em] text-xs uppercase font-light hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {addingToCart ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              ) : !inStock ? (
+                "Out of Stock"
               ) : (
                 <>
                   <ShoppingBag className="w-4 h-4" />
