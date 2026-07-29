@@ -16,6 +16,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCart } from "../../util/useCart";
 import { useAuthStore } from "../../store/authStore";
+import api from "../../lib/axios";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,6 +29,8 @@ const Nav = () => {
   const user = useAuthStore((s) => s.user);
   const location = useLocation();
   const navigate = useNavigate();
+
+  console.log(user, "User");
 
   const dropdownTimeoutRef = useRef<any>(null);
   const navRef = useRef(null);
@@ -139,6 +142,20 @@ const Nav = () => {
       image: "/images/female-clothing/blue.png",
     },
   ];
+
+  const fetchCollection = async () => {
+    try {
+      const response = await api.get("/collections");
+
+      console.log(response.data.data, "collections response");
+    } catch (error) {
+      console.log(error, "Error fetching collections");
+    }
+  };
+
+  useEffect(() => {
+    fetchCollection();
+  }, []);
 
   const mainLinks = [
     { label: "RTW", to: "/wears/new-arrivals" },

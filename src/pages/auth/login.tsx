@@ -19,9 +19,11 @@ const Login = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: () => authLogin({ email, password }),
     onSuccess: async (res) => {
-      const { user, accessToken, refreshToken } = res.data;
+      const { user, token: accessToken, refreshToken } = res.data;
+
+      console.log(res, "login response");
       login(user, accessToken, refreshToken);
-      await mergeCart();
+      // await mergeCart();
       toast.success(`Welcome back, ${user.firstName}.`);
       navigate("/profile");
     },
