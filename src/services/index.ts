@@ -1,4 +1,5 @@
 import api from "../lib/axios";
+import type { ApiOrder, OrderTracking } from "../types/api-cart";
 
 // ── Services ──────────────────────────────────────────────────────────────────
 
@@ -196,6 +197,28 @@ export interface CreateOrderPayload {
 
 export const createOrder = (data: CreateOrderPayload) =>
   api.post("/orders", data).then((res) => res.data);
+
+export interface MyOrdersResponse {
+  status: string;
+  message: string;
+  data: ApiOrder[];
+}
+
+export const getMyOrders = () =>
+  api.get<MyOrdersResponse>("/orders/mine").then((res) => res.data);
+
+export interface TrackOrderResponse {
+  status: string;
+  message: string;
+  data: OrderTracking;
+}
+
+export const trackOrder = (orderNumber: string, email?: string) =>
+  api
+    .get<TrackOrderResponse>(`/orders/track/${orderNumber}`, {
+      params: email ? { email } : undefined,
+    })
+    .then((res) => res.data);
 
 // ── Payments ──────────────────────────────────────────────────────────────────
 

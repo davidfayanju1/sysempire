@@ -30,8 +30,6 @@ const Nav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log(user, "User");
-
   const dropdownTimeoutRef = useRef<any>(null);
   const navRef = useRef(null);
 

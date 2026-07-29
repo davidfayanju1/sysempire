@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Package, Heart, MapPin, Settings, Camera } from "lucide-react";
+import { User, Package, MapPin, Settings, Camera } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import DefaultLayout from "../layout/DefaultLayout";
@@ -19,7 +19,7 @@ const UserProfile = () => {
   const tabs = [
     { id: "profile", label: "Profile", icon: <User className="w-4 h-4" /> },
     { id: "orders", label: "Orders", icon: <Package className="w-4 h-4" /> },
-    { id: "wishlist", label: "Wishlist", icon: <Heart className="w-4 h-4" /> },
+    // { id: "wishlist", label: "Wishlist", icon: <Heart className="w-4 h-4" /> },
     {
       id: "addresses",
       label: "Addresses",
@@ -97,7 +97,9 @@ const UserProfile = () => {
               {/* Main title */}
               <h1 className="text-4xl md:text-6xl font-light text-white tracking-tight font-['Times_New_Roman',serif] leading-[1.2]">
                 {user?.firstName ?? "My"}{" "}
-                <span className="font-normal italic">{user?.lastName ?? "Profile"}</span>
+                <span className="font-normal italic">
+                  {user?.lastName ?? "Profile"}
+                </span>
               </h1>
 
               {/* Divider line */}

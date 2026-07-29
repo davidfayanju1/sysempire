@@ -66,13 +66,14 @@ export interface ApiOrderItem {
   _id: string;
   slug: string;
   name: string;
-  image: string;
+  image?: string;
   size: string;
   color: string;
   quantity: number;
   unitPrice: number;
   subtotal: number;
   isBespoke: boolean;
+  measurements?: Record<string, string>;
 }
 
 export interface ApiOrderStatusEntry {
@@ -82,9 +83,15 @@ export interface ApiOrderStatusEntry {
   timestamp: string;
 }
 
+export interface OrderAddress extends CheckoutAddress {
+  fullName: string;
+  phone: string;
+}
+
 export interface ApiOrder {
   _id: string;
   orderNumber: string;
+  customer?: string;
   items: ApiOrderItem[];
   subtotal: number;
   shippingFee: number;
@@ -96,10 +103,65 @@ export interface ApiOrder {
   paymentMethod: string;
   paymentStatus: string;
   status: string;
+  shippingAddress?: OrderAddress;
+  billingAddress?: OrderAddress;
   guestName?: string;
   guestEmail?: string;
   guestPhone?: string;
+  notes?: string;
   statusHistory: ApiOrderStatusEntry[];
   createdAt: string;
   updatedAt: string;
+  idempotencyKey?: string;
+  paymentLink?: string;
+  paymentReturnUrl?: string;
+  txRef?: string;
+}
+
+// ── Order Tracking ──────────────────────────────────────────────────────────
+
+export interface OrderTrackingTimelineStep {
+  status: string;
+  label: string;
+  description: string;
+  note?: string;
+  completedAt?: string;
+  completed: boolean;
+  current: boolean;
+  upcoming: boolean;
+}
+
+export interface OrderTrackingProgress {
+  currentStep: number;
+  totalSteps: number;
+  percent: number;
+}
+
+export interface OrderTracking {
+  orderNumber: string;
+  status: string;
+  statusLabel: string;
+  statusDescription: string;
+  isTerminal: boolean;
+  isCancelled: boolean;
+  paymentStatus: string;
+  shippingMethod: string;
+  placedAt: string;
+  estimatedDelivery: string;
+  customer: {
+    name: string;
+    email: string;
+  };
+  shippingAddress?: OrderAddress;
+  items: ApiOrderItem[];
+  totals: {
+    subtotal: number;
+    shippingFee: number;
+    tax: number;
+    discount: number;
+    total: number;
+    currency: string;
+  };
+  timeline: OrderTrackingTimelineStep[];
+  progress: OrderTrackingProgress;
 }
