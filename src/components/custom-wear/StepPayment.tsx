@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, ChevronLeft, CreditCard, Lock, AlertCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
 import {
   createOrder,
@@ -102,7 +103,7 @@ interface PriceBreakdown {
 }
 
 const calculatePrice = (orderData: OrderData): PriceBreakdown => {
-  const c = orderData.customizations as Record<string, string>;
+  const c = orderData.customizations;
 
   const basePrice = BASE_PRICES[orderData.outfitType ?? "other"] ?? 65000;
 
@@ -175,7 +176,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
       // Build measurements object from array
       const measurementsObj: Record<string, string> = {};
       if (Array.isArray(orderData.measurements)) {
-        orderData.measurements.forEach((m: { name: string; value: string | number; unit?: string }) => {
+        orderData.measurements.forEach((m) => {
           measurementsObj[m.name] = `${m.value}${m.unit ?? ""}`;
         });
       }
@@ -183,7 +184,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
       // Primary color from fabric or customizations
       const primaryColor =
         orderData.fabricPreferences?.colors?.[0] ??
-        (orderData.customizations as any)?.color ??
+        orderData.customizations.color ??
         "custom";
 
       // Shipping address — use collected address or studio fallback for pickup
@@ -244,11 +245,12 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
       onSubmit(paymentMethod);
       window.location.href = paymentLink;
     },
-    onError: (err: any) => {
-      const msg =
-        err?.response?.data?.message ??
-        err?.message ??
-        "Something went wrong. Please try again.";
+    onError: (err: unknown) => {
+      const msg = axios.isAxiosError(err)
+        ? (err.response?.data?.message ?? err.message)
+        : err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
       toast.error(msg);
     },
   });
@@ -354,7 +356,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
           {pricing.weddingRoleFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">
-                {(orderData.customizations as any).role} package
+                {orderData.customizations.role} package
               </span>
               <span className="text-black">+₦{pricing.weddingRoleFee.toLocaleString()}</span>
             </div>

@@ -2,56 +2,53 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Shirt, ImageOff } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import DefaultLayout from "../layout/DefaultLayout";
 import { getCategoryBySlug } from "../data/category-data";
-import api from "../lib/axios";
+import { getProducts } from "../services";
 import ProductGridSkeleton from "../components/product/ProductGridSkeleton";
 import PageLoadingOverlay from "../components/common/PageLoadingOverlay";
-import type { ApiProduct } from "../types/api-product";
 
 const Wears = () => {
   const { name } = useParams();
   const navigate = useNavigate();
-  const [category, setCategory] = useState<any>(null);
+  const category = getCategoryBySlug(name ?? "");
   const [heroImageError, setHeroImageError] = useState(false);
-  const [products, setProducts] = useState<ApiProduct[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [productsError, setProductsError] = useState(false);
 
   useEffect(() => {
-    const categoryData = getCategoryBySlug(name ?? "");
-    if (categoryData) {
-      setCategory(categoryData);
-      window.scrollTo(0, 0);
-    } else {
-      // Redirect to home if category not found
+    if (!category) {
       console.warn(`Category not found for slug: ${name}`);
       navigate("/");
+      return;
     }
-  }, [name, navigate]);
+    window.scrollTo(0, 0);
+  }, [category, name, navigate]);
 
-  const fetchProducts = async () => {
-    try {
-      setProductsLoading(true);
-      setProductsError(false);
-      const response = await api.get(`/products`);
-      setProducts(response.data?.data ?? []);
-    } catch (error) {
-      console.log(error, "Products Error");
-      setProductsError(true);
-    } finally {
-      setProductsLoading(false);
-    }
-  };
+  const {
+    data: productsRes,
+    isLoading: productsLoading,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: getProducts,
+  });
+  const allProducts = productsRes?.data ?? [];
+
+  const genderFilter = (name ?? "").startsWith("women")
+    ? "female"
+    : (name ?? "").startsWith("men")
+      ? "male"
+      : null;
+
+  const products = genderFilter
+    ? allProducts.filter((product) => product.gender === genderFilter)
+    : allProducts;
 
   const retryFetchProducts = () => {
     setHeroImageError(false);
-    fetchProducts();
+    refetchProducts();
   };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
   const productImages = products
     .map((product) => {

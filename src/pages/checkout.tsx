@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Truck,
@@ -59,16 +59,19 @@ const Checkout = () => {
     notes: "",
   });
 
-  // Prefill contact info once the logged-in user's profile is available
-  useEffect(() => {
-    if (!user) return;
+  // Prefill contact info once the logged-in user's profile becomes available.
+  // Adjusted during render (not in an effect) per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prefilledUserId, setPrefilledUserId] = useState<string | null>(null);
+  if (user && user.id !== prefilledUserId) {
+    setPrefilledUserId(user.id);
     setFormData((prev) => ({
       ...prev,
       guestName: prev.guestName || user.fullName,
       guestEmail: prev.guestEmail || user.email,
       guestPhone: prev.guestPhone || user.phone,
     }));
-  }, [user]);
+  }
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,

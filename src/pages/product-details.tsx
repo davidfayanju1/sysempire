@@ -21,6 +21,7 @@ const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart, cartItems, cartCount } = useCart(); // Use addToCart from the hook
+  const isValidId = !!id && /^[a-f\d]{24}$/i.test(id);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -50,11 +51,7 @@ const ProductDetails = () => {
 
   // Fetch product data
   useEffect(() => {
-    if (!id || !/^[a-f\d]{24}$/i.test(id)) {
-      setProduct(null);
-      setLoading(false);
-      return;
-    }
+    if (!isValidId) return;
 
     const fetchProduct = async () => {
       setLoading(true);
@@ -93,7 +90,7 @@ const ProductDetails = () => {
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, isValidId]);
 
   // Handle scroll for sticky bar
   useEffect(() => {
@@ -184,12 +181,14 @@ const ProductDetails = () => {
     }
   };
 
+  const isLoading = isValidId && loading;
+
   return (
     <>
-      <PageLoadingOverlay isLoading={loading} />
-      {loading ? (
+      <PageLoadingOverlay isLoading={isLoading} />
+      {isLoading ? (
         <ProductDetailsSkeleton />
-      ) : !product ? (
+      ) : !isValidId || !product ? (
         <DefaultLayout>
           <div className="min-h-screen bg-white flex items-center justify-center">
             <div className="text-center">

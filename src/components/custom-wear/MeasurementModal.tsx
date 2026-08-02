@@ -9,7 +9,7 @@ interface MeasurementModalProps {
   gender: "male" | "female" | null;
 }
 
-interface Measurement {
+export interface Measurement {
   name: string;
   value: number;
   unit: string;

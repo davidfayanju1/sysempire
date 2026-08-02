@@ -12,7 +12,7 @@ interface CustomizationField {
 
 interface StepCustomizationProps {
   onBack: () => void;
-  onNext: (customizations: Record<string, any>) => void;
+  onNext: (customizations: Record<string, string>) => void;
   outfitType: string | null;
 }
 
@@ -21,7 +21,7 @@ const StepCustomization = ({
   onNext,
   outfitType,
 }: StepCustomizationProps) => {
-  const [customizations, setCustomizations] = useState<Record<string, any>>({});
+  const [customizations, setCustomizations] = useState<Record<string, string>>({});
 
   const getCustomizationFields = (): CustomizationField[] => {
     const commonFields: CustomizationField[] = [

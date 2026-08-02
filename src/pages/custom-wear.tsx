@@ -9,6 +9,23 @@ import StepDelivery from "../components/custom-wear/StepDelivery";
 import StepPayment from "../components/custom-wear/StepPayment";
 import StepMeasurement from "../components/custom-wear/StepMeasurement";
 import StepReview from "../components/custom-wear/StepReview";
+import type { Measurement } from "../components/custom-wear/MeasurementModal";
+
+export interface FabricDetails {
+  images?: string[];
+  type?: string;
+  quantity?: string;
+  pickupPreference?: "pickup" | "dropoff";
+}
+
+export interface FabricPreferences {
+  colors?: string[];
+  colorCount?: "single" | "multiple";
+  material?: string;
+  budget?: string;
+  quality?: "standard" | "premium";
+  occasion?: string;
+}
 
 export interface OrderData {
   // Step 1: Outfit Type
@@ -21,25 +38,14 @@ export interface OrderData {
 
   // Step 3: Fabric
   fabricOption: "have-fabric" | "source-fabric" | "not-sure" | null;
-  fabricDetails?: {
-    images?: string[];
-    type?: string;
-    quantity?: string;
-    pickupPreference?: "pickup" | "dropoff";
-  };
-  fabricPreferences?: {
-    colors?: string[];
-    material?: string;
-    budget?: string;
-    quality?: "standard" | "premium";
-    occasion?: string;
-  };
+  fabricDetails?: FabricDetails;
+  fabricPreferences?: FabricPreferences;
 
   // Step 4: Customization
-  customizations: Record<string, any>;
+  customizations: Record<string, string>;
 
   // Step 5: Measurements
-  measurements: any | null;
+  measurements: Measurement[] | null;
   measurementMethod: "camera" | "upload" | "manual" | null;
 
   // Step 6: Delivery
@@ -69,27 +75,20 @@ const CustomWear = () => {
     measurementMethod: null,
   });
 
-  const stepRefs = {
-    1: useRef<HTMLDivElement>(null),
-    2: useRef<HTMLDivElement>(null),
-    3: useRef<HTMLDivElement>(null),
-    4: useRef<HTMLDivElement>(null),
-    5: useRef<HTMLDivElement>(null),
-    6: useRef<HTMLDivElement>(null),
-    7: useRef<HTMLDivElement>(null),
-    8: useRef<HTMLDivElement>(null),
-  };
+  // Only one step is ever mounted at a time, so a single ref reused across
+  // whichever step is showing is enough (avoids dynamic ref-object indexing).
+  const stepContainerRef = useRef<HTMLDivElement>(null);
 
   const updateOrderData = (updates: Partial<OrderData>) => {
     setOrderData((prev) => ({ ...prev, ...updates }));
   };
 
-  const scrollToStep = (stepNumber: number) => {
+  const scrollToStep = () => {
     setTimeout(() => {
-      const currentRef = stepRefs[stepNumber as keyof typeof stepRefs];
-      if (currentRef.current) {
+      if (stepContainerRef.current) {
         const offset = 100;
-        const elementPosition = currentRef.current.getBoundingClientRect().top;
+        const elementPosition =
+          stepContainerRef.current.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - offset;
         window.scrollTo({ top: offsetPosition, behavior: "smooth" });
       }
@@ -97,19 +96,17 @@ const CustomWear = () => {
   };
 
   const goToNextStep = () => {
-    const nextStep = step + 1;
-    setStep(nextStep);
-    scrollToStep(nextStep);
+    setStep((prev) => prev + 1);
+    scrollToStep();
   };
 
   const goToPreviousStep = () => {
-    const prevStep = step - 1;
-    setStep(prevStep);
-    scrollToStep(prevStep);
+    setStep((prev) => prev - 1);
+    scrollToStep();
   };
 
   useEffect(() => {
-    scrollToStep(1);
+    scrollToStep();
   }, []);
 
   return (
@@ -119,7 +116,7 @@ const CustomWear = () => {
 
         {/* Step 1: Outfit Type */}
         {step === 1 && (
-          <div ref={stepRefs[1]}>
+          <div ref={stepContainerRef}>
             <StepOutfitType
               onNext={(outfitType) => {
                 updateOrderData({ outfitType });
@@ -131,7 +128,7 @@ const CustomWear = () => {
 
         {/* Step 2: Inspiration */}
         {step === 2 && (
-          <div ref={stepRefs[2]}>
+          <div ref={stepContainerRef}>
             <StepInspiration
               onBack={goToPreviousStep}
               onNext={(
@@ -152,7 +149,7 @@ const CustomWear = () => {
         )}
         {/* Step 3: Fabric Preference */}
         {step === 3 && (
-          <div ref={stepRefs[3]}>
+          <div ref={stepContainerRef}>
             <StepFabric
               onBack={goToPreviousStep}
               onNext={(fabricOption, fabricDetails, fabricPreferences) => {
@@ -169,7 +166,7 @@ const CustomWear = () => {
 
         {/* Step 4: Outfit Customization */}
         {step === 4 && (
-          <div ref={stepRefs[4]}>
+          <div ref={stepContainerRef}>
             <StepCustomization
               onBack={goToPreviousStep}
               onNext={(customizations) => {
@@ -183,7 +180,7 @@ const CustomWear = () => {
 
         {/* Step 5: Measurements */}
         {step === 5 && (
-          <div ref={stepRefs[5]}>
+          <div ref={stepContainerRef}>
             <StepMeasurement
               onBack={goToPreviousStep}
               onNext={(measurements, method) => {
@@ -196,7 +193,7 @@ const CustomWear = () => {
 
         {/* Step 6: Delivery Timeline */}
         {step === 6 && (
-          <div ref={stepRefs[6]}>
+          <div ref={stepContainerRef}>
             <StepDelivery
               onBack={goToPreviousStep}
               onNext={(
@@ -219,7 +216,7 @@ const CustomWear = () => {
 
         {/* Step 7: Review Order */}
         {step === 7 && (
-          <div ref={stepRefs[7]}>
+          <div ref={stepContainerRef}>
             <StepReview
               orderData={orderData}
               onBack={goToPreviousStep}
@@ -230,7 +227,7 @@ const CustomWear = () => {
 
         {/* Step 8: Payment */}
         {step === 8 && (
-          <div ref={stepRefs[8]}>
+          <div ref={stepContainerRef}>
             <StepPayment
               orderData={orderData}
               onBack={goToPreviousStep}

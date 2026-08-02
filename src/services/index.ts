@@ -1,5 +1,6 @@
 import api from "../lib/axios";
 import type { ApiOrder, OrderTracking } from "../types/api-cart";
+import type { ApiProduct } from "../types/api-product";
 
 // ── Services ──────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,16 @@ export interface Service {
 }
 
 export const getServices = () => api.get("/services").then((res) => res.data);
+
+// ── Products ─────────────────────────────────────────────────────────────────
+
+export interface ProductsResponse {
+  status: string;
+  data: ApiProduct[];
+}
+
+export const getProducts = () =>
+  api.get<ProductsResponse>("/products").then((res) => res.data);
 
 // ── Contact ──────────────────────────────────────────────────────────────────
 

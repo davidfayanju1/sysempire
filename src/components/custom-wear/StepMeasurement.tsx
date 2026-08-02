@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { ChevronLeft, Camera, Image as ImageIcon, FileText, User, Users } from "lucide-react";
-import MeasurementModal from "./MeasurementModal";
+import MeasurementModal, { type Measurement } from "./MeasurementModal";
 
 interface StepMeasurementProps {
   onBack: () => void;
-  onNext: (measurements: any, method: "camera" | "upload" | "manual") => void;
+  onNext: (
+    measurements: Measurement[],
+    method: "camera" | "upload" | "manual",
+  ) => void;
 }
 
 interface MeasurementField {
@@ -109,7 +112,7 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
     onNext(measurements, "upload");
   };
 
-  const handleCameraComplete = (measurements: any) => {
+  const handleCameraComplete = (measurements: Measurement[]) => {
     onNext(measurements, "camera");
   };
 

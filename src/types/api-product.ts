@@ -47,4 +47,5 @@ export interface ApiProduct {
   rating: ApiProductRating;
   category: ApiProductCategory | null;
   slug: string;
+  gender?: "male" | "female";
 }

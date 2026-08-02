@@ -207,7 +207,7 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
 
           {orderData.measurements && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
-              {orderData.measurements.slice(0, 6).map((m: any, idx: number) => {
+              {orderData.measurements.slice(0, 6).map((m, idx) => {
                 const altValue =
                   m.unit === "cm"
                     ? `${(m.value / 2.54).toFixed(1)} in`

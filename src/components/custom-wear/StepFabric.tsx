@@ -6,13 +6,14 @@ import {
   Truck,
   HelpCircle,
 } from "lucide-react";
+import type { FabricDetails, FabricPreferences } from "../../pages/custom-wear";
 
 interface StepFabricProps {
   onBack: () => void;
   onNext: (
     fabricOption: "have-fabric" | "source-fabric" | "not-sure",
-    details?: any,
-    preferences?: any,
+    details?: FabricDetails,
+    preferences?: FabricPreferences,
   ) => void;
 }
 
@@ -20,13 +21,17 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
   const [fabricOption, setFabricOption] = useState<
     "have" | "source" | "unsure" | null
   >(null);
-  const [fabricDetails, setFabricDetails] = useState({
+  const [fabricDetails, setFabricDetails] = useState<
+    Required<FabricDetails>
+  >({
     images: [] as string[],
     type: "",
     quantity: "",
     pickupPreference: "pickup" as "pickup" | "dropoff",
   });
-  const [fabricPreferences, setFabricPreferences] = useState({
+  const [fabricPreferences, setFabricPreferences] = useState<
+    Required<FabricPreferences>
+  >({
     colors: [] as string[],
     colorCount: "single" as "single" | "multiple",
     material: "",

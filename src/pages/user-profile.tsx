@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Package, MapPin, Settings, Camera } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -13,7 +12,6 @@ import SettingsTab from "../components/profile-tabs/SettingsTab";
 
 const UserProfile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState("profile");
   const user = useAuthStore((s) => s.user);
 
   const tabs = [
@@ -37,18 +35,13 @@ const UserProfile = () => {
     },
   ];
 
-  // Load active tab from URL on mount
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    const isValidTab = tabs.some((tab) => tab.id === tabParam);
-    if (tabParam && isValidTab) {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
+  // Active tab is derived from the URL — it's the single source of truth.
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabs.some((tab) => tab.id === tabParam)
+    ? (tabParam as string)
+    : "profile";
 
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
-    // Update URL with the new tab
     setSearchParams({ tab: tabId });
   };
 
