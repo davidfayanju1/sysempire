@@ -59,6 +59,7 @@ const StepInspiration = ({
           res.data?.secure_url ??
           res.data;
         onNext(true, cdnUrl);
+        toast.success("Upload successful!");
       } catch {
         toast.error("Image upload failed. Please try again.");
       } finally {
@@ -254,7 +255,9 @@ const StepInspiration = ({
                 src={style.image}
                 alt={style.name}
                 className={`w-full h-full object-cover transition-transform duration-500 ${
-                  selectedStyle === style.image ? "scale-105" : "group-hover:scale-105"
+                  selectedStyle === style.image
+                    ? "scale-105"
+                    : "group-hover:scale-105"
                 }`}
               />
 

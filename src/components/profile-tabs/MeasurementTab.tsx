@@ -387,7 +387,17 @@ const MeasurementTab = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState(0);
   const [detectedHeight, setDetectedHeight] = useState<number | null>(null);
-  const [savedData, setSavedData] = useState<SavedData | null>(null);
+  const [savedData, setSavedData] = useState<SavedData | null>(() => {
+    const raw = localStorage.getItem("userMeasurements");
+    if (raw) {
+      try {
+        return JSON.parse(raw) as SavedData;
+      } catch {
+        /* corrupted data — ignore */
+      }
+    }
+    return null;
+  });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -407,18 +417,6 @@ const MeasurementTab = () => {
   useEffect(() => {
     genderRef.current = gender;
   }, [gender]);
-
-  // Load existing saved measurements on mount
-  useEffect(() => {
-    const raw = localStorage.getItem("userMeasurements");
-    if (raw) {
-      try {
-        setSavedData(JSON.parse(raw) as SavedData);
-      } catch {
-        /* corrupted data — ignore */
-      }
-    }
-  }, []);
 
   const instructions = [
     {
@@ -633,6 +631,45 @@ const MeasurementTab = () => {
     [],
   );
 
+  const capturePhoto = useCallback(() => {
+    if (canvasRef.current && videoRef.current && liveMeasurementsRef.current) {
+      setCapturedImage(canvasRef.current.toDataURL("image/jpeg", 0.95));
+      // Inline stop to avoid forward reference to stopCamera
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      setIsCameraActive(false);
+      setShowVideo(false);
+      setCountdown(null);
+      setIsAutoCapturing(false);
+      countdownActiveRef.current = false;
+      setMeasurements(liveMeasurementsRef.current);
+      setActiveStep(3);
+    }
+  }, []);
+
+  // ── Countdown → capture ──────────────────────────────────────────────────
+  const startCountdown = useCallback(() => {
+    if (countdownActiveRef.current) return;
+    countdownActiveRef.current = true;
+    setIsAutoCapturing(true);
+    setCountdown(3);
+
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          countdownActiveRef.current = false;
+          setIsAutoCapturing(false);
+          if (prev === 1) capturePhoto();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Real-time detection loop ─────────────────────────────────────────────
   const startRealTimeDetection = useCallback(() => {
     let lastTs = -1;
@@ -734,45 +771,6 @@ const MeasurementTab = () => {
     animationRef.current = requestAnimationFrame(loop);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detectRaisedHand, calculatePoseQuality, drawSkeleton, calculateHeightFromLandmarks]);
-
-  // ── Countdown → capture ──────────────────────────────────────────────────
-  const startCountdown = useCallback(() => {
-    if (countdownActiveRef.current) return;
-    countdownActiveRef.current = true;
-    setIsAutoCapturing(true);
-    setCountdown(3);
-
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(interval);
-          countdownActiveRef.current = false;
-          setIsAutoCapturing(false);
-          if (prev === 1) capturePhoto();
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const capturePhoto = useCallback(() => {
-    if (canvasRef.current && videoRef.current && liveMeasurementsRef.current) {
-      setCapturedImage(canvasRef.current.toDataURL("image/jpeg", 0.95));
-      // Inline stop to avoid forward reference to stopCamera
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      setIsCameraActive(false);
-      setShowVideo(false);
-      setCountdown(null);
-      setIsAutoCapturing(false);
-      countdownActiveRef.current = false;
-      setMeasurements(liveMeasurementsRef.current);
-      setActiveStep(3);
-    }
-  }, []);
 
   // ── Camera control ───────────────────────────────────────────────────────
   const stopCamera = useCallback(() => {

@@ -165,7 +165,7 @@ export const uploadMedia = (file: File) => {
   const form = new FormData();
   form.append("file", file);
   return api
-    .post("/media", form, {
+    .post("/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },
     })
     .then((res) => res.data);

@@ -1,5 +1,6 @@
 import DefaultLayout from "../layout/DefaultLayout";
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import Hero from "../components/custom-wear/Hero";
 import StepOutfitType from "../components/custom-wear/StepOutfitType";
 import StepInspiration from "../components/custom-wear/StepInspiration";
@@ -64,16 +65,53 @@ export interface OrderData {
   paymentMethod?: "full" | "deposit";
 }
 
+const DEFAULT_ORDER_DATA: OrderData = {
+  outfitType: null,
+  hasInspiration: null,
+  fabricOption: null,
+  customizations: {},
+  measurements: null,
+  measurementMethod: null,
+};
+
+const PROGRESS_STORAGE_KEY = "customWearProgress";
+const PROGRESS_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface StoredProgress {
+  step: number;
+  orderData: OrderData;
+  savedAt: number;
+}
+
+const loadStoredProgress = (): StoredProgress | null => {
+  try {
+    const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredProgress;
+    if (Date.now() - parsed.savedAt > PROGRESS_TTL_MS) {
+      localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const clearStoredProgress = () => {
+  try {
+    localStorage.removeItem(PROGRESS_STORAGE_KEY);
+  } catch {
+    /* storage unavailable — ignore */
+  }
+};
+
 const CustomWear = () => {
-  const [step, setStep] = useState(1);
-  const [orderData, setOrderData] = useState<OrderData>({
-    outfitType: null,
-    hasInspiration: null,
-    fabricOption: null,
-    customizations: {},
-    measurements: null,
-    measurementMethod: null,
-  });
+  const [restoredProgress] = useState(loadStoredProgress);
+  const [step, setStep] = useState(() => restoredProgress?.step ?? 1);
+  const [orderData, setOrderData] = useState<OrderData>(
+    () => restoredProgress?.orderData ?? DEFAULT_ORDER_DATA,
+  );
 
   // Only one step is ever mounted at a time, so a single ref reused across
   // whichever step is showing is enough (avoids dynamic ref-object indexing).
@@ -82,6 +120,25 @@ const CustomWear = () => {
   const updateOrderData = (updates: Partial<OrderData>) => {
     setOrderData((prev) => ({ ...prev, ...updates }));
   };
+
+  // Persist progress on every change so a reload resumes where the user left off.
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        PROGRESS_STORAGE_KEY,
+        JSON.stringify({ step, orderData, savedAt: Date.now() }),
+      );
+    } catch {
+      /* storage unavailable — ignore */
+    }
+  }, [step, orderData]);
+
+  useEffect(() => {
+    if (restoredProgress && restoredProgress.step > 1) {
+      toast.success("Welcome back. Picking up where you left off.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const scrollToStep = () => {
     setTimeout(() => {
@@ -233,6 +290,7 @@ const CustomWear = () => {
               onBack={goToPreviousStep}
               onSubmit={(paymentMethod) => {
                 updateOrderData({ paymentMethod });
+                clearStoredProgress();
               }}
             />
           </div>

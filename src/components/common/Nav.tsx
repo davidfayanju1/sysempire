@@ -52,14 +52,17 @@ const Nav = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close everything on route change
-  useEffect(() => {
+  // Close everything on route change — adjusted during render (not in an
+  // effect) per https://react.dev/learn/you-might-not-need-an-effect
+  const [lastLocationKey, setLastLocationKey] = useState(location.key);
+  if (location.key !== lastLocationKey) {
+    setLastLocationKey(location.key);
     setIsMobileMenuOpen(false);
     setActiveDropdown(null);
     setMobileExpanded(null);
     setIsSearchOpen(false);
     setIsCartOpen(false);
-  }, [location]);
+  }
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -653,7 +656,7 @@ const Nav = () => {
                     <button
                       onClick={() => {
                         setIsCartOpen(false);
-                        navigate("/");
+                        navigate("/wears/new-arrivals");
                       }}
                       className="mt-6 px-6 py-2 border border-black text-black text-sm uppercase tracking-wider hover:bg-black hover:text-white transition-colors"
                     >
@@ -773,7 +776,7 @@ const Nav = () => {
                   <button
                     onClick={() => {
                       setIsCartOpen(false);
-                      navigate("/product");
+                      navigate("/wear/new-arrivals");
                     }}
                     className="w-full border border-gray-300 py-3 text-sm uppercase tracking-wider hover:border-black transition-colors"
                   >

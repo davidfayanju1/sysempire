@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, Camera, Image as ImageIcon, FileText, User, Users } from "lucide-react";
+import { toast } from "sonner";
+import { uploadMedia } from "../../services";
 import MeasurementModal, { type Measurement } from "./MeasurementModal";
 
 interface StepMeasurementProps {
@@ -67,6 +69,7 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
   const [showManualForm, setShowManualForm] = useState(false);
   const [unit, setUnit] = useState<"cm" | "in">("cm");
   const [manualValues, setManualValues] = useState<Record<string, string>>({});
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const fields = localGender === "male" ? MALE_FIELDS : FEMALE_FIELDS;
   const defaultsCm = localGender === "male" ? MALE_DEFAULTS_CM : FEMALE_DEFAULTS_CM;
@@ -99,17 +102,29 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
     onNext(measurements, "manual");
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
-    const measurements = fields.map((f) => ({
-      name: f.name,
-      value: defaultsCm[f.name] ?? 0,
-      unit: "cm",
-      description: f.description,
-    }));
-    onNext(measurements, "upload");
+
+    setIsUploadingPhoto(true);
+    try {
+      await uploadMedia(file);
+      toast.success(
+        "Photo uploaded! We've applied estimated measurements for your profile — please verify them.",
+      );
+      const measurements = fields.map((f) => ({
+        name: f.name,
+        value: defaultsCm[f.name] ?? 0,
+        unit: "cm",
+        description: f.description,
+      }));
+      onNext(measurements, "upload");
+    } catch {
+      toast.error("Photo upload failed. Please try again.");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleCameraComplete = (measurements: Measurement[]) => {
@@ -391,12 +406,24 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
             className="hidden"
             id="photo-upload"
             onChange={handlePhotoUpload}
+            disabled={isUploadingPhoto}
           />
           <label
             htmlFor="photo-upload"
-            className="w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-wider hover:border-black/40 transition block text-center cursor-pointer"
+            className={`w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 ${
+              isUploadingPhoto
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:border-black/40 cursor-pointer"
+            }`}
           >
-            Select Photo
+            {isUploadingPhoto ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              "Select Photo"
+            )}
           </label>
         </div>
 

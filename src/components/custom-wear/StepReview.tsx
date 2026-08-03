@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   CheckCircle,
   Ruler,
@@ -5,6 +6,7 @@ import {
   Heart,
   Package,
   Calendar,
+  X,
 } from "lucide-react";
 import type { OrderData } from "../../pages/custom-wear";
 
@@ -15,6 +17,8 @@ interface StepReviewProps {
 }
 
 const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+
   return (
     <section className="py-20 px-6 max-w-4xl mx-auto">
       <div className="text-center mb-12">
@@ -88,13 +92,16 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
             </p>
           )}
           {orderData.inspirationImage && (
-            <div className="mt-3 w-20 h-20 overflow-hidden border border-black/10">
+            <button
+              onClick={() => setViewingImage(orderData.inspirationImage!)}
+              className="mt-3 w-20 h-20 overflow-hidden border border-black/10 hover:border-black/30 transition block"
+            >
               <img
                 src={orderData.inspirationImage}
                 alt="Inspiration"
                 className="w-full h-full object-cover"
               />
-            </div>
+            </button>
           )}
         </div>
 
@@ -135,6 +142,24 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
               <p className="text-sm text-gray-500 mt-2">
                 Colors: {orderData.fabricPreferences.colors.join(", ")}
               </p>
+            )}
+          {orderData.fabricDetails?.images &&
+            orderData.fabricDetails.images.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {orderData.fabricDetails.images.map((img, idx) => (
+                  <button
+                    key={img}
+                    onClick={() => setViewingImage(img)}
+                    className="w-16 h-16 overflow-hidden border border-black/10 hover:border-black/30 transition"
+                  >
+                    <img
+                      src={img}
+                      alt={`Fabric ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
         </div>
 
@@ -300,6 +325,26 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
           </button>
         </div>
       </div>
+
+      {viewingImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-100 flex items-center justify-center p-6"
+          onClick={() => setViewingImage(null)}
+        >
+          <button
+            onClick={() => setViewingImage(null)}
+            className="absolute top-6 right-6 text-white/70 hover:text-white transition"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={viewingImage}
+            alt="Preview"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </section>
   );
 };

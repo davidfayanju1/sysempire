@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { ArrowRight, ChevronLeft, Calendar, Truck, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  Calendar,
+  Truck,
+  Zap,
+  Store,
+  MapPin,
+} from "lucide-react";
+import { address as studioAddress, phoneNumber as studioPhone } from "../../pages/contact-us";
 
 interface ShippingAddress {
   street: string;
@@ -112,11 +121,25 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
                   : "border-black/20 text-black/60 hover:border-black/40"
               }`}
             >
-              <span className="text-xl mb-1 block">🏠</span>
+              <Store className="w-4 h-4 mx-auto mb-1" />
               <span className="text-xs">Pick up from studio</span>
             </button>
           </div>
         </div>
+
+        {/* Studio Address — only when pickup is selected */}
+        {deliveryPreference === "pickup" && (
+          <div className="bg-black/5 p-4 flex items-start gap-3">
+            <MapPin className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-black">{studioAddress}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {studioPhone} · We'll confirm a pickup time after your order
+                is placed.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Shipping Address — only when delivery is selected */}
         {deliveryPreference === "delivery" && (

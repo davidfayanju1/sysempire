@@ -52,13 +52,13 @@ const NotFound = () => {
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <Link
-            to="/"
+            to="/wears/new-arrivals"
             className="inline-flex items-center justify-center px-8 py-3 border border-[#1C1C1A] text-sm font-medium tracking-wide text-[#1C1C1A] bg-transparent hover:bg-[#1C1C1A] hover:text-white transition-all duration-300"
           >
             Continue shopping
           </Link>
           <Link
-            to="/products"
+            to="/wears/new-arrivals"
             className="inline-flex items-center justify-center px-8 py-3 border border-[#EBE9E4] text-sm font-medium tracking-wide text-[#6B6B64] bg-white hover:border-[#D4D1CA] hover:text-[#1C1C1A] transition-all duration-300"
           >
             Browse collection

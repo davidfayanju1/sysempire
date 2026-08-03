@@ -5,7 +5,11 @@ import {
   Package,
   Truck,
   HelpCircle,
+  Upload,
+  X,
 } from "lucide-react";
+import { toast } from "sonner";
+import { uploadMedia } from "../../services";
 import type { FabricDetails, FabricPreferences } from "../../pages/custom-wear";
 
 interface StepFabricProps {
@@ -21,9 +25,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
   const [fabricOption, setFabricOption] = useState<
     "have" | "source" | "unsure" | null
   >(null);
-  const [fabricDetails, setFabricDetails] = useState<
-    Required<FabricDetails>
-  >({
+  const [fabricDetails, setFabricDetails] = useState<Required<FabricDetails>>({
     images: [] as string[],
     type: "",
     quantity: "",
@@ -39,6 +41,40 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
     quality: "standard" as "standard" | "premium",
     occasion: "",
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+  const handleFabricImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setUploadingImage(true);
+    try {
+      const res = await uploadMedia(file);
+      const cdnUrl: string =
+        res.data?.url ??
+        res.data?.file?.url ??
+        res.data?.secure_url ??
+        res.data;
+      setFabricDetails((prev) => ({
+        ...prev,
+        images: [...prev.images, cdnUrl],
+      }));
+    } catch {
+      toast.error("Image upload failed. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeFabricImage = (url: string) => {
+    setFabricDetails((prev) => ({
+      ...prev,
+      images: prev.images.filter((img) => img !== url),
+    }));
+  };
 
   const colorOptions = [
     "Black",
@@ -114,6 +150,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
 
   if (fabricOption === "have") {
     return (
+      <>
       <section className="py-20 px-6 max-w-2xl mx-auto">
         <button
           onClick={() => setFabricOption(null)}
@@ -165,10 +202,59 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
 
           <div>
             <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+              Fabric Photos{" "}
+              <span className="normal-case text-gray-300">(optional)</span>
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {fabricDetails.images.map((img) => (
+                <div key={img} className="relative w-20 h-20 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setViewingImage(img)}
+                    className="w-full h-full block"
+                  >
+                    <img
+                      src={img}
+                      alt="Fabric"
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeFabricImage(img)}
+                    className="absolute -top-2 -right-2 p-1 bg-white border border-black/10 hover:bg-black hover:text-white transition"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <label className="w-20 h-20 shrink-0 border-2 border-dashed border-black/10 hover:border-black/30 transition flex items-center justify-center cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFabricImageUpload}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage ? (
+                  <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                ) : (
+                  <Upload className="w-5 h-5 text-black/30" />
+                )}
+              </label>
+            </div>
+            <p className="text-[10px] text-gray-400 mt-2">
+              Add photos of the fabric you have so our tailors know exactly
+              what to expect.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
               Pickup Preference
             </label>
             <div className="flex gap-4">
-              {/* <button
+              <button
                 onClick={() =>
                   setFabricDetails({
                     ...fabricDetails,
@@ -182,7 +268,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
                 }`}
               >
                 Schedule Pickup
-              </button> */}
+              </button>
               <button
                 onClick={() =>
                   setFabricDetails({
@@ -221,6 +307,27 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
           </button>
         </div>
       </section>
+
+      {viewingImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-100 flex items-center justify-center p-6"
+          onClick={() => setViewingImage(null)}
+        >
+          <button
+            onClick={() => setViewingImage(null)}
+            className="absolute top-6 right-6 text-white/70 hover:text-white transition"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={viewingImage}
+            alt="Fabric preview"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+      </>
     );
   }
 
@@ -284,7 +391,8 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
             </div>
 
             <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-              Preferred Color{fabricPreferences.colorCount === "multiple" ? "s" : ""}
+              Preferred Color
+              {fabricPreferences.colorCount === "multiple" ? "s" : ""}
             </label>
             <div className="flex flex-wrap gap-2">
               {colorOptions.map((color) => (
@@ -322,11 +430,12 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
                 </button>
               ))}
             </div>
-            {fabricPreferences.colorCount === "single" && fabricPreferences.colors.length > 0 && (
-              <p className="text-[10px] text-gray-400 mt-2">
-                Selected: {fabricPreferences.colors[0]}
-              </p>
-            )}
+            {fabricPreferences.colorCount === "single" &&
+              fabricPreferences.colors.length > 0 && (
+                <p className="text-[10px] text-gray-400 mt-2">
+                  Selected: {fabricPreferences.colors[0]}
+                </p>
+              )}
           </div>
 
           <div>
