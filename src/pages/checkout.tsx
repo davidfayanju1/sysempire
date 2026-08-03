@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   Truck,
   Lock,
-  ChevronRight,
   Minus,
   Plus,
   Trash2,
@@ -13,18 +12,25 @@ import {
   Clock,
   MapPin,
   User,
-  CheckCircle,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import DefaultLayout from "../layout/DefaultLayout";
 import { useCart } from "../util/useCart";
 import { useAuthStore } from "../store/authStore";
-import type { ApiOrder, CheckoutPayload } from "../types/api-cart";
+import { initiateFlutterwavePayment } from "../services";
+import type { CheckoutPayload } from "../types/api-cart";
 
 const SHIPPING_FEES: Record<string, number> = {
   standard: 2000,
   express: 5000,
 };
+
+const CHECKOUT_STEPS = [
+  { step: 1, label: "Shopping Bag", icon: Package },
+  { step: 2, label: "Information", icon: User },
+  { step: 3, label: "Review", icon: Shield },
+];
 
 const Checkout = () => {
   const {
@@ -38,7 +44,6 @@ const Checkout = () => {
 
   const [step, setStep] = useState(1);
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState<ApiOrder | null>(null);
 
   const [formData, setFormData] = useState({
     guestName: "",
@@ -122,7 +127,7 @@ const Checkout = () => {
         tax: 0,
         discount: 0,
         shippingMethod: formData.shippingMethod,
-        paymentMethod: "paystack",
+        paymentMethod: "flutterwave",
         guestName: formData.guestName,
         guestEmail: formData.guestEmail,
         guestPhone: formData.guestPhone,
@@ -131,9 +136,19 @@ const Checkout = () => {
       };
 
       const order = await checkout(payload);
-      setPlacedOrder(order);
-      setStep(4);
-      window.scrollTo(0, 0);
+
+      const paymentRes = await initiateFlutterwavePayment(order._id, total);
+      const paymentLink: string =
+        paymentRes.data?.paymentLink ??
+        paymentRes.data?.link ??
+        paymentRes.data?.url ??
+        paymentRes.data?.payment_link;
+
+      if (!paymentLink) {
+        throw new Error("Could not retrieve payment link. Please try again.");
+      }
+
+      window.location.href = paymentLink;
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ??
@@ -149,66 +164,6 @@ const Checkout = () => {
     window.scrollTo(0, 0);
   };
 
-  if (step === 4 && placedOrder) {
-    return (
-      <DefaultLayout>
-        <section className="bg-[#1C1C1A] pt-24 pb-10 sm:pt-28 sm:pb-12 text-center">
-          <p className="text-[9px] tracking-[0.3em] uppercase text-white/50 mb-2">
-            Secure Checkout
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-light text-white tracking-wide">
-            Complete Your Order
-          </h1>
-        </section>
-        <div className="min-h-screen bg-[#FAF9F7] pb-16">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-[#1C1C1A] flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-light text-[#1C1C1A] mb-3">
-              Order Received
-            </h1>
-            <p className="text-[#8C8C86] mb-8">
-              Order <span className="font-medium">{placedOrder.orderNumber}</span>{" "}
-              has been placed and is awaiting payment confirmation via
-              Paystack.
-            </p>
-            <div className="bg-white border border-[#EBE9E4] p-6 text-left mb-8">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-[#8C8C86]">Order Total</span>
-                <span className="text-[#1C1C1A] font-medium">
-                  ₦{placedOrder.total.toLocaleString("en-NG")}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#8C8C86]">Payment Status</span>
-                <span className="text-[#1C1C1A] capitalize">
-                  {placedOrder.paymentStatus}
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Link
-                to="/cart"
-                className="w-full py-3 bg-[#1C1C1A] text-white text-xs uppercase tracking-wider hover:bg-black transition"
-              >
-                View My Orders
-              </Link>
-              <Link
-                to="/"
-                className="w-full py-3 border border-[#EBE9E4] text-[#1C1C1A] text-xs uppercase tracking-wider hover:border-[#1C1C1A] transition"
-              >
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-        </div>
-      </DefaultLayout>
-    );
-  }
-
   return (
     <DefaultLayout>
       <section className="bg-[#1C1C1A] pt-24 pb-10 sm:pt-28 sm:pb-12 text-center">
@@ -222,42 +177,51 @@ const Checkout = () => {
       <div className="min-h-screen bg-[#FAF9F7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-4 sm:space-x-8">
-              {[
-                { step: 1, label: "Shopping Bag", icon: Package },
-                { step: 2, label: "Information", icon: User },
-                { step: 3, label: "Review", icon: Shield },
-              ].map((s) => {
+          <div className="mb-10">
+            <div className="relative flex items-start justify-between max-w-md mx-auto">
+              {/* Track */}
+              <div className="absolute top-[18px] left-[18px] right-[18px] h-px bg-[#EBE9E4]" />
+              <div
+                className="absolute top-[18px] left-[18px] h-px bg-[#1C1C1A] transition-all duration-500 ease-out"
+                style={{
+                  width: `calc((100% - 36px) * ${(step - 1) / (CHECKOUT_STEPS.length - 1)})`,
+                }}
+              />
+
+              {CHECKOUT_STEPS.map((s) => {
                 const Icon = s.icon;
                 const isActive = step === s.step;
                 const isCompleted = step > s.step;
 
                 return (
-                  <div key={s.step} className="flex items-center">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                          isActive
-                            ? "bg-[#1C1C1A] text-white"
-                            : isCompleted
-                              ? "bg-[#EFF3EA] text-[#3B5C2E]"
-                              : "bg-[#EBE9E4] text-[#8C8C86]"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <span
-                        className={`text-xs mt-2 font-medium ${
-                          isActive ? "text-[#1C1C1A]" : "text-[#8C8C86]"
-                        }`}
-                      >
-                        {s.label}
-                      </span>
+                  <div
+                    key={s.step}
+                    className="relative z-10 flex flex-col items-center gap-2 bg-[#FAF9F7] px-1"
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all duration-300 ${
+                        isCompleted
+                          ? "bg-[#1C1C1A] border-[#1C1C1A] text-white"
+                          : isActive
+                            ? "bg-[#1C1C1A] border-[#1C1C1A] text-white ring-4 ring-[#1C1C1A]/10"
+                            : "bg-white border-[#D4D1CA] text-[#8C8C86]"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-4 h-4" strokeWidth={2.5} />
+                      ) : (
+                        <Icon className="w-4 h-4" />
+                      )}
                     </div>
-                    {s.step < 3 && (
-                      <ChevronRight className="w-4 h-4 text-[#D4D1CA] mx-2 sm:mx-4" />
-                    )}
+                    <span
+                      className={`text-[10px] uppercase tracking-wider font-medium whitespace-nowrap ${
+                        isActive || isCompleted
+                          ? "text-[#1C1C1A]"
+                          : "text-[#8C8C86]"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
                   </div>
                 );
               })}
@@ -713,6 +677,49 @@ const Checkout = () => {
                     <div className="bg-white border border-[#EBE9E4]">
                       <div className="p-6 border-b border-[#EBE9E4]">
                         <h2 className="text-lg font-light tracking-wide text-[#1C1C1A]">
+                          Order Items
+                        </h2>
+                        <p className="text-[#8C8C86] text-sm mt-1">
+                          {cartItems.length}{" "}
+                          {cartItems.length === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+                      <div className="divide-y divide-[#EBE9E4]">
+                        {cartItems.map((item) => (
+                          <div key={item.id} className="p-6 flex gap-4">
+                            <div className="w-16 h-20 bg-[#F5F4F0] shrink-0 overflow-hidden">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 flex justify-between">
+                              <div>
+                                <h3 className="text-[#1C1C1A] font-medium text-sm">
+                                  {item.name}
+                                </h3>
+                                <div className="flex gap-3 mt-1 text-xs text-[#8C8C86]">
+                                  <span>Size: {item.size}</span>
+                                  <span>Color: {item.color}</span>
+                                  <span>Qty: {item.quantity}</span>
+                                </div>
+                              </div>
+                              <span className="font-medium text-[#1C1C1A] text-sm shrink-0">
+                                ₦
+                                {(item.price * item.quantity).toLocaleString(
+                                  "en-NG",
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-[#EBE9E4]">
+                      <div className="p-6 border-b border-[#EBE9E4]">
+                        <h2 className="text-lg font-light tracking-wide text-[#1C1C1A]">
                           Review Your Order
                         </h2>
                       </div>
@@ -751,7 +758,7 @@ const Checkout = () => {
                           <p className="text-xs uppercase tracking-wide text-[#8C8C86] mb-1">
                             Payment Method
                           </p>
-                          <p className="text-[#1C1C1A]">Paystack</p>
+                          <p className="text-[#1C1C1A]">Flutterwave</p>
                         </div>
                       </div>
                     </div>
@@ -759,8 +766,8 @@ const Checkout = () => {
                     <div className="flex items-center gap-2 text-xs text-[#8C8C86]">
                       <Lock className="w-3 h-3" />
                       <span>
-                        Your order will be placed and payment collected
-                        securely via Paystack.
+                        Your order will be placed and you'll be redirected to
+                        Flutterwave's secure page to complete payment.
                       </span>
                     </div>
                   </div>

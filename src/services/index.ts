@@ -1,6 +1,7 @@
 import api from "../lib/axios";
 import type { ApiOrder, OrderTracking } from "../types/api-cart";
 import type { ApiProduct } from "../types/api-product";
+import type { ApiCollection, ApiCollectionProduct } from "../types/api-collection";
 
 // ── Services ──────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,36 @@ export interface ProductsResponse {
 
 export const getProducts = () =>
   api.get<ProductsResponse>("/products").then((res) => res.data);
+
+// ── Collections ──────────────────────────────────────────────────────────────
+
+export interface CollectionsResponse {
+  status: string;
+  message: string;
+  data: ApiCollection[];
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+export const getCollections = () =>
+  api.get<CollectionsResponse>("/collections").then((res) => res.data);
+
+export interface CollectionProductsResponse {
+  status: string;
+  message: string;
+  data: ApiCollectionProduct[];
+}
+
+export const getCollectionProducts = (collectionId: string) =>
+  api
+    .get<CollectionProductsResponse>(`/collections/${collectionId}/products`)
+    .then((res) => res.data);
 
 // ── Contact ──────────────────────────────────────────────────────────────────
 

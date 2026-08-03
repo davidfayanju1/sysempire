@@ -97,7 +97,7 @@ export const useCartStore = create<CartState>((set, get) => ({
       });
       const apiCart: ApiCart = response.data.data;
       set({ items: apiCart.items.map(mapApiItem) });
-      toast.success("Added to cart!");
+      // toast("Added to cart!");
       return true;
     } catch (error: any) {
       console.log(error, "Add To Cart Error");

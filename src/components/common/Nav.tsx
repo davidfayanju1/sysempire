@@ -14,9 +14,10 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { useCart } from "../../util/useCart";
 import { useAuthStore } from "../../store/authStore";
-import api from "../../lib/axios";
+import { getCollections } from "../../services";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -99,21 +100,25 @@ const Nav = () => {
     );
   };
 
+  const { data: collectionsRes } = useQuery({
+    queryKey: ["collections"],
+    queryFn: getCollections,
+    staleTime: 5 * 60 * 1000,
+  });
+  const apiCollections = collectionsRes?.data ?? [];
+
   const collections = [
     {
       title: "WOMEN",
-      items: [
-        // { name: "Ready-to-Wear", to: "/wears/women-ready-to-wear" },
-        { name: "Dresses", to: "/wears/women-dresses" },
-        { name: "Separates", to: "/wears/women-separates" },
-      ],
+      items: apiCollections
+        .filter((c) => c.gender === "female")
+        .map((c) => ({ name: c.name, to: `/collection/${c.slug}` })),
     },
     {
       title: "MEN",
-      items: [
-        // { name: "Ready-to-Wear", to: "/wears/men-ready-to-wear" },
-        { name: "Tailoring", to: "/wears/men-tailoring" },
-      ],
+      items: apiCollections
+        .filter((c) => c.gender === "male")
+        .map((c) => ({ name: c.name, to: `/collection/${c.slug}` })),
     },
     {
       title: "KIDS",
@@ -143,20 +148,6 @@ const Nav = () => {
       image: "/images/female-clothing/blue.png",
     },
   ];
-
-  const fetchCollection = async () => {
-    try {
-      const response = await api.get("/collections");
-
-      console.log(response.data.data, "collections response");
-    } catch (error) {
-      console.log(error, "Error fetching collections");
-    }
-  };
-
-  useEffect(() => {
-    fetchCollection();
-  }, []);
 
   const mainLinks = [
     { label: "RTW", to: "/wears/new-arrivals" },
@@ -629,9 +620,23 @@ const Nav = () => {
                   <h2 className="text-xl font-light tracking-wide">
                     Your Cart
                   </h2>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {cartCount} {cartCount === 1 ? "item" : "items"}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-gray-400">
+                      {cartCount} {cartCount === 1 ? "item" : "items"}
+                    </p>
+                    {cartItems.length > 0 && (
+                      <>
+                        <span className="text-gray-300">&middot;</span>
+                        <Link
+                          to="/cart"
+                          onClick={() => setIsCartOpen(false)}
+                          className="text-xs text-gray-500 hover:text-black underline underline-offset-2 transition-colors"
+                        >
+                          View Full Bag
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => setIsCartOpen(false)}

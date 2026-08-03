@@ -1,54 +1,10 @@
 // components/about/ApparelGrid.tsx
 import { motion, useInView, type Variants } from "framer-motion";
 import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Star } from "lucide-react";
-
-interface ApparelYear {
-  year: number;
-  name: string;
-  image: string;
-  pieces: string[];
-}
-
-const apparelYears: ApparelYear[] = [
-  {
-    year: 2022,
-    name: "Heritage",
-    image: "/images/female-clothing/blue.png",
-    pieces: ["Ankara Gowns", "Kaftans"],
-  },
-  {
-    year: 2023,
-    name: "Diaspora",
-    image: "/images/female-clothing/purple.png",
-    pieces: ["Cocktail Dresses", "Evening Wear"],
-  },
-  {
-    year: 2024,
-    name: "Modernist",
-    image:
-      "https://images.unsplash.com/photo-1666985152385-5075e84caf0e?q=80&w=1360&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    pieces: ["Power Suits", "Blazers"],
-  },
-  {
-    year: 2023,
-    name: "Avant-Garde",
-    image: "/images/female-clothing/orange.png",
-    pieces: ["Statement Pieces", "Bridal"],
-  },
-  {
-    year: 2024,
-    name: "Atelier",
-    image: "/images/female-clothing/international.png",
-    pieces: ["Custom-Made", "Atelier"],
-  },
-  {
-    year: 2025,
-    name: "Eco-Chic",
-    image: "/images/female-clothing/pink.png",
-    pieces: ["Sustainable Collection"],
-  },
-];
+import { Link } from "react-router-dom";
+import { getCollections } from "../../services";
 
 const floatVariants: Variants = {
   hidden: { opacity: 0, y: 50 },
@@ -77,6 +33,13 @@ const cardVariants: Variants = {
 export const ApparelGrid = () => {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["collections"],
+    queryFn: getCollections,
+    staleTime: 5 * 60 * 1000,
+  });
+  const collections = (data?.data ?? []).filter((c) => c.isPublished);
 
   return (
     <motion.section
@@ -112,43 +75,61 @@ export const ApparelGrid = () => {
           />
         </div>
 
-        <motion.div
-          className="grid grid-cols-2 lg:grid-cols-3 gap-6"
-          variants={staggerVariants}
-        >
-          {apparelYears.map((item, idx) => (
-            <motion.div
-              key={idx}
-              className="group relative overflow-hidden border border-black/10 bg-white hover:shadow-2xl transition-all duration-300"
-              variants={cardVariants}
-            >
-              <div className="aspect-[3/4] overflow-hidden bg-gray-100">
-                <motion.img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <p className="text-xs tracking-[0.2em] uppercase opacity-80">
-                  {item.year}
-                </p>
-                <p className="text-sm font-semibold mt-1">{item.name}</p>
-                <p className="text-[10px] opacity-70 mt-1">
-                  {item.pieces.join(" • ")}
-                </p>
-              </div>
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1">
-                <span className="text-[8px] tracking-[0.2em] uppercase text-black font-semibold">
-                  {item.year}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="aspect-[3/4] bg-gray-100 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : collections.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm font-light tracking-wide">
+            No collections available right now. Check back soon.
+          </p>
+        ) : (
+          <motion.div
+            className="grid grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerVariants}
+          >
+            {collections.map((item) => (
+              <motion.div key={item.id} variants={cardVariants}>
+                <Link
+                  to={`/collection/${item.slug}`}
+                  className="group relative block overflow-hidden border border-black/10 bg-white hover:shadow-2xl transition-all duration-300"
+                >
+                  <div className="aspect-[3/4] overflow-hidden bg-gray-100">
+                    <motion.img
+                      src={item.coverImage}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <p className="text-xs tracking-[0.2em] uppercase opacity-80">
+                      {item.year}
+                    </p>
+                    <p className="text-sm font-semibold mt-1">{item.name}</p>
+                    {item.tagline && (
+                      <p className="text-[10px] opacity-70 mt-1">
+                        {item.tagline}
+                      </p>
+                    )}
+                  </div>
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-2 py-1">
+                    <span className="text-[8px] tracking-[0.2em] uppercase text-black font-semibold">
+                      {item.year}
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </motion.section>
   );
