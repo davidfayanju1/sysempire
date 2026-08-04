@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import BodyScanCapture from "../measurement/BodyScanCapture";
+import { useAuthStore } from "../../store/authStore";
 import { DISCLAIMER, type Measurement } from "../../lib/bodyMeasurement";
 
 interface SavedData {
@@ -27,6 +28,19 @@ interface SavedData {
   detectedHeight: number | null;
   method: "camera" | "upload";
 }
+
+// Remembered only for signed-in users — a guest's browser could be shared,
+// so we don't want to silently carry a gender pick across sessions for them.
+const GENDER_STORAGE_KEY = "userGenderPreference";
+
+const loadStoredGender = (): "female" | "male" | null => {
+  try {
+    const raw = localStorage.getItem(GENDER_STORAGE_KEY);
+    return raw === "female" || raw === "male" ? raw : null;
+  } catch {
+    return null;
+  }
+};
 
 // Gender-specific sensible defaults used for the photo-upload path (a full
 // pose-estimation pass isn't run on uploaded stills, so we apply reasonable
@@ -67,7 +81,7 @@ function getMockMeasurements(gender: "female" | "male"): Measurement[] {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const MeasurementTab = () => {
-  const [gender, setGender] = useState<"female" | "male">("female");
+  const user = useAuthStore((s) => s.user);
 
   const [showCameraScan, setShowCameraScan] = useState(false);
   const [showUploadResults, setShowUploadResults] = useState(false);
@@ -87,6 +101,24 @@ const MeasurementTab = () => {
     }
     return null;
   });
+
+  // Signed-in users shouldn't have to re-pick gender every visit — default to
+  // their remembered preference (or their last saved measurement's gender).
+  const [gender, setGender] = useState<"female" | "male">(() => {
+    if (!useAuthStore.getState().user) return "female";
+    return loadStoredGender() ?? savedData?.gender ?? "female";
+  });
+
+  const handleGenderSelect = (g: "female" | "male") => {
+    setGender(g);
+    if (user) {
+      try {
+        localStorage.setItem(GENDER_STORAGE_KEY, g);
+      } catch {
+        /* storage unavailable — ignore */
+      }
+    }
+  };
 
   const instructions = [
     {
@@ -221,7 +253,7 @@ const MeasurementTab = () => {
           {(["female", "male"] as const).map((g) => (
             <button
               key={g}
-              onClick={() => setGender(g)}
+              onClick={() => handleGenderSelect(g)}
               className={`flex-1 py-3 text-xs uppercase tracking-[0.2em] transition border ${
                 gender === g
                   ? "bg-black text-white border-black"

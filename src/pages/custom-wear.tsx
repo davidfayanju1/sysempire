@@ -1,6 +1,10 @@
 import DefaultLayout from "../layout/DefaultLayout";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { LogIn, ShieldCheck, X } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
 import Hero from "../components/custom-wear/Hero";
 import StepOutfitType from "../components/custom-wear/StepOutfitType";
 import StepInspiration from "../components/custom-wear/StepInspiration";
@@ -107,11 +111,16 @@ const clearStoredProgress = () => {
 };
 
 const CustomWear = () => {
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+
   const [restoredProgress] = useState(loadStoredProgress);
   const [step, setStep] = useState(() => restoredProgress?.step ?? 1);
   const [orderData, setOrderData] = useState<OrderData>(
     () => restoredProgress?.orderData ?? DEFAULT_ORDER_DATA,
   );
+  const [showSaveMeasurementsPrompt, setShowSaveMeasurementsPrompt] =
+    useState(false);
 
   // Only one step is ever mounted at a time, so a single ref reused across
   // whichever step is showing is enough (avoids dynamic ref-object indexing).
@@ -243,6 +252,9 @@ const CustomWear = () => {
               onNext={(measurements, method) => {
                 updateOrderData({ measurements, measurementMethod: method });
                 goToNextStep();
+                if (method === "camera" && !user) {
+                  setShowSaveMeasurementsPrompt(true);
+                }
               }}
             />
           </div>
@@ -296,6 +308,70 @@ const CustomWear = () => {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showSaveMeasurementsPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-100 flex items-center justify-center p-6"
+            onClick={() => setShowSaveMeasurementsPrompt(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white max-w-md w-full p-8 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowSaveMeasurementsPrompt(false)}
+                className="absolute top-4 right-4 text-black/30 hover:text-black transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-12 h-12 bg-amber-50 border border-amber-200 rounded-full flex items-center justify-center mb-6">
+                <ShieldCheck className="w-5 h-5 text-amber-600" />
+              </div>
+
+              <span className="text-[10px] tracking-[0.3em] text-amber-600 uppercase font-serif">
+                Guest Checkout
+              </span>
+              <h2 className="text-2xl font-light text-black mt-3 mb-4">
+                Save these measurements?
+              </h2>
+              <p className="text-sm text-gray-500 leading-relaxed mb-8">
+                You're continuing as a guest, so this scan will only be used
+                for the current order and won't be saved to an account. Sign
+                in to keep it on file — no rescanning next time you order.
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="w-full py-3 bg-black text-white text-sm uppercase tracking-[0.15em] hover:bg-black/80 transition flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </button>
+                <button
+                  onClick={() => setShowSaveMeasurementsPrompt(false)}
+                  className="w-full py-3 border border-black/20 text-black/60 text-sm uppercase tracking-[0.15em] hover:border-black/40 hover:text-black transition"
+                >
+                  Continue as Guest
+                </button>
+              </div>
+
+              <p className="text-[10px] text-gray-400 mt-6 leading-relaxed">
+                Your order and these measurements are already saved to this
+                session — signing in won't repeat any step.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </DefaultLayout>
   );
 };
