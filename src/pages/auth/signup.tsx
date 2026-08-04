@@ -91,9 +91,9 @@ const Signup = () => {
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-10 md:pb-24 w-full">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
+            <Link to="/" className="flex justify-center mb-6">
               <img src="/images/logo_dark.png" alt="" className="h-20" />
-            </div>
+            </Link>
             <div className="w-12 h-px bg-black/15 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-light text-black tracking-tight font-['Times_New_Roman',serif]">
               Join the Empire

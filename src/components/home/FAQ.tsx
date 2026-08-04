@@ -20,7 +20,7 @@ const FAQ = () => {
     {
       question: "How do I provide my measurements?",
       answer:
-        "You have three options: use our AI-powered camera measurement tool (recommended), upload a full-body photo for analysis, or enter your measurements manually following our guide. All measurements are kept confidential and used only for your garment.",
+        "You have three options: use our guided front-and-side camera measurement tool (recommended), upload a full-body photo for analysis, or enter your measurements manually following our guide. All measurements are kept confidential and used only for your garment.",
     },
     {
       question: "What if the fit isn't perfect?",

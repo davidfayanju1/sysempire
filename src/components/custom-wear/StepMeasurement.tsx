@@ -2,7 +2,8 @@ import { useState } from "react";
 import { ChevronLeft, Camera, Image as ImageIcon, FileText, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "../../services";
-import MeasurementModal, { type Measurement } from "./MeasurementModal";
+import BodyScanCapture from "../measurement/BodyScanCapture";
+import type { Measurement } from "../../lib/bodyMeasurement";
 
 interface StepMeasurementProps {
   onBack: () => void;
@@ -363,12 +364,12 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
               <Camera className="w-5 h-5 text-black/60" />
             </div>
             <h3 className="text-lg font-medium mb-1">Self Measurement</h3>
-            <p className="text-xs text-gray-400">AI-powered body scanning</p>
+            <p className="text-xs text-gray-400">Guided front + side camera scan</p>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed mb-4">
-            Stand in front of your camera. Our AI detects your body proportions
-            and calculates all measurements automatically. Raise your hand to
-            capture.
+            Stand in front of your camera for a front and a side photo. We
+            detect your body proportions from both and calculate your
+            measurements automatically. Raise your hand to capture.
           </p>
           <span className="block text-[10px] text-green-600 uppercase tracking-wider mb-3">
             ✓ Most accurate
@@ -463,7 +464,7 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
       </div>
 
       {showCameraModal && (
-        <MeasurementModal
+        <BodyScanCapture
           onClose={() => setShowCameraModal(false)}
           onComplete={handleCameraComplete}
           gender={localGender}

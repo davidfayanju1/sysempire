@@ -213,7 +213,7 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
                 </p>
                 <p className="font-medium capitalize">
                   {orderData.measurementMethod === "camera"
-                    ? "AI Body Scan"
+                    ? "Guided Camera Scan"
                     : orderData.measurementMethod === "upload"
                       ? "Photo Analysis"
                       : orderData.measurementMethod === "manual"

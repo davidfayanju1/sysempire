@@ -10,7 +10,7 @@ import StepDelivery from "../components/custom-wear/StepDelivery";
 import StepPayment from "../components/custom-wear/StepPayment";
 import StepMeasurement from "../components/custom-wear/StepMeasurement";
 import StepReview from "../components/custom-wear/StepReview";
-import type { Measurement } from "../components/custom-wear/MeasurementModal";
+import type { Measurement } from "../lib/bodyMeasurement";
 
 export interface FabricDetails {
   images?: string[];
