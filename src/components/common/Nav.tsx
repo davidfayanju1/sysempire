@@ -170,8 +170,10 @@ const Nav = () => {
     <>
       <motion.nav
         ref={navRef}
-        className={`fixed top-0 border-b border-white/10 left-0 w-full z-50 transition-all duration-700 ${
-          isScrolled ? "bg-white py-3 shadow-sm" : "bg-transparent py-5"
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 ${
+          isScrolled
+            ? "bg-white py-3 shadow-sm border-b border-gray-100"
+            : "bg-transparent py-5 border-b border-transparent"
         }`}
       >
         <div className="max-w-[1600px] mx-auto px-4 md:px-12">
