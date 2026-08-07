@@ -7,6 +7,7 @@ import ProductInfo from "../components/product-details/ProductInfo";
 import SizeGuideModal from "../components/product-details/SizeGuideModal";
 import AddToCartNotification from "../components/product-details/AddToCartNotification";
 import MobileStickyBar from "../components/product-details/MobileStickyBar";
+import MobileAddToCartModal from "../components/product-details/MobileAddToCartModal";
 import ProductDetailsSkeleton from "../components/product-details/ProductDetailsSkeleton";
 import SimilarProducts from "../components/product/SimilarProducts";
 import PageLoadingOverlay from "../components/common/PageLoadingOverlay";
@@ -35,6 +36,7 @@ const ProductDetails = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [showCartNotification, setShowCartNotification] = useState(false);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(true);
+  const [showMobileAddModal, setShowMobileAddModal] = useState(false);
   const [notificationData, setNotificationData] = useState({
     productName: "",
     quantity: 0,
@@ -204,7 +206,7 @@ const ProductDetails = () => {
         </DefaultLayout>
       ) : (
         <DefaultLayout>
-          <div className="min-h-screen bg-white pt-24 pb-16">
+          <div className="min-h-screen bg-white pt-0 lg:pt-24 pb-16 overflow-x-hidden">
             <div className="max-w-[1400px] mx-auto px-6 md:px-12">
               {/* Back Button */}
               {/* <button
@@ -254,9 +256,23 @@ const ProductDetails = () => {
             addingToCart={addingToCart}
             isWishlisted={isWishlisted}
             inStock={product.inStock}
-            onAddToCart={handleAddToCart}
+            onAddToCart={() => setShowMobileAddModal(true)}
             onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
             onShareClick={handleShare}
+          />
+
+          <MobileAddToCartModal
+            isOpen={showMobileAddModal}
+            onClose={() => setShowMobileAddModal(false)}
+            product={product}
+            quantity={quantity}
+            selectedSize={selectedSize}
+            selectedColor={selectedColor}
+            addingToCart={addingToCart}
+            onQuantityChange={handleQuantityChange}
+            onSizeSelect={setSelectedSize}
+            onColorSelect={setSelectedColor}
+            onConfirm={handleAddToCart}
           />
 
           <SizeGuideModal

@@ -36,6 +36,10 @@ const Nav = () => {
 
   const isProductPage = location.pathname.startsWith("/product");
   const isDarkTheme = isScrolled || isProductPage;
+  // Product pages get a full-bleed hero image behind the nav on mobile, so the
+  // logo/hamburger must stay white-on-transparent there until scrolled — unlike
+  // desktop, which has no hero and needs the `isProductPage` dark-forcing above.
+  const isMobileDarkTheme = isScrolled;
   const isKidsPage = location.pathname.startsWith("/little-royals");
   // const kidsAccent = "#c96b82";
 
@@ -183,15 +187,29 @@ const Nav = () => {
                   />
                 </div>
               ) : (
-                <img
-                  src={
-                    isDarkTheme || isMobileMenuOpen
-                      ? "/images/logo_dark.png"
-                      : "/images/logo_light.png"
-                  }
-                  alt="SYS_EMPIRE_LOGO"
-                  className="w-16 h-14 md:ml-0 ml-[-.5rem] md:w-20 md:h-14 object-contain transition-all duration-500"
-                />
+                <>
+                  {/* Mobile logo — ignores isProductPage's forced-dark theme,
+                      since product pages get a transparent nav over a hero
+                      image on mobile and need to stay white until scrolled. */}
+                  <img
+                    src={
+                      isMobileDarkTheme || isMobileMenuOpen
+                        ? "/images/logo_dark.png"
+                        : "/images/logo_light.png"
+                    }
+                    alt="SYS_EMPIRE_LOGO"
+                    className="lg:hidden w-16 h-14 ml-[-.5rem] object-contain transition-all duration-500"
+                  />
+                  <img
+                    src={
+                      isDarkTheme
+                        ? "/images/logo_dark.png"
+                        : "/images/logo_light.png"
+                    }
+                    alt="SYS_EMPIRE_LOGO"
+                    className="hidden lg:block w-20 h-14 object-contain transition-all duration-500"
+                  />
+                </>
               )}
             </Link>
 
@@ -290,18 +308,18 @@ const Nav = () => {
                   rotate: isMobileMenuOpen ? 45 : 0,
                   y: isMobileMenuOpen ? 7 : 0,
                 }}
-                className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
+                className={`w-5 h-[1px] ${isMobileMenuOpen || isMobileDarkTheme ? "bg-black" : "bg-white"}`}
               />
               <motion.span
                 animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
-                className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
+                className={`w-5 h-[1px] ${isMobileMenuOpen || isMobileDarkTheme ? "bg-black" : "bg-white"}`}
               />
               <motion.span
                 animate={{
                   rotate: isMobileMenuOpen ? -45 : 0,
                   y: isMobileMenuOpen ? -7 : 0,
                 }}
-                className={`w-5 h-[1px] ${isMobileMenuOpen || isDarkTheme ? "bg-black" : "bg-white"}`}
+                className={`w-5 h-[1px] ${isMobileMenuOpen || isMobileDarkTheme ? "bg-black" : "bg-white"}`}
               />
             </button>
           </div>
