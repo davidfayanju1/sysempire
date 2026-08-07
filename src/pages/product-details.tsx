@@ -206,7 +206,7 @@ const ProductDetails = () => {
         </DefaultLayout>
       ) : (
         <DefaultLayout>
-          <div className="min-h-screen bg-white pt-0 lg:pt-24 pb-16 overflow-x-hidden">
+          <div className="min-h-screen bg-white pt-24 pb-16">
             <div className="max-w-[1400px] mx-auto px-6 md:px-12">
               {/* Back Button */}
               {/* <button
@@ -254,10 +254,8 @@ const ProductDetails = () => {
             productPrice={product.price}
             quantity={quantity}
             addingToCart={addingToCart}
-            isWishlisted={isWishlisted}
             inStock={product.inStock}
             onAddToCart={() => setShowMobileAddModal(true)}
-            onWishlistToggle={() => setIsWishlisted(!isWishlisted)}
             onShareClick={handleShare}
           />
 

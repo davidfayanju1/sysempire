@@ -1,16 +1,14 @@
 // components/product/MobileStickyBar.tsx
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Heart, Share2 } from "lucide-react";
+import { ShoppingBag, Share2 } from "lucide-react";
 
 interface MobileStickyBarProps {
   isVisible: boolean;
   productPrice: number;
   quantity: number;
   addingToCart: boolean;
-  isWishlisted: boolean;
   inStock: boolean;
   onAddToCart: () => void;
-  onWishlistToggle: () => void;
   onShareClick: () => void;
 }
 
@@ -19,10 +17,8 @@ const MobileStickyBar = ({
   productPrice,
   quantity,
   addingToCart,
-  isWishlisted,
   inStock,
   onAddToCart,
-  onWishlistToggle,
   onShareClick,
 }: MobileStickyBarProps) => {
   return (
@@ -33,7 +29,7 @@ const MobileStickyBar = ({
           animate={{ y: 0 }}
           exit={{ y: 100 }}
           transition={{ duration: 0.3 }}
-          className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 shadow-lg z-50"
+          className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50"
         >
           <div className="flex items-center gap-3">
             <div className="shrink-0">
@@ -42,15 +38,6 @@ const MobileStickyBar = ({
                 ₦{(productPrice * quantity).toLocaleString("en-NG")}
               </div>
             </div>
-            <button
-              onClick={onWishlistToggle}
-              aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-              className="shrink-0 border border-gray-300 p-3 hover:border-black transition-all"
-            >
-              <Heart
-                className={`w-4 h-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`}
-              />
-            </button>
             <button
               onClick={onShareClick}
               aria-label="Share"
@@ -70,7 +57,7 @@ const MobileStickyBar = ({
               ) : (
                 <>
                   <ShoppingBag className="w-4 h-4" />
-                  Add
+                  Add to Cart
                 </>
               )}
             </button>
