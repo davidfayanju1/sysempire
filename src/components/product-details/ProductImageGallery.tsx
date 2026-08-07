@@ -86,7 +86,7 @@ const ProductImageGallery = ({
       {/* ── Mobile swipeable slider ── */}
       <div
         ref={sliderRef}
-        className="relative mb-4 lg:hidden h-[88vh] w-screen ml-[calc(50%-50vw)] overflow-hidden bg-gray-50 select-none"
+        className="relative mb-4 lg:hidden h-[88vh] h-[88dvh]! w-screen ml-[calc(50%-50vw)] overflow-hidden bg-gray-50 select-none"
         style={{ touchAction: "pan-y" }}
       >
         <motion.div
