@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ArrowRight, ChevronLeft, CreditCard, Lock, AlertCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
+import { getApiErrorMessage } from "../../lib/axios";
 import {
   createOrder,
   initiateFlutterwavePayment,
@@ -26,8 +26,12 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
   if (orderData.inspirationDescription) {
     lines.push(`Inspiration (text): ${orderData.inspirationDescription}`);
   }
-  if (orderData.inspirationImage) {
-    lines.push(`Inspiration (image): ${orderData.inspirationImage}`);
+  if (orderData.inspirationImages?.length) {
+    orderData.inspirationImages.forEach((url, index) => {
+      lines.push(
+        `Inspiration (image ${index + 1}/${orderData.inspirationImages!.length}): ${url}`,
+      );
+    });
   }
 
   lines.push(`Fabric Option: ${orderData.fabricOption ?? "Not specified"}`);
@@ -56,6 +60,15 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
   }
 
   lines.push(`Measurement Method: ${orderData.measurementMethod ?? "Not provided"}`);
+  if (orderData.measurementMethod === "upload" && orderData.measurementPhotos?.length) {
+    lines.push(
+      "Measurement photos — estimates applied, verify before cutting:",
+    );
+    const labels = ["Front", "Side"];
+    orderData.measurementPhotos.forEach((url, index) => {
+      lines.push(`  ${labels[index] ?? `Photo ${index + 1}`}: ${url}`);
+    });
+  }
   lines.push(`Event Date: ${orderData.eventDate ?? "Not specified"}`);
   lines.push(
     `Delivery: ${orderData.deliveryPreference ?? "Not specified"}${orderData.isExpress ? " (Express)" : ""}`,
@@ -246,12 +259,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
       window.location.href = paymentLink;
     },
     onError: (err: unknown) => {
-      const msg = axios.isAxiosError(err)
-        ? (err.response?.data?.message ?? err.message)
-        : err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(err));
     },
   });
 

@@ -11,12 +11,20 @@ import {
 import { toast } from "sonner";
 import { getBrowseStyles } from "../../lib/style-inspiration";
 import { uploadMedia } from "../../services";
+import { getApiErrorMessage } from "../../lib/axios";
+
+const MAX_INSPIRATION_IMAGES = 6;
+
+interface UploadedImage {
+  file: File;
+  preview: string;
+}
 
 interface StepInspirationProps {
   onBack: () => void;
   onNext: (
     hasInspiration: boolean,
-    image?: string,
+    images?: string[],
     description?: string,
   ) => void;
   outfitType: string | null;
@@ -30,45 +38,67 @@ const StepInspiration = ({
   const [selectedMethod, setSelectedMethod] = useState<
     "upload" | "describe" | "browse" | null
   >(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [description, setDescription] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+
+    const room = MAX_INSPIRATION_IMAGES - uploadedImages.length;
+    if (room <= 0) {
+      toast.error(`You can upload up to ${MAX_INSPIRATION_IMAGES} images`);
+      e.target.value = "";
+      return;
+    }
+    const accepted = files.slice(0, room);
+    if (files.length > accepted.length) {
+      toast.error(`Only ${MAX_INSPIRATION_IMAGES} images allowed — added the first ${accepted.length}`);
+    }
+
+    accepted.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
+        setUploadedImages((prev) => [
+          ...prev,
+          { file, preview: reader.result as string },
+        ]);
       };
       reader.readAsDataURL(file);
-    }
+    });
+    e.target.value = "";
+  };
+
+  const removeUploadedImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
-    if (selectedMethod === "upload" && uploadedFile) {
+    if (selectedMethod === "upload" && uploadedImages.length > 0) {
       setIsUploading(true);
       try {
-        const res = await uploadMedia(uploadedFile);
-        const cdnUrl: string =
-          res.data?.url ??
-          res.data?.file?.url ??
-          res.data?.secure_url ??
-          res.data;
-        onNext(true, cdnUrl);
-        toast.success("Upload successful!");
-      } catch {
-        toast.error("Image upload failed. Please try again.");
+        const results = await Promise.all(
+          uploadedImages.map((img) => uploadMedia(img.file)),
+        );
+        const cdnUrls: string[] = results.map(
+          (res) =>
+            res.data?.url ?? res.data?.file?.url ?? res.data?.secure_url ?? res.data,
+        );
+        onNext(true, cdnUrls);
+        toast.success(
+          cdnUrls.length > 1 ? "Images uploaded!" : "Upload successful!",
+        );
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, "Image upload failed. Please try again."));
       } finally {
         setIsUploading(false);
       }
     } else if (selectedMethod === "describe" && description.trim()) {
       onNext(true, undefined, description);
     } else if (selectedMethod === "browse" && selectedStyle) {
-      onNext(true, selectedStyle);
+      onNext(true, [selectedStyle]);
     }
   };
 
@@ -193,35 +223,59 @@ const StepInspiration = ({
       </div>
 
       {selectedMethod === "upload" && (
-        <div className="space-y-6 max-w-2xl mx-auto">
-          {!uploadedImage ? (
+        <div className="space-y-4 max-w-2xl mx-auto">
+          {uploadedImages.length === 0 ? (
             <label className="block border-2 border-dashed border-black/10 hover:border-black/30 transition-all p-12 text-center cursor-pointer">
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleUpload}
                 className="hidden"
               />
               <Upload className="w-8 h-8 text-black/40 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">Click to upload an image</p>
-              <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+              <p className="text-sm text-gray-500">
+                Click to upload one or more images
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                PNG, JPG up to 10MB each — up to {MAX_INSPIRATION_IMAGES} images
+              </p>
             </label>
           ) : (
-            <div className="relative">
-              <img
-                src={uploadedImage}
-                alt="Inspiration"
-                className="w-full max-h-96 object-contain bg-gray-50"
-              />
-              <button
-                onClick={() => {
-                  setUploadedImage(null);
-                  setUploadedFile(null);
-                }}
-                className="absolute top-2 right-2 p-1 bg-white/80 hover:bg-white"
-              >
-                <X className="w-4 h-4 text-black" />
-              </button>
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3">
+                {uploadedImages.map((img, index) => (
+                  <div key={index} className="relative aspect-square">
+                    <img
+                      src={img.preview}
+                      alt={`Inspiration ${index + 1}`}
+                      className="w-full h-full object-cover bg-gray-50"
+                    />
+                    <button
+                      onClick={() => removeUploadedImage(index)}
+                      className="absolute top-1.5 right-1.5 p-1 bg-white/80 hover:bg-white"
+                    >
+                      <X className="w-3.5 h-3.5 text-black" />
+                    </button>
+                  </div>
+                ))}
+                {uploadedImages.length < MAX_INSPIRATION_IMAGES && (
+                  <label className="aspect-square flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-black/10 hover:border-black/30 transition-all cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleUpload}
+                      className="hidden"
+                    />
+                    <Upload className="w-5 h-5 text-black/40" />
+                    <span className="text-xs text-gray-500">Add more</span>
+                  </label>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
+                {uploadedImages.length} / {MAX_INSPIRATION_IMAGES} images
+              </p>
             </div>
           )}
         </div>
@@ -310,7 +364,7 @@ const StepInspiration = ({
           onClick={handleSubmit}
           disabled={
             isUploading ||
-            (selectedMethod === "upload" && !uploadedImage) ||
+            (selectedMethod === "upload" && uploadedImages.length === 0) ||
             (selectedMethod === "describe" && !description.trim()) ||
             (selectedMethod === "browse" && !selectedStyle)
           }

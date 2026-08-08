@@ -38,7 +38,7 @@ export interface OrderData {
 
   // Step 2: Inspiration
   hasInspiration: boolean | null;
-  inspirationImage?: string;
+  inspirationImages?: string[];
   inspirationDescription?: string;
 
   // Step 3: Fabric
@@ -52,6 +52,7 @@ export interface OrderData {
   // Step 5: Measurements
   measurements: Measurement[] | null;
   measurementMethod: "camera" | "upload" | "manual" | null;
+  measurementPhotos?: string[];
 
   // Step 6: Delivery
   eventDate?: string;
@@ -199,12 +200,12 @@ const CustomWear = () => {
               onBack={goToPreviousStep}
               onNext={(
                 hasInspiration,
-                inspirationImage,
+                inspirationImages,
                 inspirationDescription,
               ) => {
                 updateOrderData({
                   hasInspiration,
-                  inspirationImage,
+                  inspirationImages,
                   inspirationDescription,
                 });
                 goToNextStep();
@@ -249,8 +250,12 @@ const CustomWear = () => {
           <div ref={stepContainerRef}>
             <StepMeasurement
               onBack={goToPreviousStep}
-              onNext={(measurements, method) => {
-                updateOrderData({ measurements, measurementMethod: method });
+              onNext={(measurements, method, photos) => {
+                updateOrderData({
+                  measurements,
+                  measurementMethod: method,
+                  measurementPhotos: photos,
+                });
                 goToNextStep();
                 if (method === "camera" && !user) {
                   setShowSaveMeasurementsPrompt(true);

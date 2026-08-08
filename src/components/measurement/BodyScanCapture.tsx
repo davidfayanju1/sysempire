@@ -16,7 +16,11 @@ import {
   RotateCw,
   SkipForward,
 } from "lucide-react";
-import { PoseLandmarker, ImageSegmenter, FilesetResolver } from "@mediapipe/tasks-vision";
+import {
+  PoseLandmarker,
+  ImageSegmenter,
+  FilesetResolver,
+} from "@mediapipe/tasks-vision";
 import {
   LANDMARKS,
   DISCLAIMER,
@@ -119,7 +123,11 @@ function drawStandingGuide(
   ctx.restore();
 }
 
-const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) => {
+const BodyScanCapture = ({
+  onClose,
+  onComplete,
+  gender,
+}: BodyScanCaptureProps) => {
   const effectiveGender: "male" | "female" = gender ?? "female";
 
   const [phase, setPhase] = useState<Phase>("front");
@@ -141,7 +149,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const visionRef = useRef<Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>> | null>(null);
+  const visionRef = useRef<Awaited<
+    ReturnType<typeof FilesetResolver.forVisionTasks>
+  > | null>(null);
   const poseLandmarkerRef = useRef<PoseLandmarker | null>(null);
   const imageSegmenterRef = useRef<ImageSegmenter | null>(null);
   const animationRef = useRef<number | null>(null);
@@ -190,119 +200,138 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
     }, 1000);
   }, []);
 
-  const startRealTimeDetection = useCallback((poseLandmarker: PoseLandmarker) => {
-    let lastTs = -1;
+  const startRealTimeDetection = useCallback(
+    (poseLandmarker: PoseLandmarker) => {
+      let lastTs = -1;
 
-    const loop = async (ts: number) => {
-      if (!videoRef.current || !canvasRef.current) {
-        animationRef.current = requestAnimationFrame(loop);
-        return;
-      }
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx || !video.videoWidth || !video.videoHeight) {
-        animationRef.current = requestAnimationFrame(loop);
-        return;
-      }
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      if (ts !== lastTs && video.readyState >= 2) {
-        lastTs = ts;
-        try {
-          const res = poseLandmarker.detectForVideo(video, ts);
-          if (res.landmarks?.length > 0) {
-            const lms = res.landmarks[0];
-            const wlms = res.worldLandmarks?.[0];
-
-            const gesture = detectRaisedHand(lms);
-            const quality = calculatePoseQuality(lms);
-            const frame = checkFraming(lms);
-
-            if (gesture.isRaised !== lastGestureRef.current) {
-              lastGestureRef.current = gesture.isRaised;
-              setGestureDetected(gesture.isRaised);
-            }
-            const qBand = quality > 0.7 ? 2 : quality > 0.4 ? 1 : 0;
-            if (qBand !== lastQualityBandRef.current) {
-              lastQualityBandRef.current = qBand;
-              setPoseQuality(quality);
-            }
-            const framingKey = `${frame.headVisible}-${frame.feetVisible}`;
-            if (framingKey !== lastFramingKeyRef.current) {
-              lastFramingKeyRef.current = framingKey;
-              setFraming(frame);
-            }
-
-            drawStandingGuide(ctx, canvas.width, canvas.height, quality > 0.6);
-
-            const connections: [number, number][] = [
-              [LANDMARKS.LEFT_SHOULDER, LANDMARKS.RIGHT_SHOULDER],
-              [LANDMARKS.LEFT_SHOULDER, LANDMARKS.LEFT_ELBOW],
-              [LANDMARKS.LEFT_ELBOW, LANDMARKS.LEFT_WRIST],
-              [LANDMARKS.RIGHT_SHOULDER, LANDMARKS.RIGHT_ELBOW],
-              [LANDMARKS.RIGHT_ELBOW, LANDMARKS.RIGHT_WRIST],
-              [LANDMARKS.LEFT_SHOULDER, LANDMARKS.LEFT_HIP],
-              [LANDMARKS.RIGHT_SHOULDER, LANDMARKS.RIGHT_HIP],
-              [LANDMARKS.LEFT_HIP, LANDMARKS.RIGHT_HIP],
-              [LANDMARKS.LEFT_HIP, LANDMARKS.LEFT_KNEE],
-              [LANDMARKS.LEFT_KNEE, LANDMARKS.LEFT_ANKLE],
-              [LANDMARKS.RIGHT_HIP, LANDMARKS.RIGHT_KNEE],
-              [LANDMARKS.RIGHT_KNEE, LANDMARKS.RIGHT_ANKLE],
-            ];
-            connections.forEach(([a, b]) => {
-              const s = lms[a];
-              const e = lms[b];
-              if (s && e && (s.visibility ?? 0) > 0.3 && (e.visibility ?? 0) > 0.3) {
-                ctx.beginPath();
-                ctx.moveTo(s.x * canvas.width, s.y * canvas.height);
-                ctx.lineTo(e.x * canvas.width, e.y * canvas.height);
-                ctx.strokeStyle = gesture.isRaised ? "#10b981" : "#6b7280";
-                ctx.lineWidth = 3;
-                ctx.stroke();
-              }
-            });
-            lms.forEach((lm) => {
-              if ((lm.visibility ?? 0) > 0.3) {
-                ctx.beginPath();
-                ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = gesture.isRaised ? "#10b981" : "#ffffff";
-                ctx.fill();
-              }
-            });
-
-            if (wlms && quality > 0.5) {
-              latestLandmarksRef.current = lms;
-              latestWorldLandmarksRef.current = wlms;
-              const h = calculateHeightFromLandmarks(wlms);
-              if (h && h !== detectedHeightRef.current) {
-                detectedHeightRef.current = h;
-                setDetectedHeight(h);
-              }
-              if (
-                gesture.isRaised &&
-                !countdownActiveRef.current &&
-                quality > 0.6 &&
-                frame.isFullyFramed
-              ) {
-                triggerCapture();
-              }
-            }
-          }
-        } catch {
-          /* suppress frame errors */
+      const loop = async (ts: number) => {
+        if (!videoRef.current || !canvasRef.current) {
+          animationRef.current = requestAnimationFrame(loop);
+          return;
         }
-      }
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx || !video.videoWidth || !video.videoHeight) {
+          animationRef.current = requestAnimationFrame(loop);
+          return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (ts !== lastTs && video.readyState >= 2) {
+          lastTs = ts;
+          try {
+            const res = poseLandmarker.detectForVideo(video, ts);
+            if (res.landmarks?.length > 0) {
+              const lms = res.landmarks[0];
+              const wlms = res.worldLandmarks?.[0];
+
+              const gesture = detectRaisedHand(lms);
+              const quality = calculatePoseQuality(lms);
+              const frame = checkFraming(lms);
+
+              if (gesture.isRaised !== lastGestureRef.current) {
+                lastGestureRef.current = gesture.isRaised;
+                setGestureDetected(gesture.isRaised);
+              }
+              const qBand = quality > 0.7 ? 2 : quality > 0.4 ? 1 : 0;
+              if (qBand !== lastQualityBandRef.current) {
+                lastQualityBandRef.current = qBand;
+                setPoseQuality(quality);
+              }
+              const framingKey = `${frame.headVisible}-${frame.feetVisible}`;
+              if (framingKey !== lastFramingKeyRef.current) {
+                lastFramingKeyRef.current = framingKey;
+                setFraming(frame);
+              }
+
+              drawStandingGuide(
+                ctx,
+                canvas.width,
+                canvas.height,
+                quality > 0.6,
+              );
+
+              const connections: [number, number][] = [
+                [LANDMARKS.LEFT_SHOULDER, LANDMARKS.RIGHT_SHOULDER],
+                [LANDMARKS.LEFT_SHOULDER, LANDMARKS.LEFT_ELBOW],
+                [LANDMARKS.LEFT_ELBOW, LANDMARKS.LEFT_WRIST],
+                [LANDMARKS.RIGHT_SHOULDER, LANDMARKS.RIGHT_ELBOW],
+                [LANDMARKS.RIGHT_ELBOW, LANDMARKS.RIGHT_WRIST],
+                [LANDMARKS.LEFT_SHOULDER, LANDMARKS.LEFT_HIP],
+                [LANDMARKS.RIGHT_SHOULDER, LANDMARKS.RIGHT_HIP],
+                [LANDMARKS.LEFT_HIP, LANDMARKS.RIGHT_HIP],
+                [LANDMARKS.LEFT_HIP, LANDMARKS.LEFT_KNEE],
+                [LANDMARKS.LEFT_KNEE, LANDMARKS.LEFT_ANKLE],
+                [LANDMARKS.RIGHT_HIP, LANDMARKS.RIGHT_KNEE],
+                [LANDMARKS.RIGHT_KNEE, LANDMARKS.RIGHT_ANKLE],
+              ];
+              connections.forEach(([a, b]) => {
+                const s = lms[a];
+                const e = lms[b];
+                if (
+                  s &&
+                  e &&
+                  (s.visibility ?? 0) > 0.3 &&
+                  (e.visibility ?? 0) > 0.3
+                ) {
+                  ctx.beginPath();
+                  ctx.moveTo(s.x * canvas.width, s.y * canvas.height);
+                  ctx.lineTo(e.x * canvas.width, e.y * canvas.height);
+                  ctx.strokeStyle = gesture.isRaised ? "#10b981" : "#6b7280";
+                  ctx.lineWidth = 3;
+                  ctx.stroke();
+                }
+              });
+              lms.forEach((lm) => {
+                if ((lm.visibility ?? 0) > 0.3) {
+                  ctx.beginPath();
+                  ctx.arc(
+                    lm.x * canvas.width,
+                    lm.y * canvas.height,
+                    5,
+                    0,
+                    2 * Math.PI,
+                  );
+                  ctx.fillStyle = gesture.isRaised ? "#10b981" : "#ffffff";
+                  ctx.fill();
+                }
+              });
+
+              if (wlms && quality > 0.5) {
+                latestLandmarksRef.current = lms;
+                latestWorldLandmarksRef.current = wlms;
+                const h = calculateHeightFromLandmarks(wlms);
+                if (h && h !== detectedHeightRef.current) {
+                  detectedHeightRef.current = h;
+                  setDetectedHeight(h);
+                }
+                if (
+                  gesture.isRaised &&
+                  !countdownActiveRef.current &&
+                  quality > 0.6 &&
+                  frame.isFullyFramed
+                ) {
+                  triggerCapture();
+                }
+              }
+            }
+          } catch {
+            /* suppress frame errors */
+          }
+        }
+
+        animationRef.current = requestAnimationFrame(loop);
+      };
 
       animationRef.current = requestAnimationFrame(loop);
-    };
-
-    animationRef.current = requestAnimationFrame(loop);
-  }, [triggerCapture]);
+    },
+    [triggerCapture],
+  );
 
   const startCamera = useCallback(async () => {
     try {
@@ -312,22 +341,29 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
         );
       }
       if (!poseLandmarkerRef.current) {
-        poseLandmarkerRef.current = await PoseLandmarker.createFromOptions(visionRef.current, {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
-            delegate: "GPU",
+        poseLandmarkerRef.current = await PoseLandmarker.createFromOptions(
+          visionRef.current,
+          {
+            baseOptions: {
+              modelAssetPath:
+                "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+              delegate: "GPU",
+            },
+            runningMode: "VIDEO",
+            numPoses: 1,
+            minPoseDetectionConfidence: 0.5,
+            minPosePresenceConfidence: 0.5,
+            minTrackingConfidence: 0.5,
           },
-          runningMode: "VIDEO",
-          numPoses: 1,
-          minPoseDetectionConfidence: 0.5,
-          minPosePresenceConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
+        );
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
       });
 
       const track = stream.getVideoTracks()[0];
@@ -348,7 +384,8 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play();
           setCameraReady(true);
-          if (poseLandmarkerRef.current) startRealTimeDetection(poseLandmarkerRef.current);
+          if (poseLandmarkerRef.current)
+            startRealTimeDetection(poseLandmarkerRef.current);
         };
       }
     } catch (err) {
@@ -363,12 +400,15 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",
       );
     }
-    const segmenter = await ImageSegmenter.createFromOptions(visionRef.current, {
-      baseOptions: { modelAssetPath: SEGMENTER_MODEL_URL, delegate: "GPU" },
-      runningMode: "IMAGE",
-      outputCategoryMask: true,
-      outputConfidenceMasks: false,
-    });
+    const segmenter = await ImageSegmenter.createFromOptions(
+      visionRef.current,
+      {
+        baseOptions: { modelAssetPath: SEGMENTER_MODEL_URL, delegate: "GPU" },
+        runningMode: "IMAGE",
+        outputCategoryMask: true,
+        outputConfidenceMasks: false,
+      },
+    );
     imageSegmenterRef.current = segmenter;
     return segmenter;
   }, []);
@@ -387,7 +427,8 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
 
   const handleFrontCaptured = useCallback(
     (_lms: PoseLandmark[], wlms: PoseLandmark[]) => {
-      const h = calculateHeightFromLandmarks(wlms) ?? detectedHeightRef.current ?? 170;
+      const h =
+        calculateHeightFromLandmarks(wlms) ?? detectedHeightRef.current ?? 170;
       frontGeometryRef.current = computeFrontGeometry(wlms, h);
       detectedHeightRef.current = h;
       setDetectedHeight(h);
@@ -485,7 +526,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-        onClick={(e) => e.target === e.currentTarget && phase !== "processing" && onClose()}
+        onClick={(e) =>
+          e.target === e.currentTarget && phase !== "processing" && onClose()
+        }
       >
         <motion.div
           initial={{ scale: 0.97, opacity: 0 }}
@@ -496,8 +539,17 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
           {/* ── Camera phases (front / side) ─────────────────────────────── */}
           {isCameraPhase && (
             <>
-              <video ref={videoRef} style={{ display: "none" }} autoPlay playsInline muted />
-              <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
+              <video
+                ref={videoRef}
+                style={{ display: "none" }}
+                autoPlay
+                playsInline
+                muted
+              />
+              <canvas
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
 
               <button
                 onClick={onClose}
@@ -510,7 +562,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                 {cameraReady && (
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 backdrop-blur">
                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-white/60 text-[10px] uppercase tracking-wider">Live</span>
+                    <span className="text-white/60 text-[10px] uppercase tracking-wider">
+                      Live
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 backdrop-blur">
@@ -521,7 +575,8 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                 </div>
                 <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 backdrop-blur">
                   <span className="text-white/60 text-[10px] uppercase tracking-wider">
-                    Step {phase === "front" ? "1" : "2"} of 2 · {phase === "front" ? "Front" : "Side"}
+                    Step {phase === "front" ? "1" : "2"} of 2 ·{" "}
+                    {phase === "front" ? "Front" : "Side"}
                   </span>
                 </div>
               </div>
@@ -530,14 +585,18 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                 <div className="absolute top-20 left-4 z-10 bg-white/10 backdrop-blur px-4 py-2">
                   <div className="flex items-center gap-2">
                     <Ruler className="w-4 h-4 text-green-400" />
-                    <span className="text-white text-sm">Height: {detectedHeight} cm</span>
+                    <span className="text-white text-sm">
+                      Height: {detectedHeight} cm
+                    </span>
                   </div>
                 </div>
               )}
 
               {!cameraReady && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white/40 text-sm">Initialising camera…</div>
+                  <div className="text-white/40 text-sm">
+                    Initialising camera…
+                  </div>
                 </div>
               )}
 
@@ -548,13 +607,19 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                       {phase === "front" ? (
                         <>
                           Step back until your{" "}
-                          <span className="text-white font-medium">full body — head to toe</span>{" "}
+                          <span className="text-white font-medium">
+                            full body — head to toe
+                          </span>{" "}
                           fits inside the dashed outline, facing the camera
                         </>
                       ) : (
                         <>
-                          Now turn <span className="text-white font-medium">90° sideways</span> —
-                          right shoulder toward the camera — keeping your full body in the outline
+                          Now turn{" "}
+                          <span className="text-white font-medium">
+                            90° sideways
+                          </span>{" "}
+                          — right shoulder toward the camera — keeping your full
+                          body in the outline
                         </>
                       )}
                     </p>
@@ -597,10 +662,26 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
               <div className="absolute bottom-8 right-8 z-10">
                 <div className="relative w-16 h-16">
                   <svg className="w-full h-full -rotate-90">
-                    <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
                     <circle
-                      cx="32" cy="32" r="28" fill="none"
-                      stroke={poseQuality > 0.7 ? "#10b981" : poseQuality > 0.4 ? "#6b7280" : "#ef4444"}
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.2)"
+                      strokeWidth="4"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      fill="none"
+                      stroke={
+                        poseQuality > 0.7
+                          ? "#10b981"
+                          : poseQuality > 0.4
+                            ? "#6b7280"
+                            : "#ef4444"
+                      }
                       strokeWidth="4"
                       strokeDasharray={`${poseQuality * 175.9} 175.9`}
                       strokeLinecap="round"
@@ -608,8 +689,12 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-white text-xs">{Math.round(poseQuality * 100)}%</span>
-                    <span className="text-white/30 text-[7px] uppercase tracking-wider">Pose</span>
+                    <span className="text-white text-xs">
+                      {Math.round(poseQuality * 100)}%
+                    </span>
+                    <span className="text-white/30 text-[7px] uppercase tracking-wider">
+                      Pose
+                    </span>
                   </div>
                 </div>
               </div>
@@ -623,7 +708,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                 </button>
                 <button
                   onClick={triggerCapture}
-                  disabled={!cameraReady || countdown !== null || !framing.isFullyFramed}
+                  disabled={
+                    !cameraReady || countdown !== null || !framing.isFullyFramed
+                  }
                   className="flex-1 py-3 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Capture Now
@@ -641,7 +728,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                     <p className="text-white/50 text-sm uppercase tracking-widest mb-4">
                       Hold still — capturing in
                     </p>
-                    <div className="text-white text-8xl font-light">{countdown}</div>
+                    <div className="text-white text-8xl font-light">
+                      {countdown}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -667,9 +756,10 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                   Front captured
                 </h2>
                 <p className="text-white/60 text-sm leading-relaxed mb-8">
-                  For accurate bust, waist and hip measurements, we need one more
-                  photo from your side — this lets us measure your body's depth,
-                  not just its width. Turn 90° so your side faces the camera.
+                  For accurate bust, waist and hip measurements, we need one
+                  more photo from your side — this lets us measure your body's
+                  depth, not just its width. Turn 90° so your side faces the
+                  camera.
                 </p>
                 <div className="flex flex-col gap-3">
                   <button
@@ -688,8 +778,8 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                   </button>
                 </div>
                 <p className="text-white/30 text-[10px] mt-6 leading-relaxed">
-                  Skipping still gives you a full set of measurements, just with a
-                  wider accuracy margin on Bust/Chest, Waist and Hips.
+                  Skipping still gives you a full set of measurements, just with
+                  a wider accuracy margin on Bust/Chest, Waist and Hips.
                 </p>
               </div>
             </div>
@@ -710,7 +800,10 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
             <div className="h-full overflow-y-auto py-12 px-6">
               <div className="max-w-5xl mx-auto space-y-8">
                 <div className="flex justify-end">
-                  <button onClick={onClose} className="p-2 hover:bg-white/10 transition">
+                  <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-white/10 transition"
+                  >
                     <X className="w-6 h-6 text-white/60 hover:text-white" />
                   </button>
                 </div>
@@ -740,9 +833,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                   </h2>
                   {!usedSideScan && (
                     <p className="text-amber-400/80 text-xs mt-4 max-w-md mx-auto leading-relaxed">
-                      Bust/Chest, Waist and Hips are estimated from your front photo
-                      only — for tighter accuracy, redo this scan and include the
-                      side photo.
+                      Bust/Chest, Waist and Hips are estimated from your front
+                      photo only for tighter accuracy, redo this scan and
+                      include the side photo.
                     </p>
                   )}
                 </div>
@@ -790,7 +883,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
                       </p>
                       <p className="text-2xl font-light text-white">
                         {m.value}
-                        <span className="text-sm text-white/40 ml-1">{m.unit}</span>
+                        <span className="text-sm text-white/40 ml-1">
+                          {m.unit}
+                        </span>
                       </p>
                       <p className="text-[10px] text-white/30 mt-2 leading-relaxed">
                         {m.description}
@@ -801,7 +896,9 @@ const BodyScanCapture = ({ onClose, onComplete, gender }: BodyScanCaptureProps) 
 
                 <div className="flex items-start gap-3 bg-amber-500/5 border border-amber-500/20 p-4">
                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-amber-200/70 leading-relaxed">{DISCLAIMER}</p>
+                  <p className="text-[11px] text-amber-200/70 leading-relaxed">
+                    {DISCLAIMER}
+                  </p>
                 </div>
 
                 <div className="flex gap-4">

@@ -178,4 +178,17 @@ api.interceptors.response.use(
   },
 );
 
+// Pulls the backend's actual error message (e.g. "File too large.") out of a
+// caught request error, falling back to a generic message when the error
+// isn't one the backend sent (network failure, unexpected shape, etc).
+export const getApiErrorMessage = (
+  err: unknown,
+  fallback = "Something went wrong. Please try again.",
+): string =>
+  axios.isAxiosError(err)
+    ? (err.response?.data?.message ?? err.message ?? fallback)
+    : err instanceof Error
+      ? err.message
+      : fallback;
+
 export default api;

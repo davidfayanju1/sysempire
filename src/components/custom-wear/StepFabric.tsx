@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "../../services";
+import { getApiErrorMessage } from "../../lib/axios";
 import type { FabricDetails, FabricPreferences } from "../../pages/custom-wear";
 
 interface StepFabricProps {
@@ -62,8 +63,8 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
         ...prev,
         images: [...prev.images, cdnUrl],
       }));
-    } catch {
-      toast.error("Image upload failed. Please try again.");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Image upload failed. Please try again."));
     } finally {
       setUploadingImage(false);
     }

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ChevronLeft, Camera, Image as ImageIcon, FileText, User, Users } from "lucide-react";
+import { ChevronLeft, Camera, Image as ImageIcon, FileText, User, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "../../services";
+import { getApiErrorMessage } from "../../lib/axios";
 import BodyScanCapture from "../measurement/BodyScanCapture";
 import type { Measurement } from "../../lib/bodyMeasurement";
 
@@ -10,7 +11,13 @@ interface StepMeasurementProps {
   onNext: (
     measurements: Measurement[],
     method: "camera" | "upload" | "manual",
+    photos?: string[],
   ) => void;
+}
+
+interface SelectedPhoto {
+  file: File;
+  preview: string;
 }
 
 interface MeasurementField {
@@ -68,9 +75,12 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
   const [localGender, setLocalGender] = useState<"male" | "female" | null>(null);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [showPhotoUploadForm, setShowPhotoUploadForm] = useState(false);
   const [unit, setUnit] = useState<"cm" | "in">("cm");
   const [manualValues, setManualValues] = useState<Record<string, string>>({});
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [frontPhoto, setFrontPhoto] = useState<SelectedPhoto | null>(null);
+  const [sidePhoto, setSidePhoto] = useState<SelectedPhoto | null>(null);
 
   const fields = localGender === "male" ? MALE_FIELDS : FEMALE_FIELDS;
   const defaultsCm = localGender === "male" ? MALE_DEFAULTS_CM : FEMALE_DEFAULTS_CM;
@@ -103,16 +113,40 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
     onNext(measurements, "manual");
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
+  const handlePhotoSelect =
+    (slot: "front" | "side") => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const selected = { file, preview: reader.result as string };
+        if (slot === "front") setFrontPhoto(selected);
+        else setSidePhoto(selected);
+      };
+      reader.readAsDataURL(file);
+    };
+
+  const handlePhotoSubmit = async () => {
+    if (!frontPhoto || !sidePhoto) return;
 
     setIsUploadingPhoto(true);
     try {
-      await uploadMedia(file);
+      const [frontRes, sideRes] = await Promise.all([
+        uploadMedia(frontPhoto.file),
+        uploadMedia(sidePhoto.file),
+      ]);
+      const extractUrl = (res: {
+        data?: { url?: string; file?: { url?: string }; secure_url?: string };
+      }) =>
+        res.data?.url ?? res.data?.file?.url ?? res.data?.secure_url ?? "";
+      const photos = [extractUrl(frontRes), extractUrl(sideRes)].filter(
+        Boolean,
+      );
+
       toast.success(
-        "Photo uploaded! We've applied estimated measurements for your profile — please verify them.",
+        "Photos received! We've applied estimated measurements as a starting point — our team will review your photos and email you if anything needs verifying before we cut fabric.",
       );
       const measurements = fields.map((f) => ({
         name: f.name,
@@ -120,9 +154,9 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
         unit: "cm",
         description: f.description,
       }));
-      onNext(measurements, "upload");
-    } catch {
-      toast.error("Photo upload failed. Please try again.");
+      onNext(measurements, "upload", photos);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Photo upload failed. Please try again."));
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -329,6 +363,115 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
     );
   }
 
+  // ── SCREEN 3: Photo Upload Form ────────────────────────────────────────────
+  if (showPhotoUploadForm) {
+    return (
+      <section className="py-20 px-6 max-w-3xl mx-auto">
+        <button
+          onClick={() => setShowPhotoUploadForm(false)}
+          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to Options
+        </button>
+
+        <div className="text-center mb-10">
+          <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
+            Step 05
+          </span>
+          <h2 className="text-3xl md:text-4xl font-light mt-4 mb-3">
+            Upload Your Photos
+          </h2>
+          <p className="text-gray-500 max-w-lg mx-auto text-sm leading-relaxed">
+            Upload a clear photo facing forward and a clear photo of your
+            side profile, both showing your full figure, standing straight
+            with arms slightly away from your body. We apply estimates for a{" "}
+            {localGender} profile, in cm, as a starting point.
+          </p>
+        </div>
+
+        <div className="border border-amber-100 bg-amber-50 p-4 text-xs text-amber-700 leading-relaxed mb-10 max-w-xl mx-auto">
+          <strong>Heads up:</strong> These are estimated starting values, not
+          precise measurements. Our team reviews every photo set and will
+          email you if anything needs verifying before we cut fabric.
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 max-w-md mx-auto mb-10">
+          {(["front", "side"] as const).map((slot) => {
+            const photo = slot === "front" ? frontPhoto : sidePhoto;
+            const setPhoto = slot === "front" ? setFrontPhoto : setSidePhoto;
+            return (
+              <div key={slot}>
+                <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 text-center">
+                  {slot === "front" ? "Front View" : "Side View"}
+                </p>
+                {photo ? (
+                  <div className="relative aspect-[3/4]">
+                    <img
+                      src={photo.preview}
+                      alt={`${slot} photo`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPhoto(null)}
+                      className="absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white"
+                    >
+                      <X className="w-4 h-4 text-black" />
+                    </button>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor={`photo-${slot}`}
+                    className="flex flex-col items-center justify-center gap-2 aspect-[3/4] border-2 border-dashed border-black/10 hover:border-black/30 transition cursor-pointer"
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id={`photo-${slot}`}
+                      className="hidden"
+                      onChange={handlePhotoSelect(slot)}
+                      disabled={isUploadingPhoto}
+                    />
+                    <ImageIcon className="w-6 h-6 text-black/30" />
+                    <span className="text-xs text-gray-400">
+                      Click to upload
+                    </span>
+                  </label>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="max-w-md mx-auto flex gap-4">
+          <button
+            type="button"
+            onClick={() => setShowPhotoUploadForm(false)}
+            className="flex-1 py-4 border border-black/20 text-black/60 text-sm uppercase tracking-wider hover:border-black/40 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handlePhotoSubmit}
+            disabled={!frontPhoto || !sidePhoto || isUploadingPhoto}
+            className="flex-1 py-4 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isUploadingPhoto ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              "Confirm & Continue"
+            )}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   // ── SCREEN 1: Method Selection ─────────────────────────────────────────────
   return (
     <section className="py-20 px-6 max-w-5xl mx-auto">
@@ -356,80 +499,61 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto items-stretch">
         {/* Camera */}
-        <div className="border border-black/10 p-6 hover:border-black/20 transition">
+        <div className="flex flex-col border border-black/10 p-6 hover:border-black/20 transition">
           <div className="mb-4">
             <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mb-3">
               <Camera className="w-5 h-5 text-black/60" />
             </div>
             <h3 className="text-lg font-medium mb-1">Self Measurement</h3>
-            <p className="text-xs text-gray-400">Guided front + side camera scan</p>
+            <p className="text-xs text-gray-400">Guided front and side camera scan</p>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed mb-4">
             Stand in front of your camera for a front and a side photo. We
             detect your body proportions from both and calculate your
             measurements automatically. Raise your hand to capture.
           </p>
-          <span className="block text-[10px] text-green-600 uppercase tracking-wider mb-3">
+          <span className="block text-[10px] text-gray-500 uppercase tracking-wider mb-3">
             ✓ Most accurate
           </span>
           <button
             onClick={() => setShowCameraModal(true)}
-            className="w-full py-3 bg-black text-white text-xs uppercase tracking-wider hover:bg-black/80 transition"
+            className="w-full py-3 bg-black text-white text-xs uppercase tracking-wider hover:bg-black/80 transition mt-auto"
           >
             Use Camera
           </button>
         </div>
 
         {/* Photo upload */}
-        <div className="border border-black/10 p-6 hover:border-black/20 transition">
+        <div className="flex flex-col border border-black/10 p-6 hover:border-black/20 transition">
           <div className="mb-4">
             <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mb-3">
               <ImageIcon className="w-5 h-5 text-black/60" />
             </div>
-            <h3 className="text-lg font-medium mb-1">Upload Photo</h3>
+            <h3 className="text-lg font-medium mb-1">Upload Photos</h3>
             <p className="text-xs text-gray-400">
-              Full-body photo — estimated defaults
+              Front and side photo, estimated defaults
             </p>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed mb-4">
-            Upload a clear full-body photo standing straight with arms slightly
-            away. We apply {localGender}-appropriate estimates in cm — verify or
-            edit them manually.
+            Upload a clear photo facing forward and a clear photo of your
+            side profile. We apply estimates for a {localGender} profile, in
+            cm, as a starting point.
           </p>
           <span className="block text-[10px] text-amber-600 uppercase tracking-wider mb-3">
-            ⚠ Estimated values — verify manually
+            ⚠ Estimated, our team verifies by email
           </span>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            id="photo-upload"
-            onChange={handlePhotoUpload}
-            disabled={isUploadingPhoto}
-          />
-          <label
-            htmlFor="photo-upload"
-            className={`w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 ${
-              isUploadingPhoto
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:border-black/40 cursor-pointer"
-            }`}
+          <button
+            onClick={() => setShowPhotoUploadForm(true)}
+            className="w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-wider hover:border-black/40 transition mt-auto"
           >
-            {isUploadingPhoto ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              "Select Photo"
-            )}
-          </label>
+            {frontPhoto && sidePhoto ? "Edit Photos" : "Upload Photos"}
+          </button>
         </div>
 
         {/* Manual entry */}
-        <div className="border border-black/10 p-6 hover:border-black/20 transition">
+        <div className="flex flex-col border border-black/10 p-6 hover:border-black/20 transition">
           <div className="mb-4">
             <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mb-3">
               <FileText className="w-5 h-5 text-black/60" />
@@ -439,14 +563,14 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
           </div>
           <p className="text-xs text-gray-500 leading-relaxed mb-4">
             Already have your measurements from a tailor? Enter them in cm or
-            inches — exactly as you would hand them to any traditional tailor.
+            inches, exactly as you would hand them to any traditional tailor.
           </p>
-          <span className="block text-[10px] text-blue-500 uppercase tracking-wider mb-3">
-            ✓ Recommended if tailor-measured
+          <span className="block text-[10px] text-gray-500 uppercase tracking-wider mb-3">
+            ✓ Recommended if measured by a tailor
           </span>
           <button
             onClick={() => setShowManualForm(true)}
-            className="w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-wider hover:border-black/40 transition"
+            className="w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-wider hover:border-black/40 transition mt-auto"
           >
             Enter Measurements
           </button>

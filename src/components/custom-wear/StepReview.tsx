@@ -91,18 +91,24 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
               {orderData.inspirationDescription}
             </p>
           )}
-          {orderData.inspirationImage && (
-            <button
-              onClick={() => setViewingImage(orderData.inspirationImage!)}
-              className="mt-3 w-20 h-20 overflow-hidden border border-black/10 hover:border-black/30 transition block"
-            >
-              <img
-                src={orderData.inspirationImage}
-                alt="Inspiration"
-                className="w-full h-full object-cover"
-              />
-            </button>
-          )}
+          {orderData.inspirationImages &&
+            orderData.inspirationImages.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-3">
+                {orderData.inspirationImages.map((image, index) => (
+                  <button
+                    key={image}
+                    onClick={() => setViewingImage(image)}
+                    className="w-20 h-20 overflow-hidden border border-black/10 hover:border-black/30 transition block"
+                  >
+                    <img
+                      src={image}
+                      alt={`Inspiration ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
         </div>
 
         {/* Fabric Card */}
@@ -215,7 +221,7 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
                   {orderData.measurementMethod === "camera"
                     ? "Guided Camera Scan"
                     : orderData.measurementMethod === "upload"
-                      ? "Photo Analysis"
+                      ? "Front + Side Photos"
                       : orderData.measurementMethod === "manual"
                         ? "Manual Entry"
                         : "Not provided"}
@@ -229,6 +235,33 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
               Edit
             </button>
           </div>
+
+          {orderData.measurementMethod === "upload" &&
+            orderData.measurementPhotos &&
+            orderData.measurementPhotos.length > 0 && (
+              <div className="mb-4">
+                <div className="flex gap-3">
+                  {orderData.measurementPhotos.map((photo, index) => (
+                    <button
+                      key={photo}
+                      onClick={() => setViewingImage(photo)}
+                      className="w-16 h-20 overflow-hidden border border-black/10 hover:border-black/30 transition block"
+                    >
+                      <img
+                        src={photo}
+                        alt={index === 0 ? "Front photo" : "Side photo"}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-amber-600 mt-2 leading-relaxed">
+                  Values below are an estimated starting point — our team
+                  reviews your photos and will email you if anything needs
+                  verifying before we cut fabric.
+                </p>
+              </div>
+            )}
 
           {orderData.measurements && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
