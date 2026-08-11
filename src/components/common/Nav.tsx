@@ -544,7 +544,7 @@ const Nav = () => {
                   {cartCount})
                 </button>
                 <div className="flex gap-6 text-[9px] tracking-widest text-gray-400 uppercase font-light mt-4">
-                  <Link to="/shipping">Shipping</Link>
+                  <Link to="/profile?tab=orders">Orders</Link>
                   <Link to="/contact">Contact</Link>
                   <Link to="/terms">Terms</Link>
                 </div>
