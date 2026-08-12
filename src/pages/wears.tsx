@@ -159,7 +159,7 @@ const Wears = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.7 }}
-                    className="text-white text-5xl md:text-7xl lg:text-8xl font-light tracking-[0.15em] mb-8"
+                    className="text-white text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-light tracking-[0.04em] sm:tracking-[0.08em] md:tracking-[0.15em] mb-8 break-words"
                   >
                     {category.hero?.title || category.name.toUpperCase()}
                   </motion.h1>
