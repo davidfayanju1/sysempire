@@ -10,7 +10,7 @@ const DefaultLayout = ({ children }: DefaultLayoutProps) => {
   return (
     <>
       <Nav />
-      <>{children}</>
+      <div className="overflow-x-hidden">{children}</div>
       <Footer />
     </>
   );
