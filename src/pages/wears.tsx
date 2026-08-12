@@ -89,16 +89,9 @@ const Wears = () => {
           <section className="relative h-screen w-full overflow-hidden">
             <div className="absolute inset-0">
               {productsLoading ? (
-                <div className="relative w-full h-full overflow-hidden">
-                  <div className="absolute inset-0 bg-neutral-800 animate-pulse" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <img
-                      src="/images/logo_light.png"
-                      alt=""
-                      className="w-16 h-16 md:w-20 md:h-20 object-contain opacity-70 animate-pulse"
-                    />
-                  </div>
-                </div>
+                // PageLoadingOverlay already shows a centered logo full-screen
+                // while this is true — just the pulse here, no second logo.
+                <div className="w-full h-full bg-neutral-800 animate-pulse" />
               ) : heroHasError ? (
                 <div className="w-full h-full bg-neutral-900" />
               ) : heroIsEmpty ? (
