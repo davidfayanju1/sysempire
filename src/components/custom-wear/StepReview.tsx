@@ -143,6 +143,13 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
               Fabric type: {orderData.fabricDetails.type}
             </p>
           )}
+          {orderData.fabricDetails?.pickupPreference === "pickup" &&
+            orderData.fabricDetails.pickupDate && (
+              <p className="text-sm text-gray-500 mt-2">
+                Preferred pickup day: {orderData.fabricDetails.pickupDate}{" "}
+                — quote and pickup details confirmed via email
+              </p>
+            )}
           {orderData.fabricPreferences?.colors &&
             orderData.fabricPreferences.colors.length > 0 && (
               <p className="text-sm text-gray-500 mt-2">

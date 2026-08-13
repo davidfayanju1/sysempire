@@ -10,7 +10,13 @@ const DefaultLayout = ({ children }: DefaultLayoutProps) => {
   return (
     <>
       <Nav />
-      <div className="overflow-x-hidden">{children}</div>
+      {/* overflow-x-clip, not -hidden: "hidden" on only one axis forces the
+          other axis's computed overflow to "auto" per spec, which silently
+          turns this div into position:sticky's scrolling container instead
+          of the window — breaking sticky for every descendant (e.g. the
+          Custom Wear step trail). "clip" gets the same no-horizontal-scroll
+          result without that side effect. */}
+      <div className="overflow-x-clip">{children}</div>
       <Footer />
     </>
   );

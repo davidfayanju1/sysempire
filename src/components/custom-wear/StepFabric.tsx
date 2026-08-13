@@ -7,6 +7,7 @@ import {
   HelpCircle,
   Upload,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadMedia } from "../../services";
@@ -31,7 +32,12 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
     type: "",
     quantity: "",
     pickupPreference: "pickup" as "pickup" | "dropoff",
+    pickupDate: "",
   });
+  // Build the min pickup date string (tomorrow) for the date picker
+  const minPickupDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
   const [fabricPreferences, setFabricPreferences] = useState<
     Required<FabricPreferences>
   >({
@@ -64,7 +70,9 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
         images: [...prev.images, cdnUrl],
       }));
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Image upload failed. Please try again."));
+      toast.error(
+        getApiErrorMessage(err, "Image upload failed. Please try again."),
+      );
     } finally {
       setUploadingImage(false);
     }
@@ -152,182 +160,218 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
   if (fabricOption === "have") {
     return (
       <>
-      <section className="py-20 px-6 max-w-2xl mx-auto">
-        <button
-          onClick={() => setFabricOption(null)}
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back
-        </button>
-
-        <div className="text-center mb-12">
-          <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
-            Step 03
-          </span>
-          <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
-            Tell us about your fabric
-          </h2>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-              Fabric Type
-            </label>
-            <input
-              type="text"
-              value={fabricDetails.type}
-              onChange={(e) =>
-                setFabricDetails({ ...fabricDetails, type: e.target.value })
-              }
-              placeholder="e.g., Cotton, Linen, Silk, Ankara"
-              className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-              Quantity Available
-            </label>
-            <input
-              type="text"
-              value={fabricDetails.quantity}
-              onChange={(e) =>
-                setFabricDetails({ ...fabricDetails, quantity: e.target.value })
-              }
-              placeholder="e.g., 2 yards, 3 meters"
-              className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-              Fabric Photos{" "}
-              <span className="normal-case text-gray-300">(optional)</span>
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {fabricDetails.images.map((img) => (
-                <div key={img} className="relative w-20 h-20 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setViewingImage(img)}
-                    className="w-full h-full block"
-                  >
-                    <img
-                      src={img}
-                      alt="Fabric"
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeFabricImage(img)}
-                    className="absolute -top-2 -right-2 p-1 bg-white border border-black/10 hover:bg-black hover:text-white transition"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-              <label className="w-20 h-20 shrink-0 border-2 border-dashed border-black/10 hover:border-black/30 transition flex items-center justify-center cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFabricImageUpload}
-                  disabled={uploadingImage}
-                />
-                {uploadingImage ? (
-                  <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                ) : (
-                  <Upload className="w-5 h-5 text-black/30" />
-                )}
-              </label>
-            </div>
-            <p className="text-[10px] text-gray-400 mt-2">
-              Add photos of the fabric you have so our tailors know exactly
-              what to expect.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
-              Pickup Preference
-            </label>
-            <div className="flex gap-4">
-              <button
-                onClick={() =>
-                  setFabricDetails({
-                    ...fabricDetails,
-                    pickupPreference: "pickup",
-                  })
-                }
-                className={`flex-1 py-3 border transition ${
-                  fabricDetails.pickupPreference === "pickup"
-                    ? "border-black bg-black text-white"
-                    : "border-black/20 text-black/60 hover:border-black/40"
-                }`}
-              >
-                Schedule Pickup
-              </button>
-              <button
-                onClick={() =>
-                  setFabricDetails({
-                    ...fabricDetails,
-                    pickupPreference: "dropoff",
-                  })
-                }
-                className={`flex-1 py-3 border transition ${
-                  fabricDetails.pickupPreference === "dropoff"
-                    ? "border-black bg-black text-white"
-                    : "border-black/20 text-black/60 hover:border-black/40"
-                }`}
-              >
-                I'll Drop Off
-              </button>
-            </div>
-            <small className="block mt-3">
-              *You'll get directions to our studio after placing your order
-            </small>
-          </div>
-        </div>
-
-        <div className="flex gap-4 mt-8">
+        <section className="py-20 px-6 max-w-2xl mx-auto">
           <button
             onClick={() => setFabricOption(null)}
-            className="flex-1 py-3 border border-black/20 text-black/60 text-sm uppercase tracking-wider hover:border-black/40 transition"
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
           >
+            <ChevronLeft className="w-4 h-4" />
             Back
           </button>
-          <button
-            onClick={() => onNext("have-fabric", fabricDetails)}
-            disabled={!fabricDetails.type}
-            className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Continue <ArrowRight className="w-4 h-4 inline ml-2" />
-          </button>
-        </div>
-      </section>
 
-      {viewingImage && (
-        <div
-          className="fixed inset-0 bg-black/80 z-100 flex items-center justify-center p-6"
-          onClick={() => setViewingImage(null)}
-        >
-          <button
+          <div className="text-center mb-12">
+            <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
+              Step 03
+            </span>
+            <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
+              Tell us about your fabric
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                Fabric Type
+              </label>
+              <input
+                type="text"
+                value={fabricDetails.type}
+                onChange={(e) =>
+                  setFabricDetails({ ...fabricDetails, type: e.target.value })
+                }
+                placeholder="e.g., Cotton, Linen, Silk, Ankara"
+                className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                Quantity Available
+              </label>
+              <input
+                type="text"
+                value={fabricDetails.quantity}
+                onChange={(e) =>
+                  setFabricDetails({
+                    ...fabricDetails,
+                    quantity: e.target.value,
+                  })
+                }
+                placeholder="e.g., 2 yards, 3 meters"
+                className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                Fabric Photos{" "}
+                <span className="normal-case text-gray-300">(optional)</span>
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {fabricDetails.images.map((img) => (
+                  <div key={img} className="relative w-20 h-20 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setViewingImage(img)}
+                      className="w-full h-full block"
+                    >
+                      <img
+                        src={img}
+                        alt="Fabric"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeFabricImage(img)}
+                      className="absolute -top-2 -right-2 p-1 bg-white border border-black/10 hover:bg-black hover:text-white transition"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                <label className="w-20 h-20 shrink-0 border-2 border-dashed border-black/10 hover:border-black/30 transition flex items-center justify-center cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFabricImageUpload}
+                    disabled={uploadingImage}
+                  />
+                  {uploadingImage ? (
+                    <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-black/30" />
+                  )}
+                </label>
+              </div>
+              <p className="text-[10px] text-gray-400 mt-2">
+                Add photos of the fabric you have so our tailors know exactly
+                what to expect.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                Pickup Preference
+              </label>
+              <div className="flex gap-4">
+                <button
+                  onClick={() =>
+                    setFabricDetails({
+                      ...fabricDetails,
+                      pickupPreference: "pickup",
+                    })
+                  }
+                  className={`flex-1 py-3 border transition ${
+                    fabricDetails.pickupPreference === "pickup"
+                      ? "border-black bg-black text-white"
+                      : "border-black/20 text-black/60 hover:border-black/40"
+                  }`}
+                >
+                  Schedule Pickup
+                </button>
+                <button
+                  onClick={() =>
+                    setFabricDetails({
+                      ...fabricDetails,
+                      pickupPreference: "dropoff",
+                    })
+                  }
+                  className={`flex-1 py-3 border transition ${
+                    fabricDetails.pickupPreference === "dropoff"
+                      ? "border-black bg-black text-white"
+                      : "border-black/20 text-black/60 hover:border-black/40"
+                  }`}
+                >
+                  I'll Drop Off
+                </button>
+              </div>
+
+              {fabricDetails.pickupPreference === "pickup" && (
+                <div className="mt-4">
+                  <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2">
+                    Preferred Pickup Day
+                  </label>
+                  <input
+                    type="date"
+                    min={minPickupDate}
+                    value={fabricDetails.pickupDate}
+                    onChange={(e) =>
+                      setFabricDetails({
+                        ...fabricDetails,
+                        pickupDate: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-black/10 focus:border-black/40 outline-none transition"
+                  />
+                </div>
+              )}
+
+              <small className="block mt-3">
+                {fabricDetails.pickupPreference === "pickup" ? (
+                  <>
+                    *Schedule Pickup is currently only available for Lagos
+                    residents. Your quote will be confirmed once we process your
+                    order, we'll follow up by email with pickup details.
+                  </>
+                ) : (
+                  "*You'll get directions to our studio after placing your order"
+                )}
+              </small>
+            </div>
+          </div>
+
+          <div className="flex gap-4 mt-8">
+            <button
+              onClick={() => setFabricOption(null)}
+              className="flex-1 py-3 border border-black/20 text-black/60 text-sm uppercase tracking-wider hover:border-black/40 transition"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => onNext("have-fabric", fabricDetails)}
+              disabled={
+                !fabricDetails.type ||
+                (fabricDetails.pickupPreference === "pickup" &&
+                  !fabricDetails.pickupDate)
+              }
+              className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Continue <ArrowRight className="w-4 h-4 inline ml-2" />
+            </button>
+          </div>
+        </section>
+
+        {viewingImage && (
+          <div
+            className="fixed inset-0 bg-black/80 z-100 flex items-center justify-center p-6"
             onClick={() => setViewingImage(null)}
-            className="absolute top-6 right-6 text-white/70 hover:text-white transition"
           >
-            <X className="w-6 h-6" />
-          </button>
-          <img
-            src={viewingImage}
-            alt="Fabric preview"
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+            <button
+              onClick={() => setViewingImage(null)}
+              className="absolute top-6 right-6 text-white/70 hover:text-white transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img
+              src={viewingImage}
+              alt="Fabric preview"
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </>
     );
   }
@@ -501,6 +545,16 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 p-4 mt-8 flex items-start gap-3">
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-700 leading-relaxed">
+            Fabric sourced on your behalf is priced at the market rate at the
+            time of purchase. The fabric fee shown at checkout is an
+            estimate — your stylist will confirm the final cost during
+            consultation, before any fabric is bought.
+          </p>
         </div>
 
         <div className="flex gap-4 mt-8">

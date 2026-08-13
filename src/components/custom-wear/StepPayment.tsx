@@ -45,6 +45,14 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
   if (orderData.fabricDetails?.pickupPreference) {
     lines.push(`Fabric Handover: ${orderData.fabricDetails.pickupPreference}`);
   }
+  if (
+    orderData.fabricDetails?.pickupPreference === "pickup" &&
+    orderData.fabricDetails.pickupDate
+  ) {
+    lines.push(
+      `Preferred Pickup Day: ${orderData.fabricDetails.pickupDate} (Lagos only — final quote and pickup details confirmed via email after order processing)`,
+    );
+  }
   if (orderData.fabricPreferences?.colors?.length) {
     lines.push(`Preferred Colors: ${orderData.fabricPreferences.colors.join(", ")}`);
   }

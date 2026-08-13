@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { LogIn, ShieldCheck, X } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import Hero from "../components/custom-wear/Hero";
+import StepTrail from "../components/custom-wear/StepTrail";
+import { STEP_LABELS } from "../lib/customWearSteps";
 import StepOutfitType from "../components/custom-wear/StepOutfitType";
 import StepInspiration from "../components/custom-wear/StepInspiration";
 import StepFabric from "../components/custom-wear/StepFabric";
@@ -21,6 +23,7 @@ export interface FabricDetails {
   type?: string;
   quantity?: string;
   pickupPreference?: "pickup" | "dropoff";
+  pickupDate?: string;
 }
 
 export interface FabricPreferences {
@@ -145,7 +148,10 @@ const CustomWear = () => {
 
   useEffect(() => {
     if (restoredProgress && restoredProgress.step > 1) {
-      toast.success("Welcome back. Picking up where you left off.");
+      const label = STEP_LABELS[restoredProgress.step - 1];
+      toast.success(
+        `Welcome back — you're picking up at Step ${restoredProgress.step} of 8${label ? `: ${label}` : ""}.`,
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -180,6 +186,7 @@ const CustomWear = () => {
     <DefaultLayout>
       <div className="min-h-screen bg-[#fefaf5]">
         <Hero />
+        <StepTrail currentStep={step} />
 
         {/* Step 1: Outfit Type */}
         {step === 1 && (

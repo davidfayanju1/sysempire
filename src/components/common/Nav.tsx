@@ -17,10 +17,12 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "../../util/useCart";
 import { useAuthStore } from "../../store/authStore";
+import { useScrollUIStore } from "../../store/scrollStore";
 import { getCollections } from "../../services";
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const isStepTrailStuck = useScrollUIStore((s) => s.isStepTrailStuck);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -166,7 +168,7 @@ const Nav = () => {
     <>
       <motion.nav
         ref={navRef}
-        className={`fixed top-0 border-b border-white/10 left-0 w-full z-50 transition-all duration-700 ${
+        className={`${isStepTrailStuck ? "absolute lg:fixed" : "fixed"} top-0 border-b border-white/10 left-0 w-full z-50 transition-all duration-700 ${
           isScrolled ? "bg-white py-3 shadow-sm" : "bg-transparent py-5"
         }`}
       >
