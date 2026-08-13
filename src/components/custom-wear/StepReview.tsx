@@ -146,8 +146,8 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
           {orderData.fabricDetails?.pickupPreference === "pickup" &&
             orderData.fabricDetails.pickupDate && (
               <p className="text-sm text-gray-500 mt-2">
-                Preferred pickup day: {orderData.fabricDetails.pickupDate}{" "}
-                — quote and pickup details confirmed via email
+                Preferred pickup day: {orderData.fabricDetails.pickupDate} —
+                quote and pickup details confirmed via email
               </p>
             )}
           {orderData.fabricPreferences?.colors &&
@@ -263,9 +263,9 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
                   ))}
                 </div>
                 <p className="text-[10px] text-amber-600 mt-2 leading-relaxed">
-                  Values below are an estimated starting point — our team
-                  reviews your photos and will email you if anything needs
-                  verifying before we cut fabric.
+                  Values below are an estimated starting point our team reviews
+                  your photos and will email you if anything needs verifying
+                  before we cut fabric.
                 </p>
               </div>
             )}
@@ -282,7 +282,9 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
                     key={idx}
                     className="flex justify-between border-b border-black/5 py-2 gap-2"
                   >
-                    <span className="text-xs text-gray-500 shrink-0">{m.name}</span>
+                    <span className="text-xs text-gray-500 shrink-0">
+                      {m.name}
+                    </span>
                     <span className="text-xs font-light text-right">
                       {m.value} {m.unit}
                       <span className="text-gray-400 ml-1">({altValue})</span>
@@ -353,13 +355,13 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
         <div className="flex gap-4 pt-6">
           <button
             onClick={onBack}
-            className="flex-1 py-4 border border-black/20 text-black/60 text-sm uppercase tracking-wider hover:border-black/40 transition"
+            className="flex-1 py-4 border border-black/20 text-black/60 md:text-sm text-xs uppercase tracking-wider hover:border-black/40 transition"
           >
             Back
           </button>
           <button
             onClick={onNext}
-            className="flex-1 py-4 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition"
+            className="flex-1 py-4 bg-black text-white md:text-sm text-xs uppercase tracking-wider hover:bg-black/80 transition"
           >
             Proceed to Payment
           </button>

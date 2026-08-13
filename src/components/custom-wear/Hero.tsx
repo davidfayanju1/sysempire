@@ -70,10 +70,12 @@ const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center max-w-[800px] px-6">
+      <div className="relative z-10 md:pt-[3rem] text-center max-w-[800px] px-6">
         <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-light tracking-tight text-white mb-3 md:mb-6">
-          Your Vision. <br />
-          <span className="font-serif italic font-bold">Our Hands.</span>
+          Your Vision. <br className="md:block hidden" />
+          <span className="font-serif md:-mt-2 -mt-2 block italic font-bold">
+            Our Hands.
+          </span>
         </h1>
         <p className="text-white/80 text-[clamp(0.9rem,2vw,1.1rem)] font-light leading-snug md:leading-relaxed">
           Step into our creative space. Whether you come with a dream or need a

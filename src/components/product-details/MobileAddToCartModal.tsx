@@ -4,6 +4,7 @@ import { X, Plus, Minus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, ProductColor } from "../../types/product";
 import ColorSelector from "./ColorSelector";
+import { cldImage } from "../../lib/cloudinaryImage";
 
 interface MobileAddToCartModalProps {
   isOpen: boolean;
@@ -79,8 +80,14 @@ const MobileAddToCartModal = ({
             <div className="flex items-center gap-4 p-5 border-b border-gray-100">
               <div className="w-16 h-20 bg-gray-100 overflow-hidden flex-shrink-0">
                 <img
-                  src={product.images[0]?.url}
+                  src={cldImage(product.images[0]?.url, {
+                    width: 128,
+                    height: 160,
+                    crop: "fill",
+                  })}
                   alt={product.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
               </div>

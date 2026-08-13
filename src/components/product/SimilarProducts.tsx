@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import type { Product } from "../../types/product";
+import { cldImage } from "../../lib/cloudinaryImage";
 
 interface SimilarProductsProps {
   products: Product[];
@@ -37,11 +38,13 @@ const SimilarProducts = ({ products }: SimilarProductsProps) => {
           >
             <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
               <img
-                src={product.images[0]?.url}
+                src={cldImage(product.images[0]?.url, { width: 700 })}
                 alt={product.name}
                 className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
                   !product.inStock ? "grayscale opacity-60" : ""
                 }`}
+                loading="lazy"
+                decoding="async"
               />
               {!product.inStock && (
                 <span className="absolute top-3 left-3 bg-black/80 text-white text-[10px] tracking-[0.15em] uppercase px-3 py-1">

@@ -1,6 +1,7 @@
 // components/product/ProductImageGallery.tsx
 import { motion } from "framer-motion";
 import type { ProductImage } from "../../types/product";
+import { cldImage } from "../../lib/cloudinaryImage";
 
 interface ProductImageGalleryProps {
   images: ProductImage[];
@@ -26,9 +27,14 @@ const ProductImageGallery = ({
         className="relative aspect-[3/4] overflow-hidden bg-gray-50"
       >
         <img
-          src={images[selectedImage]?.url || images[0]?.url}
+          src={cldImage(images[selectedImage]?.url || images[0]?.url, {
+            width: 1200,
+          })}
           alt={images[selectedImage]?.alt || productName}
           className="w-full h-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
         />
       </motion.div>
 
@@ -45,9 +51,11 @@ const ProductImageGallery = ({
             }`}
           >
             <img
-              src={image.url}
+              src={cldImage(image.url, { width: 160, height: 160, crop: "fill" })}
               alt={image.alt}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           </button>
         ))}
