@@ -1,13 +1,94 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Shirt, ImageOff } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import DefaultLayout from "../layout/DefaultLayout";
 import { getCategoryBySlug } from "../data/category-data";
 import { getProducts } from "../services";
 import ProductGridSkeleton from "../components/product/ProductGridSkeleton";
 import PageLoadingOverlay from "../components/common/PageLoadingOverlay";
+
+// Encapsulated Product Card to isolate hover state and prevent parent page re-renders
+const ProductCard = ({
+  product,
+  index,
+  onNavigate,
+}: {
+  product: any;
+  index: number;
+  onNavigate: (path: string) => void;
+}) => {
+  const primaryImage =
+    product.images?.find((img: any) => img.isPrimary)?.url ??
+    product.images?.[0]?.url;
+  const isOutOfStock = product.stock <= 0;
+
+  // Prioritize the top row (first 2 items on mobile, 4 on desktop)
+  const isAboveFold = index < 2;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: (index % 4) * 0.1 }}
+      className="group cursor-pointer"
+      onClick={() => onNavigate(`/product/${product.id}`)}
+    >
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-100 mb-4">
+        {primaryImage ? (
+          <img
+            src={primaryImage}
+            alt={product.name}
+            width={400}
+            height={533}
+            loading={isAboveFold ? "eager" : "lazy"}
+            fetchPriority={isAboveFold ? "high" : "auto"}
+            decoding="async"
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+              isOutOfStock ? "grayscale opacity-60" : ""
+            }`}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-100" />
+        )}
+
+        {isOutOfStock && (
+          <span className="absolute top-3 left-3 bg-black/80 text-white text-[10px] tracking-[0.15em] uppercase px-3 py-1">
+            Out of Stock
+          </span>
+        )}
+
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileHover={{ opacity: 1, y: 0 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+        >
+          <button className="bg-white text-black px-6 py-2 text-xs tracking-[0.2em] uppercase font-light hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-sm">
+            View Details
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </motion.div>
+      </div>
+
+      <div className="text-center">
+        <p className="text-[9px] tracking-[0.25em] uppercase text-gray-400 mb-2 font-light">
+          {product.category?.name ?? ""}
+        </p>
+        <h4 className="text-sm font-light mb-2 text-gray-800">
+          {product.name}
+        </h4>
+        <p className="text-sm text-gray-900 font-light">
+          ₦{product.finalPrice.toLocaleString("en-NG")}
+        </p>
+      </div>
+    </motion.div>
+  );
+};
 
 const Wears = () => {
   const { name } = useParams();
@@ -33,7 +114,8 @@ const Wears = () => {
     queryKey: ["products"],
     queryFn: getProducts,
   });
-  const allProducts = productsRes?.data ?? [];
+
+  const allProducts = useMemo(() => productsRes?.data ?? [], [productsRes]);
 
   const genderFilter = (name ?? "").startsWith("women")
     ? "female"
@@ -41,21 +123,25 @@ const Wears = () => {
       ? "male"
       : null;
 
-  const products = genderFilter
-    ? allProducts.filter((product) => product.gender === genderFilter)
-    : allProducts;
+  const products = useMemo(() => {
+    return genderFilter
+      ? allProducts.filter((product) => product.gender === genderFilter)
+      : allProducts;
+  }, [allProducts, genderFilter]);
 
   const retryFetchProducts = () => {
     setHeroImageError(false);
     refetchProducts();
   };
 
-  const productImages = products
-    .map((product) => {
-      const primary = product.images?.find((img) => img.isPrimary)?.url;
-      return primary ?? product.images?.[0]?.url;
-    })
-    .filter((url): url is string => Boolean(url));
+  const productImages = useMemo(() => {
+    return products
+      .map((product) => {
+        const primary = product.images?.find((img) => img.isPrimary)?.url;
+        return primary ?? product.images?.[0]?.url;
+      })
+      .filter((url): url is string => Boolean(url));
+  }, [products]);
 
   const heroImage = productImages[0];
   const heroHasError = productsError || heroImageError;
@@ -82,15 +168,25 @@ const Wears = () => {
 
   return (
     <>
+      {/* 1. Preload LCP Hero Asset as early as possible into Document Head */}
+      {heroImage && !heroHasError && (
+        <Helmet>
+          <link
+            rel="preload"
+            as="image"
+            href={heroImage}
+            fetchPriority="high"
+          />
+        </Helmet>
+      )}
+
       <PageLoadingOverlay isLoading={productsLoading} />
       <DefaultLayout>
         <div className="bg-white">
           {/* Cinematic Hero Section */}
-          <section className="relative h-screen w-full overflow-hidden">
+          <section className="relative h-screen w-full overflow-hidden bg-neutral-900">
             <div className="absolute inset-0">
               {productsLoading ? (
-                // PageLoadingOverlay already shows a centered logo full-screen
-                // while this is true — just the pulse here, no second logo.
                 <div className="w-full h-full bg-neutral-800 animate-pulse" />
               ) : heroHasError ? (
                 <div className="w-full h-full bg-neutral-900" />
@@ -100,9 +196,15 @@ const Wears = () => {
                 </div>
               ) : (
                 <>
+                  {/* Hero LCP Optimization */}
                   <img
                     src={heroImage}
                     alt={category.name}
+                    width={1920}
+                    height={1080}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="sync"
                     onError={() => setHeroImageError(true)}
                     className="w-full h-full object-cover"
                   />
@@ -219,6 +321,10 @@ const Wears = () => {
                         <img
                           src={getStoryImage(0)}
                           alt="Collection preview 1"
+                          width={400}
+                          height={533}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                         />
                       ) : (
@@ -230,6 +336,10 @@ const Wears = () => {
                         <img
                           src={getStoryImage(1)}
                           alt="Collection preview 2"
+                          width={400}
+                          height={400}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                         />
                       ) : (
@@ -243,6 +353,10 @@ const Wears = () => {
                         <img
                           src={getStoryImage(2)}
                           alt="Collection preview 3"
+                          width={400}
+                          height={400}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                         />
                       ) : (
@@ -254,6 +368,10 @@ const Wears = () => {
                         <img
                           src={getStoryImage(3)}
                           alt="Collection preview 4"
+                          width={400}
+                          height={533}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                         />
                       ) : (
@@ -292,90 +410,22 @@ const Wears = () => {
                 </p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 md:gap-8 gap-4">
-                  {products.slice(0, 8).map((product, index) => {
-                    const primaryImage =
-                      product.images?.find((img) => img.isPrimary)?.url ??
-                      product.images?.[0]?.url;
-                    const isOutOfStock = product.stock <= 0;
-
-                    return (
-                      <motion.div
-                        key={product.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                        className="group cursor-pointer"
-                        onClick={() => navigate(`/product/${product.id}`)}
-                      >
-                        <div className="relative aspect-[3/4] overflow-hidden bg-white mb-4">
-                          {primaryImage ? (
-                            <img
-                              src={primaryImage}
-                              alt={product.name}
-                              className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
-                                isOutOfStock ? "grayscale opacity-60" : ""
-                              }`}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-100" />
-                          )}
-                          {isOutOfStock && (
-                            <span className="absolute top-3 left-3 bg-black/80 text-white text-[10px] tracking-[0.15em] uppercase px-3 py-1">
-                              Out of Stock
-                            </span>
-                          )}
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500" />
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            whileHover={{ opacity: 1, y: 0 }}
-                            className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                          >
-                            <button className="bg-white text-black px-6 py-2 text-xs tracking-[0.2em] uppercase font-light hover:bg-gray-100 transition-colors flex items-center gap-2">
-                              View Details
-                              <ArrowRight className="w-3 h-3" />
-                            </button>
-                          </motion.div>
-                        </div>
-
-                        <div className="text-center">
-                          <p className="text-[9px] tracking-[0.25em] uppercase text-gray-400 mb-2 font-light">
-                            {product.category?.name ?? ""}
-                          </p>
-                          <h4 className="text-sm font-light mb-2 text-gray-800">
-                            {product.name}
-                          </h4>
-                          <p className="text-sm text-gray-900 font-light">
-                            ₦{product.finalPrice.toLocaleString("en-NG")}
-                          </p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                  {products.slice(0, 8).map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      index={index}
+                      onNavigate={navigate}
+                    />
+                  ))}
                 </div>
               )}
-
-              {/* <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-center mt-16"
-            >
-              <button
-                onClick={() => navigate(`/collection/${category.slug}`)}
-                className="inline-flex items-center gap-3 border border-black px-8 py-3 text-xs tracking-[0.25em] uppercase font-light hover:bg-black hover:text-white transition-all duration-500"
-              >
-                Explore Full Collection
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </motion.div> */}
             </div>
           </section>
 
           {/* Full-Width Image Divider */}
           {getStoryImage(0) && (
-            <section className="relative h-[60vh] overflow-hidden">
+            <section className="relative h-[60vh] overflow-hidden bg-neutral-900">
               <motion.div
                 initial={{ scale: 1.1 }}
                 whileInView={{ scale: 1 }}
@@ -386,6 +436,10 @@ const Wears = () => {
                 <img
                   src={getStoryImage(0)}
                   alt="Collection showcase"
+                  width={1600}
+                  height={900}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/20" />
@@ -416,12 +470,6 @@ const Wears = () => {
                   >
                     Book Appointment
                   </button>
-                  {/* <button
-                  onClick={() => navigate(`/collection/${category.slug}`)}
-                  className="border border-black text-black px-8 py-3 text-xs tracking-[0.25em] uppercase font-light hover:bg-black hover:text-white transition-all duration-500"
-                >
-                  View Lookbook
-                </button> */}
                 </div>
               </motion.div>
             </div>
