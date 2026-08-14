@@ -150,7 +150,7 @@ const CustomWear = () => {
     if (restoredProgress && restoredProgress.step > 1) {
       const label = STEP_LABELS[restoredProgress.step - 1];
       toast.success(
-        `Welcome back — you're picking up at Step ${restoredProgress.step} of 8${label ? `: ${label}` : ""}.`,
+        `Welcome back. You're picking up at Step ${restoredProgress.step} of 8${label ? `: ${label}` : ""}.`,
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -355,9 +355,9 @@ const CustomWear = () => {
                 Save these measurements?
               </h2>
               <p className="text-sm text-gray-500 leading-relaxed mb-8">
-                You're continuing as a guest, so this scan will only be used
-                for the current order and won't be saved to an account. Sign
-                in to keep it on file — no rescanning next time you order.
+                You're continuing as a guest, so this scan will only be used for
+                the current order and won't be saved to an account. Sign in to
+                keep it on file — no rescanning next time you order.
               </p>
 
               <div className="flex flex-col gap-3">
