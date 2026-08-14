@@ -154,8 +154,8 @@ export const authRegister = (data: RegisterPayload) =>
 export const authLogin = (data: LoginPayload) =>
   api.post("/auth/login", data).then((res) => res.data);
 
-export const authGoogleLogin = (credential: string) =>
-  api.post("/auth/google", { credential }).then((res) => res.data);
+export const authGoogleLogin = (idToken: string) =>
+  api.post("/auth/google", { idToken }).then((res) => res.data);
 
 export const authLogout = () =>
   api.post("/auth/logout").then((res) => res.data);

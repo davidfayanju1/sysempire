@@ -35,10 +35,11 @@ const Login = () => {
   });
 
   const { mutate: mutateGoogle, isPending: isGooglePending } = useMutation({
-    mutationFn: (credential: string) => authGoogleLogin(credential),
+    mutationFn: (idToken: string) => authGoogleLogin(idToken),
     onSuccess: async (res) => {
-      const { user, accessToken, refreshToken } = res.data;
-      login(user, accessToken, refreshToken);
+      // /auth/google returns the token as `token`, like /auth/login does.
+      const { user, token, accessToken, refreshToken } = res.data;
+      login(user, accessToken ?? token, refreshToken);
       await mergeCart();
       toast.success(`Welcome back, ${user.firstName}.`);
       navigate("/profile");
