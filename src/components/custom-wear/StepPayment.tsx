@@ -244,7 +244,8 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         notes: buildOrderNotes(orderData, paymentMethod),
       };
 
-      console.log("Order payload:", payload);
+      console.log("Personal Fit — full order data:", orderData);
+      console.log("Personal Fit — API payload:", payload);
 
       const orderRes = await createOrder(payload);
       const orderId: string = orderRes.data?._id ?? orderRes.data?.id;

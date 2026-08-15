@@ -7,6 +7,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { authLogin, authGoogleLogin } from "../../services";
 import { useAuthStore } from "../../store/authStore";
 import { useCart } from "../../util/useCart";
+import { type Error } from "../../types/api";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,9 +28,12 @@ const Login = () => {
       toast.success(`Welcome back, ${user.firstName}.`);
       navigate("/profile");
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
+      const apiError = err as Error;
+
       const msg =
-        err?.response?.data?.message ?? "Sign in failed. Please try again.";
+        apiError?.response?.data?.message ??
+        "Sign in failed. Please try again.";
       toast.error(msg);
     },
   });
@@ -44,9 +48,11 @@ const Login = () => {
       toast.success(`Welcome back, ${user.firstName}.`);
       navigate("/profile");
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
+      const apiError = err as Error;
+
       const msg =
-        err?.response?.data?.message ??
+        apiError?.response?.data?.message ??
         "Google sign in failed. Please try again.";
       toast.error(msg);
     },

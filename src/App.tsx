@@ -26,6 +26,7 @@ import TermsOfUse from "./pages/terms-of-use";
 import { Toaster } from "sonner";
 import Checkout from "./pages/checkout";
 import NotFound from "./pages/not-found";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 function App() {
   return (
@@ -78,7 +79,14 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/profile" element={<UserProfile />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/wears/:name" element={<Wears />} />
         <Route path="/custom-wear" element={<CustomWear />} />
         <Route path="/product/:id" element={<ProductDetails />} />
