@@ -19,7 +19,8 @@ const ForgotPassword = () => {
     },
     onError: (err: any) => {
       const msg =
-        err?.response?.data?.message ?? "Unable to send reset link. Please try again.";
+        err?.response?.data?.message ??
+        "Unable to send reset link. Please try again.";
       toast.error(msg);
     },
   });
@@ -30,16 +31,16 @@ const ForgotPassword = () => {
         <div className="max-w-md mx-auto">
           <div className="text-center mb-12">
             <div className="flex justify-center mb-6">
-              <img src="/images/logo_dark.png" alt="" className="h-20" />
+              <Link to="/">
+                <img src="/images/logo_dark.png" alt="" className="h-20" />
+              </Link>
             </div>
             <div className="w-12 h-px bg-black/15 mx-auto mb-6" />
             <h1 className="text-3xl md:text-4xl font-light text-black tracking-tight font-['Times_New_Roman',serif]">
               Reset Password
             </h1>
             <p className="text-xs text-black/40 mt-3 tracking-[0.15em] uppercase font-['Times_New_Roman',serif]">
-              {sent
-                ? "Check your inbox"
-                : "We'll send you a reset link"}
+              {sent ? "Check your inbox" : "We'll send you a reset link"}
             </p>
             <div className="w-12 h-px bg-black/15 mx-auto mt-6" />
           </div>
@@ -48,8 +49,8 @@ const ForgotPassword = () => {
             <div className="text-center space-y-6">
               <p className="text-sm text-black/60 font-light leading-relaxed">
                 A password reset link has been sent to{" "}
-                <span className="text-black font-normal">{email}</span>. Follow the
-                instructions in the email to reset your password.
+                <span className="text-black font-normal">{email}</span>. Follow
+                the instructions in the email to reset your password.
               </p>
               <p className="text-xs text-black/30">
                 Didn't receive it?{" "}

@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { ArrowRight, ChevronLeft, CreditCard, Lock, AlertCircle } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  CreditCard,
+  Lock,
+  AlertCircle,
+} from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
@@ -54,7 +60,9 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
     );
   }
   if (orderData.fabricPreferences?.colors?.length) {
-    lines.push(`Preferred Colors: ${orderData.fabricPreferences.colors.join(", ")}`);
+    lines.push(
+      `Preferred Colors: ${orderData.fabricPreferences.colors.join(", ")}`,
+    );
   }
   if (orderData.fabricPreferences?.material) {
     lines.push(`Preferred Material: ${orderData.fabricPreferences.material}`);
@@ -67,8 +75,13 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
     lines.push(`Customizations: ${JSON.stringify(orderData.customizations)}`);
   }
 
-  lines.push(`Measurement Method: ${orderData.measurementMethod ?? "Not provided"}`);
-  if (orderData.measurementMethod === "upload" && orderData.measurementPhotos?.length) {
+  lines.push(
+    `Measurement Method: ${orderData.measurementMethod ?? "Not provided"}`,
+  );
+  if (
+    orderData.measurementMethod === "upload" &&
+    orderData.measurementPhotos?.length
+  ) {
     lines.push(
       "Measurement photos — estimates applied, verify before cutting:",
     );
@@ -177,7 +190,9 @@ const calculatePrice = (orderData: OrderData): PriceBreakdown => {
 const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
   const user = useAuthStore((s) => s.user);
 
-  const [paymentMethod, setPaymentMethod] = useState<"full" | "deposit">("deposit");
+  const [paymentMethod, setPaymentMethod] = useState<"full" | "deposit">(
+    "deposit",
+  );
   const [guestName, setGuestName] = useState(
     user ? `${user.firstName} ${user.lastName}`.trim() : "",
   );
@@ -217,7 +232,8 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         postalCode: "",
       };
 
-      const chargeAmount = paymentMethod === "deposit" ? depositAmount : estimatedPrice;
+      const chargeAmount =
+        paymentMethod === "deposit" ? depositAmount : estimatedPrice;
 
       const payload: CreateOrderPayload = {
         items: [
@@ -252,14 +268,18 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
 
       if (!orderId) throw new Error("Order creation failed. Please try again.");
 
-      const paymentRes = await initiateFlutterwavePayment(orderId, chargeAmount);
+      const paymentRes = await initiateFlutterwavePayment(
+        orderId,
+        chargeAmount,
+      );
       const paymentLink: string =
         paymentRes.data?.paymentLink ??
         paymentRes.data?.link ??
         paymentRes.data?.url ??
         paymentRes.data?.payment_link;
 
-      if (!paymentLink) throw new Error("Could not retrieve payment link. Please try again.");
+      if (!paymentLink)
+        throw new Error("Could not retrieve payment link. Please try again.");
 
       return paymentLink;
     },
@@ -353,20 +373,26 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
             <span className="text-gray-500 capitalize">
               {orderData.outfitType?.replace(/-/g, " ") ?? "Custom"} (base)
             </span>
-            <span className="text-black">₦{pricing.basePrice.toLocaleString()}</span>
+            <span className="text-black">
+              ₦{pricing.basePrice.toLocaleString()}
+            </span>
           </div>
 
           {pricing.fabricFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Fabric sourcing</span>
-              <span className="text-black">+₦{pricing.fabricFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.fabricFee.toLocaleString()}
+              </span>
             </div>
           )}
 
           {pricing.embroideryFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Embroidery</span>
-              <span className="text-black">+₦{pricing.embroideryFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.embroideryFee.toLocaleString()}
+              </span>
             </div>
           )}
 
@@ -375,42 +401,54 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
               <span className="text-gray-500">
                 {orderData.customizations.role} package
               </span>
-              <span className="text-black">+₦{pricing.weddingRoleFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.weddingRoleFee.toLocaleString()}
+              </span>
             </div>
           )}
 
           {pricing.weddingFormalityFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Formal wedding</span>
-              <span className="text-black">+₦{pricing.weddingFormalityFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.weddingFormalityFee.toLocaleString()}
+              </span>
             </div>
           )}
 
           {pricing.corporateBothFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Skirt + Trousers set</span>
-              <span className="text-black">+₦{pricing.corporateBothFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.corporateBothFee.toLocaleString()}
+              </span>
             </div>
           )}
 
           {pricing.doubleBreastedFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Double-breasted</span>
-              <span className="text-black">+₦{pricing.doubleBreastedFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.doubleBreastedFee.toLocaleString()}
+              </span>
             </div>
           )}
 
           {pricing.expressFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Express service (30%)</span>
-              <span className="text-black">+₦{pricing.expressFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.expressFee.toLocaleString()}
+              </span>
             </div>
           )}
 
           {pricing.deliveryFee > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Home delivery</span>
-              <span className="text-black">+₦{pricing.deliveryFee.toLocaleString()}</span>
+              <span className="text-black">
+                +₦{pricing.deliveryFee.toLocaleString()}
+              </span>
             </div>
           )}
 
@@ -429,7 +467,9 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
       <div className="bg-amber-50 border border-amber-200 p-4 mb-8 flex items-start gap-3">
         <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <p className="text-xs text-amber-700 leading-relaxed">
-          The amounts shown are estimates. Your stylist will confirm the exact price during consultation. The deposit secures your slot and will be applied to your final balance.
+          The amounts shown are estimates. Your stylist will confirm the exact
+          price during consultation. The deposit secures your slot and will be
+          applied to your final balance.
         </p>
       </div>
 

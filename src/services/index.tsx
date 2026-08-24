@@ -1,7 +1,10 @@
 import api from "../lib/axios";
 import type { ApiOrder, OrderTracking } from "../types/api-cart";
 import type { ApiProduct } from "../types/api-product";
-import type { ApiCollection, ApiCollectionProduct } from "../types/api-collection";
+import type {
+  ApiCollection,
+  ApiCollectionProduct,
+} from "../types/api-collection";
 
 // ── Services ──────────────────────────────────────────────────────────────────
 
@@ -237,6 +240,8 @@ export interface CreateOrderPayload {
   notes?: string;
 }
 
+const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+
 export const createOrder = (data: CreateOrderPayload) =>
   api.post("/orders", data).then((res) => res.data);
 
@@ -268,7 +273,7 @@ export const initiateFlutterwavePayment = (orderId: string, amount?: number) =>
   api
     .post(
       "/payments/flutterwave/initiate",
-      { orderId, amount },
+      { orderId, amount, returnUrl: `${frontendUrl}/payment/success` },
       { headers: { "Idempotency-Key": crypto.randomUUID() } },
     )
     .then((res) => res.data);

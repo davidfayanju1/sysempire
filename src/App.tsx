@@ -27,6 +27,8 @@ import { Toaster } from "sonner";
 import Checkout from "./pages/checkout";
 import NotFound from "./pages/not-found";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import PaymentSuccess from "./pages/payment-success";
+import PaymentFailed from "./pages/payment-failure";
 
 function App() {
   return (
@@ -87,6 +89,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/failed" element={<PaymentFailed />} />
         <Route path="/wears/:name" element={<Wears />} />
         <Route path="/custom-wear" element={<CustomWear />} />
         <Route path="/product/:id" element={<ProductDetails />} />
