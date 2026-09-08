@@ -97,7 +97,6 @@ function App() {
         <Route path="/we-are-back" element={<WeAreBack />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
-        {/* Flutterwave redirects here after payment (backend-configured returnUrl) */}
         <Route path="/payment/success" element={<OrderConfirmation />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfUse />} />
