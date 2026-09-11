@@ -9,6 +9,7 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 10000,
+  withCredentials: true,
 });
 
 const CART_SESSION_KEY = "cartSessionId";
@@ -35,9 +36,6 @@ api.interceptors.request.use(
   },
 );
 
-// Response Interceptor: Persist the guest cart session id the backend hands back.
-// SameSite=Lax cookies don't survive cross-origin XHR, so the backend also
-// exposes it as a response header for the client to echo back manually.
 api.interceptors.response.use((response) => {
   const cartSessionId = response.headers["x-cart-session"];
   if (cartSessionId) {
@@ -46,7 +44,6 @@ api.interceptors.response.use((response) => {
   return response;
 });
 
-// State to track token refresh queueing
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -178,9 +175,6 @@ api.interceptors.response.use(
   },
 );
 
-// Pulls the backend's actual error message (e.g. "File too large.") out of a
-// caught request error, falling back to a generic message when the error
-// isn't one the backend sent (network failure, unexpected shape, etc).
 export const getApiErrorMessage = (
   err: unknown,
   fallback = "Something went wrong. Please try again.",

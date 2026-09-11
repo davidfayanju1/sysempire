@@ -1,7 +1,20 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Package, Minus, Plus, Trash2, Shield, Truck, Lock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Package,
+  Minus,
+  Plus,
+  Trash2,
+  Shield,
+  Truck,
+  Lock,
+} from "lucide-react";
 import DefaultLayout from "../layout/DefaultLayout";
+import SimilarProducts from "../components/product/SimilarProducts";
 import { useCart } from "../util/useCart";
+import { getProducts } from "../services";
+import { mapApiProductToProduct } from "../lib/productAdapter";
 
 const Cart = () => {
   const { cartItems, cartCount, cartLoading, removeFromCart, updateQuantity } =
@@ -11,6 +24,35 @@ const Cart = () => {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+
+  const { data: productsRes } = useQuery({
+    queryKey: ["products"],
+    queryFn: getProducts,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // In-stock pieces not already in the bag, same-category ones first.
+  const suggestions = useMemo(() => {
+    const allProducts = productsRes?.data ?? [];
+    const inCart = new Set(cartItems.map((item) => item.productId));
+    const cartCategories = new Set(
+      allProducts.flatMap((p) =>
+        inCart.has(p.id) && p.category ? [p.category.id] : [],
+      ),
+    );
+    const isRelated = (p: (typeof allProducts)[number]) =>
+      !!p.category && cartCategories.has(p.category.id);
+
+    const candidates = allProducts.filter(
+      (p) => !inCart.has(p.id) && p.stock > 0,
+    );
+    return [
+      ...candidates.filter(isRelated),
+      ...candidates.filter((p) => !isRelated(p)),
+    ]
+      .slice(0, 4)
+      .map(mapApiProductToProduct);
+  }, [productsRes, cartItems]);
 
   return (
     <DefaultLayout>
@@ -69,8 +111,8 @@ const Cart = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {/* Items */}
-              <div className="lg:col-span-2 border border-black/10">
-                <div className="divide-y divide-black/10">
+              <div className="lg:col-span-2 ">
+                <div className="divide-y border border-black/10 divide-black/10">
                   {cartItems.map((item) => (
                     <div key={item.id} className="p-6 flex gap-4">
                       <div className="w-20 h-24 bg-black/5 shrink-0 overflow-hidden">
@@ -194,6 +236,12 @@ const Cart = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {!cartLoading && (
+            <div className="max-w-6xl mx-auto">
+              <SimilarProducts products={suggestions} />
             </div>
           )}
         </div>

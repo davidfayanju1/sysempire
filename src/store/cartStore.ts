@@ -10,6 +10,7 @@ import type {
 
 export interface CartItem {
   id: string;
+  productId: string;
   name: string;
   price: number;
   quantity: number;
@@ -32,6 +33,7 @@ export interface AddToCartPayload {
 
 const mapApiItem = (item: ApiCartItem): CartItem => ({
   id: item.id,
+  productId: item.product?.id ?? "",
   name: item.product?.name ?? "",
   price: item.unitPrice,
   quantity: item.quantity,

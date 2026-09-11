@@ -1,9 +1,3 @@
-// lib/bodyMeasurement.ts
-//
-// Shared pose-landmark math for the camera self-measurement feature. Used by both
-// the Personal Fit order flow and the Profile "Take Measurement" tab so the two
-// surfaces don't maintain independently-diverging copies of the same formulas.
-
 export interface Measurement {
   name: string;
   value: number;
@@ -24,7 +18,6 @@ export interface GestureState {
   confidence: number;
 }
 
-// MediaPipe Pose Landmark indices.
 export const LANDMARKS = {
   NOSE: 0,
   LEFT_SHOULDER: 11,
@@ -58,7 +51,11 @@ export const detectRaisedHand = (landmarks: PoseLandmark[]): GestureState => {
     return { isRaised: true, handSide: "left", confidence: lw.visibility ?? 0 };
   }
   if (rw && rs && (rw.visibility ?? 0) > 0.6 && rw.y < rs.y) {
-    return { isRaised: true, handSide: "right", confidence: rw.visibility ?? 0 };
+    return {
+      isRaised: true,
+      handSide: "right",
+      confidence: rw.visibility ?? 0,
+    };
   }
   return { isRaised: false, handSide: null, confidence: 0 };
 };
@@ -92,12 +89,6 @@ export interface FramingState {
   isFullyFramed: boolean;
 }
 
-// Whether the camera can actually see the person's head AND feet — required
-// before a capture is allowed, since height (and everything scaled from it)
-// is only trustworthy when the full body is in frame. Uses landmark
-// visibility scores rather than the generic pose-quality score, which can
-// stay high (shoulders/hips/knees all confident) even when the head or feet
-// are cropped out of the shot.
 export const checkFraming = (landmarks: PoseLandmark[]): FramingState => {
   const nose = landmarks[LANDMARKS.NOSE];
   const lAnkle = landmarks[LANDMARKS.LEFT_ANKLE];
@@ -112,7 +103,11 @@ export const checkFraming = (landmarks: PoseLandmark[]): FramingState => {
     (rAnkle?.visibility ?? 0) > 0.4 && (rHeel?.visibility ?? 0) > 0.3;
   const feetVisible = leftFootVisible || rightFootVisible;
 
-  return { headVisible, feetVisible, isFullyFramed: headVisible && feetVisible };
+  return {
+    headVisible,
+    feetVisible,
+    isFullyFramed: headVisible && feetVisible,
+  };
 };
 
 export const calculateHeightFromLandmarks = (
@@ -136,9 +131,6 @@ export const calculateHeightFromLandmarks = (
   return heightCm > 140 && heightCm < 220 ? Math.round(heightCm) : 170;
 };
 
-// Ramanujan's first approximation of an ellipse's perimeter, given the two
-// semi-axes (half-width, half-depth) in cm. Used to turn a front width + a side
-// depth into a real circumference instead of a guessed multiplier.
 export const ellipseCircumference = (semiA: number, semiB: number): number => {
   const a = Math.max(semiA, 0.1);
   const b = Math.max(semiB, 0.1);
@@ -154,9 +146,6 @@ export interface FrontGeometry {
   heightCm: number;
 }
 
-// Extract raw body geometry (in real-world cm) from a front-facing capture's
-// world landmarks. Widths/lengths are scaled by the detected height relative to
-// an average 170cm reference, same as the original single-photo formulas.
 export const computeFrontGeometry = (
   worldLandmarks: PoseLandmark[],
   heightCm: number,
@@ -237,9 +226,6 @@ const silhouetteWidthAt = (
   return right - left;
 };
 
-// Derive real front-to-back body depth at bust/waist/hip level from a side-profile
-// segmentation mask. Returns null if the silhouette can't be read at any of the
-// three bands (e.g. poor framing) — callers should fall back to the multiplier
 // estimate in that case rather than produce a partial/broken result.
 export const computeSideDepths = (input: SideDepthInput): SideDepths | null => {
   const {
@@ -263,9 +249,27 @@ export const computeSideDepths = (input: SideDepthInput): SideDepths | null => {
   const waistY = shoulderY + torsoSpan * 0.72;
   const hipBandY = hipY;
 
-  const bustPx = silhouetteWidthAt(mask, maskWidth, maskHeight, isForeground, bustY);
-  const waistPx = silhouetteWidthAt(mask, maskWidth, maskHeight, isForeground, waistY);
-  const hipPx = silhouetteWidthAt(mask, maskWidth, maskHeight, isForeground, hipBandY);
+  const bustPx = silhouetteWidthAt(
+    mask,
+    maskWidth,
+    maskHeight,
+    isForeground,
+    bustY,
+  );
+  const waistPx = silhouetteWidthAt(
+    mask,
+    maskWidth,
+    maskHeight,
+    isForeground,
+    waistY,
+  );
+  const hipPx = silhouetteWidthAt(
+    mask,
+    maskWidth,
+    maskHeight,
+    isForeground,
+    hipBandY,
+  );
 
   if (bustPx === null || waistPx === null || hipPx === null) return null;
 
@@ -280,17 +284,19 @@ const BUST_MULTIPLIER = { female: 2.5, male: 2.45 };
 const WAIST_MULTIPLIER = { female: 2.0, male: 2.3 };
 const HIP_MULTIPLIER = { female: 2.8, male: 2.6 };
 
-// Builds the final measurement list. When `sideDepths` is available, Bust/Chest,
-// Waist and Hips are computed from real front-width + side-depth geometry via an
-// ellipse approximation. Otherwise they fall back to the population-average
-// multiplier estimate (today's behavior) so the feature still works end-to-end
-// if the side scan is skipped or segmentation fails to load.
 export const buildMeasurements = (
   front: FrontGeometry,
   sideDepths: SideDepths | null,
   gender: "male" | "female",
 ): Measurement[] => {
-  const { shoulderWidth: sw, hipWidth: hw, torsoLength: tl, avgArmLength: avgArm, avgLegLength: avgLeg, heightCm } = front;
+  const {
+    shoulderWidth: sw,
+    hipWidth: hw,
+    torsoLength: tl,
+    avgArmLength: avgArm,
+    avgLegLength: avgLeg,
+    heightCm,
+  } = front;
 
   const bustCirc = sideDepths
     ? ellipseCircumference(sw / 2, sideDepths.bustDepth / 2)
@@ -304,34 +310,159 @@ export const buildMeasurements = (
 
   if (gender === "female") {
     return [
-      { name: "Height", value: heightCm, unit: "cm", description: "Total standing height" },
-      { name: "Shoulder Width", value: Math.round(sw), unit: "cm", description: "Shoulder point to shoulder point (back)" },
-      { name: "Bust", value: Math.round(bustCirc), unit: "cm", description: "Fullest part of chest — at nipple line" },
-      { name: "Under Bust", value: Math.round(sw * 2.1), unit: "cm", description: "Directly below bust" },
-      { name: "Waist", value: Math.round(waistCirc), unit: "cm", description: "Narrowest part of natural waist" },
-      { name: "Hips", value: Math.round(hipCirc), unit: "cm", description: "Fullest part of hips and seat" },
-      { name: "Neck", value: Math.round(sw * 0.58), unit: "cm", description: "Around the base of neck" },
-      { name: "Arm Length", value: Math.round(avgArm), unit: "cm", description: "Shoulder point to wrist bone" },
-      { name: "Wrist", value: Math.round(avgArm * 0.11), unit: "cm", description: "Around the wrist bone" },
-      { name: "Thigh", value: Math.round(avgLeg * 0.32), unit: "cm", description: "Fullest part of upper thigh" },
-      { name: "Calf", value: Math.round(avgLeg * 0.2), unit: "cm", description: "Fullest part of calf" },
-      { name: "Dress Length", value: Math.round(tl + avgLeg * 0.85), unit: "cm", description: "Shoulder to floor (full-length garment)" },
-      { name: "Torso Length", value: Math.round(tl), unit: "cm", description: "Shoulder to natural waist" },
+      {
+        name: "Height",
+        value: heightCm,
+        unit: "cm",
+        description: "Total standing height",
+      },
+      {
+        name: "Shoulder Width",
+        value: Math.round(sw),
+        unit: "cm",
+        description: "Shoulder point to shoulder point (back)",
+      },
+      {
+        name: "Bust",
+        value: Math.round(bustCirc),
+        unit: "cm",
+        description: "Fullest part of chest — at nipple line",
+      },
+      {
+        name: "Under Bust",
+        value: Math.round(sw * 2.1),
+        unit: "cm",
+        description: "Directly below bust",
+      },
+      {
+        name: "Waist",
+        value: Math.round(waistCirc),
+        unit: "cm",
+        description: "Narrowest part of natural waist",
+      },
+      {
+        name: "Hips",
+        value: Math.round(hipCirc),
+        unit: "cm",
+        description: "Fullest part of hips and seat",
+      },
+      {
+        name: "Neck",
+        value: Math.round(sw * 0.58),
+        unit: "cm",
+        description: "Around the base of neck",
+      },
+      {
+        name: "Arm Length",
+        value: Math.round(avgArm),
+        unit: "cm",
+        description: "Shoulder point to wrist bone",
+      },
+      {
+        name: "Wrist",
+        value: Math.round(avgArm * 0.11),
+        unit: "cm",
+        description: "Around the wrist bone",
+      },
+      {
+        name: "Thigh",
+        value: Math.round(avgLeg * 0.32),
+        unit: "cm",
+        description: "Fullest part of upper thigh",
+      },
+      {
+        name: "Calf",
+        value: Math.round(avgLeg * 0.2),
+        unit: "cm",
+        description: "Fullest part of calf",
+      },
+      {
+        name: "Dress Length",
+        value: Math.round(tl + avgLeg * 0.85),
+        unit: "cm",
+        description: "Shoulder to floor (full-length garment)",
+      },
+      {
+        name: "Torso Length",
+        value: Math.round(tl),
+        unit: "cm",
+        description: "Shoulder to natural waist",
+      },
     ];
   }
 
   return [
-    { name: "Height", value: heightCm, unit: "cm", description: "Total standing height" },
-    { name: "Shoulder Width", value: Math.round(sw), unit: "cm", description: "Shoulder point to shoulder point (back)" },
-    { name: "Chest", value: Math.round(bustCirc), unit: "cm", description: "Fullest part of chest — across shoulder blades" },
-    { name: "Waist", value: Math.round(waistCirc), unit: "cm", description: "Narrowest part of natural waist" },
-    { name: "Hips", value: Math.round(hipCirc), unit: "cm", description: "Fullest part of the seat" },
-    { name: "Neck", value: Math.round(sw * 0.67), unit: "cm", description: "Around base of neck + 1 cm ease" },
-    { name: "Sleeve Length", value: Math.round(avgArm), unit: "cm", description: "Shoulder point to wrist (arm slightly bent)" },
-    { name: "Wrist", value: Math.round(avgArm * 0.13), unit: "cm", description: "Around the wrist bone" },
-    { name: "Thigh", value: Math.round(avgLeg * 0.28), unit: "cm", description: "Fullest part of upper thigh" },
-    { name: "Inseam", value: Math.round(avgLeg), unit: "cm", description: "Crotch to ankle (inner leg)" },
-    { name: "Jacket Length", value: Math.round(tl * 1.75), unit: "cm", description: "Natural waist to hem (suit / agbada)" },
-    { name: "Torso Length", value: Math.round(tl), unit: "cm", description: "Shoulder to natural waist" },
+    {
+      name: "Height",
+      value: heightCm,
+      unit: "cm",
+      description: "Total standing height",
+    },
+    {
+      name: "Shoulder Width",
+      value: Math.round(sw),
+      unit: "cm",
+      description: "Shoulder point to shoulder point (back)",
+    },
+    {
+      name: "Chest",
+      value: Math.round(bustCirc),
+      unit: "cm",
+      description: "Fullest part of chest — across shoulder blades",
+    },
+    {
+      name: "Waist",
+      value: Math.round(waistCirc),
+      unit: "cm",
+      description: "Narrowest part of natural waist",
+    },
+    {
+      name: "Hips",
+      value: Math.round(hipCirc),
+      unit: "cm",
+      description: "Fullest part of the seat",
+    },
+    {
+      name: "Neck",
+      value: Math.round(sw * 0.67),
+      unit: "cm",
+      description: "Around base of neck + 1 cm ease",
+    },
+    {
+      name: "Sleeve Length",
+      value: Math.round(avgArm),
+      unit: "cm",
+      description: "Shoulder point to wrist (arm slightly bent)",
+    },
+    {
+      name: "Wrist",
+      value: Math.round(avgArm * 0.13),
+      unit: "cm",
+      description: "Around the wrist bone",
+    },
+    {
+      name: "Thigh",
+      value: Math.round(avgLeg * 0.28),
+      unit: "cm",
+      description: "Fullest part of upper thigh",
+    },
+    {
+      name: "Inseam",
+      value: Math.round(avgLeg),
+      unit: "cm",
+      description: "Crotch to ankle (inner leg)",
+    },
+    {
+      name: "Jacket Length",
+      value: Math.round(tl * 1.75),
+      unit: "cm",
+      description: "Natural waist to hem (suit / agbada)",
+    },
+    {
+      name: "Torso Length",
+      value: Math.round(tl),
+      unit: "cm",
+      description: "Shoulder to natural waist",
+    },
   ];
 };
