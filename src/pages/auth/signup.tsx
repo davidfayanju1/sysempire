@@ -7,6 +7,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { authRegister, authGoogleLogin } from "../../services";
 import { useAuthStore } from "../../store/authStore";
 import { useCart } from "../../util/useCart";
+import { getApiErrorMessage } from "../../lib/axios";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,10 +48,9 @@ const Signup = () => {
         navigate("/login");
       }
     },
-    onError: (err: any) => {
+    onError: (err) => {
       const msg =
-        err?.response?.data?.message ??
-        "Registration failed. Please try again.";
+        getApiErrorMessage(err, "Registration failed. Please try again.");
       toast.error(msg);
     },
   });
@@ -67,10 +67,9 @@ const Signup = () => {
       });
       navigate("/profile");
     },
-    onError: (err: any) => {
+    onError: (err) => {
       const msg =
-        err?.response?.data?.message ??
-        "Google sign up failed. Please try again.";
+        getApiErrorMessage(err, "Google sign up failed. Please try again.");
       toast.error(msg);
     },
   });

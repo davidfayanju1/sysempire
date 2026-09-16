@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { forgotPassword } from "../../services";
+import { getApiErrorMessage } from "../../lib/axios";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -17,10 +18,9 @@ const ForgotPassword = () => {
         description: "Check your inbox for the password reset link.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       const msg =
-        err?.response?.data?.message ??
-        "Unable to send reset link. Please try again.";
+        getApiErrorMessage(err, "Unable to send reset link. Please try again.");
       toast.error(msg);
     },
   });

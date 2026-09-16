@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { updateMe, uploadAvatar } from "../../services";
 import { useAuthStore } from "../../store/authStore";
 import type { AuthUser } from "../../store/authStore";
+import { getApiErrorMessage } from "../../lib/axios";
 
 const ProfileInfoTab = () => {
   const { user, setUser } = useAuthStore();
@@ -21,8 +22,8 @@ const ProfileInfoTab = () => {
       setUser({ ...(user as AuthUser), ...updated });
       toast.success("Profile updated.");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Could not save changes.";
+    onError: (err) => {
+      const msg = getApiErrorMessage(err, "Could not save changes.");
       toast.error(msg);
     },
   });
@@ -34,8 +35,8 @@ const ProfileInfoTab = () => {
       setUser({ ...(user as AuthUser), ...updated });
       toast.success("Avatar updated.");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Avatar upload failed.";
+    onError: (err) => {
+      const msg = getApiErrorMessage(err, "Avatar upload failed.");
       toast.error(msg);
     },
   });
@@ -50,9 +51,9 @@ const ProfileInfoTab = () => {
     ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()
     : "?";
 
-  const memberSince = (user as any)?.createdAt
+  const memberSince = user?.createdAt
     ? new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(
-        new Date((user as any).createdAt),
+        new Date(user.createdAt),
       )
     : "";
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { resetPassword } from "../../services";
+import { getApiErrorMessage } from "../../lib/axios";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -24,9 +25,9 @@ const ResetPassword = () => {
       });
       setTimeout(() => navigate("/login"), 2500);
     },
-    onError: (err: any) => {
+    onError: (err) => {
       const msg =
-        err?.response?.data?.message ?? "Reset failed. The link may have expired.";
+        getApiErrorMessage(err, "Reset failed. The link may have expired.");
       toast.error(msg);
     },
   });

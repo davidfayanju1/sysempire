@@ -20,6 +20,7 @@ import { useCart } from "../util/useCart";
 import { useAuthStore } from "../store/authStore";
 import { initiateFlutterwavePayment } from "../services";
 import type { CheckoutPayload } from "../types/api-cart";
+import { getApiErrorMessage } from "../lib/axios";
 
 const SHIPPING_FEES: Record<string, number> = {
   standard: 2000,
@@ -149,10 +150,9 @@ const Checkout = () => {
       }
 
       window.location.href = paymentLink;
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
-        error?.response?.data?.message ??
-          "Could not place your order. Please try again.",
+        getApiErrorMessage(error, "Could not place your order. Please try again."),
       );
     } finally {
       setPlacingOrder(false);

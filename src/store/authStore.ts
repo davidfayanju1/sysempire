@@ -27,6 +27,7 @@ export interface AuthUser {
   isEmailVerified: boolean;
   avatar?: string;
   addresses?: Address[];
+  createdAt?: string;
 }
 
 interface AuthStore {

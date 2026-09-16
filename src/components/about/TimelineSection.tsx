@@ -1,5 +1,6 @@
 // components/about/TimelineSection.tsx
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import type { MotionValue } from "framer-motion";
 import { useRef } from "react";
 import { Clock } from "lucide-react";
 
@@ -118,7 +119,14 @@ export const TimelineSection = () => {
   );
 };
 
-const TimelineCard = ({ item, index, total, progress }: any) => {
+interface TimelineCardProps {
+  item: (typeof timelineData)[number];
+  index: number;
+  total: number;
+  progress: MotionValue<number>;
+}
+
+const TimelineCard = ({ item, index, total, progress }: TimelineCardProps) => {
   const step = 1 / total;
   const start = index * step;
   const end = (index + 1) * step;

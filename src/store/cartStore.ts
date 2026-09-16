@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { toast } from "sonner";
-import api from "../lib/axios";
+import api, { getApiErrorMessage } from "../lib/axios";
 import type {
   ApiCart,
   ApiCartItem,
@@ -101,10 +101,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       set({ items: apiCart.items.map(mapApiItem) });
       // toast("Added to cart!");
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.log(error, "Add To Cart Error");
       toast.error(
-        error?.response?.data?.message ?? "Could not add item to cart",
+        getApiErrorMessage(error, "Could not add item to cart"),
       );
       return false;
     }
@@ -115,9 +115,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       const response = await api.delete(`/cart/items/${itemId}`);
       const apiCart: ApiCart = response.data.data;
       set({ items: apiCart.items.map(mapApiItem) });
-    } catch (error: any) {
+    } catch (error) {
       console.log(error, "Remove From Cart Error");
-      toast.error(error?.response?.data?.message ?? "Could not remove item");
+      toast.error(getApiErrorMessage(error, "Could not remove item"));
     }
   },
 
@@ -132,10 +132,10 @@ export const useCartStore = create<CartState>((set, get) => ({
       });
       const apiCart: ApiCart = response.data.data;
       set({ items: apiCart.items.map(mapApiItem) });
-    } catch (error: any) {
+    } catch (error) {
       console.log(error, "Update Quantity Error");
       toast.error(
-        error?.response?.data?.message ?? "Could not update quantity",
+        getApiErrorMessage(error, "Could not update quantity"),
       );
     }
   },
@@ -145,9 +145,9 @@ export const useCartStore = create<CartState>((set, get) => ({
       const response = await api.delete("/cart");
       const apiCart: ApiCart = response.data.data;
       set({ items: apiCart.items.map(mapApiItem) });
-    } catch (error: any) {
+    } catch (error) {
       console.log(error, "Clear Cart Error");
-      toast.error(error?.response?.data?.message ?? "Could not clear cart");
+      toast.error(getApiErrorMessage(error, "Could not clear cart"));
     }
   },
 

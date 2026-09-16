@@ -24,7 +24,7 @@ const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const isStepTrailStuck = useScrollUIStore((s) => s.isStepTrailStuck);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -33,7 +33,7 @@ const Nav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const dropdownTimeoutRef = useRef<any>(null);
+  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef(null);
 
   const isProductPage = location.pathname.startsWith("/product");
@@ -73,7 +73,7 @@ const Nav = () => {
       isMobileMenuOpen || isSearchOpen || isCartOpen ? "hidden" : "";
   }, [isMobileMenuOpen, isSearchOpen, isCartOpen]);
 
-  const handleMouseEnter = (dropdownName: any) => {
+  const handleMouseEnter = (dropdownName: string) => {
     if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
     setActiveDropdown(dropdownName);
   };

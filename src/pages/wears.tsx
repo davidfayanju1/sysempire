@@ -7,6 +7,7 @@ import { Helmet } from "react-helmet-async";
 import DefaultLayout from "../layout/DefaultLayout";
 import { getCategoryBySlug } from "../data/category-data";
 import { getProducts } from "../services";
+import type { ApiProduct } from "../types/api-product";
 import ProductGridSkeleton from "../components/product/ProductGridSkeleton";
 import PageLoadingOverlay from "../components/common/PageLoadingOverlay";
 
@@ -16,12 +17,12 @@ const ProductCard = ({
   index,
   onNavigate,
 }: {
-  product: any;
+  product: ApiProduct;
   index: number;
   onNavigate: (path: string) => void;
 }) => {
   const primaryImage =
-    product.images?.find((img: any) => img.isPrimary)?.url ??
+    product.images?.find((img) => img.isPrimary)?.url ??
     product.images?.[0]?.url;
   const isOutOfStock = product.stock <= 0;
 

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { updatePassword, authLogout } from "../../services";
 import { useAuthStore } from "../../store/authStore";
+import { getApiErrorMessage } from "../../lib/axios";
 
 const SettingsTab = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -27,8 +28,8 @@ const SettingsTab = () => {
       setConfirmNew("");
       setShowChangePassword(false);
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message ?? "Could not update password.";
+    onError: (err) => {
+      const msg = getApiErrorMessage(err, "Could not update password.");
       toast.error(msg);
     },
   });

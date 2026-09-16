@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { verifyEmail, resendVerification } from "../../services";
+import { getApiErrorMessage } from "../../lib/axios";
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -20,10 +21,10 @@ const VerifyEmail = () => {
         description: "Your account is now active.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       setStatus("error");
       const msg =
-        err?.response?.data?.message ?? "Verification failed. The link may have expired.";
+        getApiErrorMessage(err, "Verification failed. The link may have expired.");
       toast.error(msg);
     },
   });
@@ -35,9 +36,9 @@ const VerifyEmail = () => {
         description: "Check your inbox.",
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       const msg =
-        err?.response?.data?.message ?? "Could not resend. Please try again.";
+        getApiErrorMessage(err, "Could not resend. Please try again.");
       toast.error(msg);
     },
   });
