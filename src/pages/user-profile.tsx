@@ -35,7 +35,7 @@ const UserProfile = () => {
     },
   ];
 
-  // Active tab is derived from the URL — it's the single source of truth.
+  // Active tab is derived from the URL: it's the single source of truth.
   const tabParam = searchParams.get("tab");
   const activeTab = tabs.some((tab) => tab.id === tabParam)
     ? (tabParam as string)

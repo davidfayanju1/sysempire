@@ -242,7 +242,7 @@ const PrivacyPolicy = () => {
                 </p>
                 <div className="border border-black/10 p-6 space-y-3">
                   <p className="text-xs tracking-widest uppercase text-black/40">
-                    SYS EMPIRE — Data Enquiries
+                    SYS EMPIRE, Data Enquiries
                   </p>
                   <p className="text-sm font-light text-black/80">{address}</p>
                   <a
@@ -274,7 +274,7 @@ const PrivacyPolicy = () => {
       <section className="bg-black py-8">
         <div className="max-w-[860px] mx-auto px-6 text-center">
           <p className="text-[9px] tracking-[0.25em] uppercase text-white/30 font-['Times_New_Roman',serif] italic">
-            "Where fashion meets artistry" — SYS EMPIRE, Lagos
+            "Where fashion meets artistry", SYS EMPIRE, Lagos
           </p>
         </div>
       </section>

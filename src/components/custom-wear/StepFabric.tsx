@@ -552,7 +552,7 @@ const StepFabric = ({ onBack, onNext }: StepFabricProps) => {
           <p className="text-xs text-amber-700 leading-relaxed">
             Fabric sourced on your behalf is priced at the market rate at the
             time of purchase. The fabric fee shown at checkout is an
-            estimate — your stylist will confirm the final cost during
+            estimate. Your stylist will confirm the final cost during
             consultation, before any fabric is bought.
           </p>
         </div>

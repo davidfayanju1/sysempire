@@ -110,7 +110,7 @@ const sections = [
     content: [
       {
         subtitle: "",
-        body: "To the maximum extent permitted by Nigerian law, SYS EMPIRE and its directors, employees, and tailoring partners shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform or our services — including loss of data, loss of profits, or reputational damage. Our total liability for any claim arising out of a specific order shall not exceed the amount you paid for that order.",
+        body: "To the maximum extent permitted by Nigerian law, SYS EMPIRE and its directors, employees, and tailoring partners shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform or our services: including loss of data, loss of profits, or reputational damage. Our total liability for any claim arising out of a specific order shall not exceed the amount you paid for that order.",
       },
       {
         subtitle: "Disclaimer",
@@ -255,7 +255,7 @@ const TermsOfUse = () => {
                 </p>
                 <div className="border border-black/10 p-6 space-y-3">
                   <p className="text-xs tracking-[0.1em] uppercase text-black/40">
-                    SYS EMPIRE — Client Relations
+                    SYS EMPIRE, Client Relations
                   </p>
                   <p className="text-sm font-light text-black/80">{address}</p>
                   <a

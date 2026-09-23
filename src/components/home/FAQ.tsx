@@ -30,7 +30,7 @@ const FAQ = () => {
     {
       question: "What fabrics do you use?",
       answer:
-        "We source premium fabrics from around the world – Italian wool, Egyptian cotton, French lace, and locally sourced African textiles. Our collection includes options for every season and occasion, from everyday wear to wedding ensembles.",
+        "We source premium fabrics from around the world: Italian wool, Egyptian cotton, French lace, and locally sourced African textiles. Our collection includes options for every season and occasion, from everyday wear to wedding ensembles.",
     },
     {
       question: "Do you ship internationally?",

@@ -10,12 +10,14 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuthStore } from "../../store/authStore";
 import { getApiErrorMessage } from "../../lib/axios";
+import { rememberPaymentOrigin } from "../../lib/paymentOrigin";
 import {
   createOrder,
   initiateFlutterwavePayment,
   type CreateOrderPayload,
 } from "../../services";
 import type { OrderData } from "../../pages/custom-wear";
+import { calculatePrice } from "../../lib/pricing";
 
 interface StepPaymentProps {
   orderData: OrderData;
@@ -40,6 +42,12 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
     });
   }
 
+  if (orderData.wearer) {
+    lines.push(
+      `Wearer: ${orderData.wearer === "women" ? "Womenswear" : "Menswear"}`,
+    );
+  }
+
   lines.push(`Fabric Option: ${orderData.fabricOption ?? "Not specified"}`);
 
   if (orderData.fabricDetails?.type) {
@@ -56,7 +64,7 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
     orderData.fabricDetails.pickupDate
   ) {
     lines.push(
-      `Preferred Pickup Day: ${orderData.fabricDetails.pickupDate} (Lagos only — final quote and pickup details confirmed via email after order processing)`,
+      `Preferred Pickup Day: ${orderData.fabricDetails.pickupDate} (Lagos only. Final quote and pickup details confirmed via email after order processing)`,
     );
   }
   if (orderData.fabricPreferences?.colors?.length) {
@@ -83,7 +91,7 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
     orderData.measurementPhotos?.length
   ) {
     lines.push(
-      "Measurement photos — estimates applied, verify before cutting:",
+      "Measurement photos: estimates applied, verify before cutting:",
     );
     const labels = ["Front", "Side"];
     orderData.measurementPhotos.forEach((url, index) => {
@@ -97,94 +105,6 @@ const buildOrderNotes = (orderData: OrderData, paymentPlan: string): string => {
   lines.push(`Payment Plan: ${paymentPlan}`);
 
   return lines.join("\n");
-};
-
-const BASE_PRICES: Record<string, number> = {
-  "native-wear": 85000,
-  corporate: 70000,
-  dresses: 60000,
-  suits: 75000,
-  casual: 45000,
-  wedding: 120000,
-  uniforms: 40000,
-  other: 65000,
-};
-
-const EMBROIDERY_PRICES: Record<string, number> = {
-  None: 0,
-  Minimal: 8000,
-  Traditional: 15000,
-  Premium: 25000,
-};
-
-const WEDDING_ROLE_PRICES: Record<string, number> = {
-  Bride: 30000,
-  Groom: 10000,
-};
-
-interface PriceBreakdown {
-  basePrice: number;
-  fabricFee: number;
-  embroideryFee: number;
-  weddingRoleFee: number;
-  weddingFormalityFee: number;
-  corporateBothFee: number;
-  doubleBreastedFee: number;
-  expressFee: number;
-  deliveryFee: number;
-  subtotal: number;
-  total: number;
-}
-
-const calculatePrice = (orderData: OrderData): PriceBreakdown => {
-  const c = orderData.customizations;
-
-  const basePrice = BASE_PRICES[orderData.outfitType ?? "other"] ?? 65000;
-
-  const fabricFee =
-    orderData.fabricOption === "source-fabric"
-      ? orderData.fabricPreferences?.quality === "premium"
-        ? 35000
-        : 15000
-      : orderData.fabricOption === "not-sure"
-        ? 15000
-        : 0;
-
-  const embroideryFee = EMBROIDERY_PRICES[c.embroidery] ?? 0;
-  const weddingRoleFee = WEDDING_ROLE_PRICES[c.role] ?? 0;
-  const weddingFormalityFee = c.formality === "Formal" ? 20000 : 0;
-  const corporateBothFee = c.skirtOrTrousers === "Both" ? 15000 : 0;
-  const doubleBreastedFee =
-    c.buttons === "Double-Breasted" || c.jacketStyle === "Double-Breasted"
-      ? 5000
-      : 0;
-
-  const subtotal =
-    basePrice +
-    fabricFee +
-    embroideryFee +
-    weddingRoleFee +
-    weddingFormalityFee +
-    corporateBothFee +
-    doubleBreastedFee;
-
-  const expressFee = orderData.isExpress ? Math.round(subtotal * 0.3) : 0;
-  const deliveryFee = orderData.deliveryPreference === "delivery" ? 5000 : 0;
-  const total = subtotal + expressFee + deliveryFee;
-
-  return {
-    basePrice,
-    fabricFee,
-    embroideryFee,
-    weddingRoleFee,
-    weddingFormalityFee,
-    corporateBothFee,
-    doubleBreastedFee,
-    expressFee,
-    deliveryFee,
-    subtotal,
-    total,
-  };
 };
 
 const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
@@ -223,7 +143,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         orderData.customizations.color ??
         "custom";
 
-      // Shipping address — use collected address or studio fallback for pickup
+      // Shipping address. Use collected address or studio fallback for pickup
       const shippingAddress = orderData.shippingAddress ?? {
         street: "Studio Pickup",
         city: "Lagos",
@@ -260,8 +180,8 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
         notes: buildOrderNotes(orderData, paymentMethod),
       };
 
-      console.log("Personal Fit — full order data:", orderData);
-      console.log("Personal Fit — API payload:", payload);
+      console.log("Personal Fit: full order data:", orderData);
+      console.log("Personal Fit, API payload:", payload);
 
       const orderRes = await createOrder(payload);
       const orderId: string = orderRes.data?._id ?? orderRes.data?.id;
@@ -285,6 +205,7 @@ const StepPayment = ({ orderData, onBack, onSubmit }: StepPaymentProps) => {
     },
     onSuccess: (paymentLink) => {
       onSubmit(paymentMethod);
+      rememberPaymentOrigin("/custom-wear");
       window.location.href = paymentLink;
     },
     onError: (err: unknown) => {

@@ -61,7 +61,7 @@ interface CartState {
 // Multiple components mount this store at once (Nav, product pages, etc). Without
 // this, each would fire its own uncoordinated first GET /cart before a guest
 // session id exists, and the backend would mint a different session per request
-// — whichever response lands last then silently clobbers the real cart.
+//: whichever response lands last then silently clobbers the real cart.
 let inFlightFetch: Promise<void> | null = null;
 
 export const useCartStore = create<CartState>((set, get) => ({

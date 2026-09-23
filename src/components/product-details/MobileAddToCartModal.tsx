@@ -174,7 +174,7 @@ const MobileAddToCartModal = ({
                 ) : (
                   <>
                     <ShoppingBag className="w-4 h-4" />
-                    Add to Cart — ₦
+                    Add to Cart, ₦
                     {(product.price * quantity).toLocaleString("en-NG")}
                   </>
                 )}

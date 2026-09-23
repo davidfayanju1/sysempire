@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 
 /**
  * Gate for signed-in-only pages. Without an access token the user never sees
- * the page — they're sent home instead of to /login, so a guest browsing the
+ * the page: they're sent home instead of to /login, so a guest browsing the
  * site isn't dropped into an auth wall they didn't ask for.
  */
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const isAuthed = hasToken && Boolean(user);
 
   // A token with no user (or vice versa) means the persisted session is
-  // half-torn — clear it so the next sign-in starts clean.
+  // half-torn: clear it so the next sign-in starts clean.
   const cleanedUp = useRef(false);
   useEffect(() => {
     if (isAuthed || cleanedUp.current) return;

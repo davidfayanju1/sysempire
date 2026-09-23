@@ -14,7 +14,7 @@ import SectionReveal from "../components/home/SectionReveal";
 const Home = () => {
   return (
     <DefaultLayout>
-      {/* Hero loads instantly — no entrance animation */}
+      {/* Hero loads instantly: no entrance animation */}
       <Hero />
 
       <SectionReveal amount={0.4}>

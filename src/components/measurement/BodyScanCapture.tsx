@@ -608,7 +608,7 @@ const BodyScanCapture = ({
                         <>
                           Step back until your{" "}
                           <span className="text-white font-medium">
-                            full body — head to toe
+                            full body, head to toe
                           </span>{" "}
                           fits inside the dashed outline, facing the camera
                         </>
@@ -618,7 +618,7 @@ const BodyScanCapture = ({
                           <span className="text-white font-medium">
                             90° sideways
                           </span>{" "}
-                          — right shoulder toward the camera — keeping your full
+ (right shoulder toward the camera) keeping your full
                           body in the outline
                         </>
                       )}
@@ -647,13 +647,13 @@ const BodyScanCapture = ({
                   )}
                   <span className="text-sm font-light tracking-wide text-white">
                     {!framing.headVisible && !framing.feetVisible
-                      ? "Step back — we can't see your head or feet"
+                      ? "Step back. We can't see your head or feet"
                       : !framing.headVisible
-                        ? "Step back or adjust the camera — we can't see your head"
+                        ? "Step back or adjust the camera. We can't see your head"
                         : !framing.feetVisible
-                          ? "Step back — we can't see your feet"
+                          ? "Step back. We can't see your feet"
                           : gestureDetected
-                            ? "✓ Hand detected — hold perfectly still…"
+                            ? "✓ Hand detected, hold perfectly still…"
                             : "Raise either hand above shoulder level to capture"}
                   </span>
                 </div>
@@ -726,7 +726,7 @@ const BodyScanCapture = ({
                     className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20"
                   >
                     <p className="text-white/50 text-sm uppercase tracking-widest mb-4">
-                      Hold still — capturing in
+                      Hold still, capturing in
                     </p>
                     <div className="text-white text-8xl font-light">
                       {countdown}
@@ -757,7 +757,7 @@ const BodyScanCapture = ({
                 </h2>
                 <p className="text-white/60 text-sm leading-relaxed mb-8">
                   For accurate bust, waist and hip measurements, we need one
-                  more photo from your side — this lets us measure your body's
+                  more photo from your side. This lets us measure your body's
                   depth, not just its width. Turn 90° so your side faces the
                   camera.
                 </p>
@@ -767,14 +767,14 @@ const BodyScanCapture = ({
                     className="w-full py-3 bg-white text-black text-sm uppercase tracking-[0.15em] hover:bg-white/90 transition flex items-center justify-center gap-2"
                   >
                     <RotateCw className="w-4 h-4" />
-                    Continue — Scan My Side
+                    Continue, Scan My Side
                   </button>
                   <button
                     onClick={skipSidePhase}
                     className="w-full py-3 bg-white/10 text-white/70 text-sm uppercase tracking-[0.15em] hover:bg-white/20 transition flex items-center justify-center gap-2"
                   >
                     <SkipForward className="w-4 h-4" />
-                    Skip — Use Estimate Instead
+                    Skip. Use Estimate Instead
                   </button>
                 </div>
                 <p className="text-white/30 text-[10px] mt-6 leading-relaxed">

@@ -27,7 +27,7 @@ const WeAreBack = () => {
             />
           </div>
 
-          {/* Headline — WE'RE OPEN */}
+          {/* Headline, WE'RE OPEN */}
           <div className="mt-16 text-center mb-8 flex flex-col justify-center">
             <h1 className="font-black text-white leading-[0.88] tracking-tight">
               <span className="block text-[4.5rem] -rotate-6 origin-left mb-[-.5rem]">

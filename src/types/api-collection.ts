@@ -31,7 +31,7 @@ export interface ApiCollectionProductRating {
   count: number;
 }
 
-// Shape returned by GET /collections/:id/products — a lighter summary than
+// Shape returned by GET /collections/:id/products: a lighter summary than
 // the full ApiProduct returned by GET /products.
 export interface ApiCollectionProduct {
   id: string;

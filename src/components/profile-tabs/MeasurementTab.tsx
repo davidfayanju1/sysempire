@@ -29,7 +29,7 @@ interface SavedData {
   method: "camera" | "upload";
 }
 
-// Remembered only for signed-in users — a guest's browser could be shared,
+// Remembered only for signed-in users: a guest's browser could be shared,
 // so we don't want to silently carry a gender pick across sessions for them.
 const GENDER_STORAGE_KEY = "userGenderPreference";
 
@@ -50,7 +50,7 @@ function getMockMeasurements(gender: "female" | "male"): Measurement[] {
     return [
       { name: "Height", value: 163, unit: "cm", description: "Total standing height" },
       { name: "Shoulder Width", value: 38, unit: "cm", description: "Shoulder point to shoulder point (back)" },
-      { name: "Bust", value: 88, unit: "cm", description: "Fullest part of chest — taken at nipple line" },
+      { name: "Bust", value: 88, unit: "cm", description: "Fullest part of chest: taken at nipple line" },
       { name: "Under Bust", value: 73, unit: "cm", description: "Circumference directly below bust" },
       { name: "Waist", value: 70, unit: "cm", description: "Narrowest part of natural waist" },
       { name: "Hips", value: 96, unit: "cm", description: "Fullest part of hips and seat" },
@@ -66,7 +66,7 @@ function getMockMeasurements(gender: "female" | "male"): Measurement[] {
   return [
     { name: "Height", value: 172, unit: "cm", description: "Total standing height" },
     { name: "Shoulder Width", value: 44, unit: "cm", description: "Shoulder point to shoulder point (back)" },
-    { name: "Chest", value: 97, unit: "cm", description: "Fullest part of chest — across shoulder blades" },
+    { name: "Chest", value: 97, unit: "cm", description: "Fullest part of chest: across shoulder blades" },
     { name: "Waist", value: 84, unit: "cm", description: "Narrowest part of natural waist" },
     { name: "Hips", value: 96, unit: "cm", description: "Fullest part of the seat" },
     { name: "Neck", value: 40, unit: "cm", description: "Around base of neck + 1 cm ease" },
@@ -96,13 +96,13 @@ const MeasurementTab = () => {
       try {
         return JSON.parse(raw) as SavedData;
       } catch {
-        /* corrupted data — ignore */
+        /* corrupted data, ignore */
       }
     }
     return null;
   });
 
-  // Signed-in users shouldn't have to re-pick gender every visit — default to
+  // Signed-in users shouldn't have to re-pick gender every visit, default to
   // their remembered preference (or their last saved measurement's gender).
   const [gender, setGender] = useState<"female" | "male">(() => {
     if (!useAuthStore.getState().user) return "female";
@@ -115,7 +115,7 @@ const MeasurementTab = () => {
       try {
         localStorage.setItem(GENDER_STORAGE_KEY, g);
       } catch {
-        /* storage unavailable — ignore */
+        /* storage unavailable, ignore */
       }
     }
   };
@@ -148,7 +148,7 @@ const MeasurementTab = () => {
     {
       icon: <Activity className="w-5 h-5" />,
       title: "Front, Then Side",
-      description: "You'll capture two photos — front, then a 90° side turn",
+      description: "You'll capture two photos: front, then a 90° side turn",
       detail: "The side photo lets us measure your body's depth, not just width",
     },
   ];
@@ -176,7 +176,7 @@ const MeasurementTab = () => {
       };
       localStorage.setItem("userMeasurements", JSON.stringify(record));
 
-      console.group("📏 SYS EMPIRE — Body Measurements Saved");
+      console.group("📏 SYS EMPIRE, Body Measurements Saved");
       console.log(
         `%cGender: ${gender} | Method: ${method === "camera" ? "Guided Camera Scan" : "Photo Analysis"} | ${new Date().toLocaleString()}`,
         "color:#888;font-size:11px",
@@ -268,7 +268,7 @@ const MeasurementTab = () => {
 
       {/* ── Two-column layout ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left — Instructions */}
+        {/* Left, Instructions */}
         <div className="border border-black/10 p-6">
           <div className="flex items-center gap-2 mb-6">
             <Info className="w-5 h-5 text-black/40" />
@@ -304,7 +304,7 @@ const MeasurementTab = () => {
           </div>
         </div>
 
-        {/* Right — Actions */}
+        {/* Right, Actions */}
         <div className="border border-black/10 p-6">
           <div className="flex items-center gap-2 mb-6">
             <Ruler className="w-5 h-5 text-black/40" />
@@ -471,7 +471,7 @@ const MeasurementTab = () => {
                     Your Body Profile
                   </h2>
                   <p className="text-amber-400/80 text-xs mt-4 max-w-md mx-auto leading-relaxed">
-                    These are gender-appropriate starting estimates — please verify
+                    These are gender-appropriate starting estimates. Please verify
                     and edit them before they're used for tailoring.
                   </p>
                 </div>

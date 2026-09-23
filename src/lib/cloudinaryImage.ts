@@ -1,11 +1,11 @@
-// Product photos are served from Cloudinary as unmodified originals — often
+// Product photos are served from Cloudinary as unmodified originals, often
 // full camera resolution regardless of where they're displayed. Cloudinary
 // supports on-the-fly transforms via URL segments (no backend change, no
 // build step), so we rewrite delivery URLs to request an appropriately
 // sized, auto-format/auto-quality variant instead of the original upload.
 //
 // This is the actual fix for CDN-hosted images: vite-imagetools and similar
-// build-time tools only touch files Vite bundles — they can't do anything to
+// build-time tools only touch files Vite bundles. They can't do anything to
 // a URL fetched from a remote API at runtime.
 
 const CLOUDINARY_UPLOAD_MARKER = "/image/upload/";
@@ -15,12 +15,12 @@ type CloudinaryCrop = "fill" | "limit" | "fit" | "thumb" | "scale";
 interface CloudinaryTransformOptions {
   /** Target width in px. Pick ~2x the CSS display size for retina. */
   width?: number;
-  /** Target height in px — pair with width + crop:"fill" for hard crops. */
+  /** Target height in px. Pair with width + crop:"fill" for hard crops. */
   height?: number;
   /**
-   * "limit" (default): scale down to fit, never upscale, keep aspect ratio —
-   * use when a CSS `object-cover` container is already doing the cropping.
-   * "fill": hard crop to exact width x height — use for fixed-box thumbnails.
+   * "limit" (default): scale down to fit, never upscale, keep aspect ratio.
+   * Use when a CSS `object-cover` container is already doing the cropping.
+   * "fill": hard crop to exact width x height. Use for fixed-box thumbnails.
    */
   crop?: CloudinaryCrop;
 }
@@ -30,7 +30,7 @@ interface CloudinaryTransformOptions {
  * (`f_auto` → WebP/AVIF where supported), auto-quality (`q_auto`) variant.
  *
  * Safe no-op for anything that isn't a Cloudinary `/image/upload/` URL
- * (local assets, placeholder strings, other hosts) — returns it unchanged
+ * (local assets, placeholder strings, other hosts), returns it unchanged
  * rather than guessing at a transform that wouldn't apply.
  */
 export const cldImage = (

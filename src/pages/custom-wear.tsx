@@ -17,6 +17,12 @@ import StepPayment from "../components/custom-wear/StepPayment";
 import StepMeasurement from "../components/custom-wear/StepMeasurement";
 import StepReview from "../components/custom-wear/StepReview";
 import type { Measurement } from "../lib/bodyMeasurement";
+import { isOutfitType, type Wearer } from "../lib/customizationFields";
+import {
+  loadStoredProgress,
+  saveProgress,
+} from "../lib/customWearProgress";
+import { calculatePrice } from "../lib/pricing";
 
 export interface FabricDetails {
   images?: string[];
@@ -51,6 +57,8 @@ export interface OrderData {
 
   // Step 4: Customization
   customizations: Record<string, string>;
+  /** Menswear or womenswear, as answered in Step 4. Drives the Step 5 profile. */
+  wearer?: Wearer;
 
   // Step 5: Measurements
   measurements: Measurement[] | null;
@@ -82,38 +90,6 @@ const DEFAULT_ORDER_DATA: OrderData = {
   measurementMethod: null,
 };
 
-const PROGRESS_STORAGE_KEY = "customWearProgress";
-const PROGRESS_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-interface StoredProgress {
-  step: number;
-  orderData: OrderData;
-  savedAt: number;
-}
-
-const loadStoredProgress = (): StoredProgress | null => {
-  try {
-    const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredProgress;
-    if (Date.now() - parsed.savedAt > PROGRESS_TTL_MS) {
-      localStorage.removeItem(PROGRESS_STORAGE_KEY);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-};
-
-const clearStoredProgress = () => {
-  try {
-    localStorage.removeItem(PROGRESS_STORAGE_KEY);
-  } catch {
-    /* storage unavailable — ignore */
-  }
-};
-
 const CustomWear = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -136,25 +112,24 @@ const CustomWear = () => {
 
   // Persist progress on every change so a reload resumes where the user left off.
   useEffect(() => {
-    try {
-      localStorage.setItem(
-        PROGRESS_STORAGE_KEY,
-        JSON.stringify({ step, orderData, savedAt: Date.now() }),
-      );
-    } catch {
-      /* storage unavailable — ignore */
-    }
+    saveProgress(step, orderData);
   }, [step, orderData]);
 
+  // Guarded with a ref rather than an empty dep array alone: StrictMode mounts
+  // this twice in development, which otherwise stacks two identical toasts.
+  const greetedRef = useRef(false);
+
   useEffect(() => {
+    if (greetedRef.current) return;
+    greetedRef.current = true;
+
     if (restoredProgress && restoredProgress.step > 1) {
       const label = STEP_LABELS[restoredProgress.step - 1];
       toast.success(
         `Welcome back. You're picking up at Step ${restoredProgress.step} of 8${label ? `: ${label}` : ""}.`,
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [restoredProgress]);
 
   const scrollToStep = () => {
     setTimeout(() => {
@@ -193,7 +168,13 @@ const CustomWear = () => {
           <div ref={stepContainerRef}>
             <StepOutfitType
               onNext={(outfitType) => {
-                updateOrderData({ outfitType });
+                // A different outfit type asks different questions, so any
+                // answers from the old one are no longer meaningful.
+                updateOrderData(
+                  outfitType === orderData.outfitType
+                    ? { outfitType }
+                    : { outfitType, customizations: {}, wearer: undefined },
+                );
                 goToNextStep();
               }}
             />
@@ -239,15 +220,35 @@ const CustomWear = () => {
         )}
 
         {/* Step 4: Outfit Customization */}
-        {step === 4 && (
+        {/* Restored progress with an unknown outfit type falls back to Step 1. */}
+        {step === 4 && !isOutfitType(orderData.outfitType) && (
+          <div ref={stepContainerRef}>
+            <StepOutfitType
+              onNext={(outfitType) => {
+                updateOrderData({
+                  outfitType,
+                  customizations: {},
+                  wearer: undefined,
+                });
+                setStep(2);
+                scrollToStep();
+              }}
+            />
+          </div>
+        )}
+        {step === 4 && isOutfitType(orderData.outfitType) && (
           <div ref={stepContainerRef}>
             <StepCustomization
+              outfitType={orderData.outfitType}
+              initialValues={orderData.customizations}
+              estimate={(customizations) =>
+                calculatePrice({ ...orderData, customizations }).total
+              }
               onBack={goToPreviousStep}
-              onNext={(customizations) => {
-                updateOrderData({ customizations });
+              onNext={(customizations, wearer) => {
+                updateOrderData({ customizations, wearer });
                 goToNextStep();
               }}
-              outfitType={orderData.outfitType}
             />
           </div>
         )}
@@ -256,6 +257,13 @@ const CustomWear = () => {
         {step === 5 && (
           <div ref={stepContainerRef}>
             <StepMeasurement
+              defaultProfile={
+                orderData.wearer === "women"
+                  ? "female"
+                  : orderData.wearer === "men"
+                    ? "male"
+                    : undefined
+              }
               onBack={goToPreviousStep}
               onNext={(measurements, method, photos) => {
                 updateOrderData({
@@ -313,8 +321,10 @@ const CustomWear = () => {
               orderData={orderData}
               onBack={goToPreviousStep}
               onSubmit={(paymentMethod) => {
+                // Progress is deliberately kept until the payment is confirmed,
+                // so cancelling at the gateway loses nothing. The payment
+                // return page clears it.
                 updateOrderData({ paymentMethod });
-                clearStoredProgress();
               }}
             />
           </div>
@@ -357,7 +367,7 @@ const CustomWear = () => {
               <p className="text-sm text-gray-500 leading-relaxed mb-8">
                 You're continuing as a guest, so this scan will only be used for
                 the current order and won't be saved to an account. Sign in to
-                keep it on file — no rescanning next time you order.
+                keep it on file: no rescanning next time you order.
               </p>
 
               <div className="flex flex-col gap-3">
@@ -378,7 +388,7 @@ const CustomWear = () => {
 
               <p className="text-[10px] text-gray-400 mt-6 leading-relaxed">
                 Your order and these measurements are already saved to this
-                session — signing in won't repeat any step.
+                session. Signing in won't repeat any step.
               </p>
             </motion.div>
           </motion.div>

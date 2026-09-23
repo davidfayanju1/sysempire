@@ -4,7 +4,7 @@
 // collects, expressed as a structured POST body rather than the flattened
 // `notes` string currently sent in CreateOrderPayload (services/index.ts).
 //
-// All image fields hold **hosted URLs** returned by `uploadMedia()` (POST /upload) —
+// All image fields hold **hosted URLs** returned by `uploadMedia()` (POST /upload),
 // never data URLs or File objects. Local previews created with readAsDataURL are
 // swapped for these URLs before the step advances.
 //
@@ -14,7 +14,7 @@
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
-/** Step 1 — ids from StepOutfitType. */
+/** Step 1: ids from StepOutfitType. */
 export type OutfitType =
   | "native-wear"
   | "corporate"
@@ -25,10 +25,10 @@ export type OutfitType =
   | "uniforms"
   | "other";
 
-/** Step 3 — which fabric branch the client took. */
+/** Step 3: which fabric branch the client took. */
 export type FabricOption = "have-fabric" | "source-fabric" | "not-sure";
 
-/** Step 5 — how the measurements were obtained. */
+/** Step 5: how the measurements were obtained. */
 export type MeasurementMethod = "camera" | "upload" | "manual";
 
 /** Step 6 / Step 8. */
@@ -48,12 +48,12 @@ export interface AddressPayload {
   city: string;
   state: string;
   country: string;
-  /** Rarely used in NG — sent as "" when the client leaves it blank. */
+  /** Rarely used in NG: sent as "" when the client leaves it blank. */
   postalCode?: string;
 }
 
 /**
- * Step 5 — one measured dimension. `name` is a human label ("Bust",
+ * Step 5: one measured dimension. `name` is a human label ("Bust",
  * "Shirt / Buba Length"), not a slug, because the field set differs by gender.
  */
 export interface MeasurementEntry {
@@ -64,7 +64,7 @@ export interface MeasurementEntry {
   description?: string;
 }
 
-/** Step 3, "have-fabric" branch — client is supplying their own fabric. */
+/** Step 3, "have-fabric" branch: client is supplying their own fabric. */
 export interface FabricDetailsPayload {
   /** Hosted URLs of the client's fabric photos (uploadMedia results). */
   images?: string[];
@@ -78,7 +78,7 @@ export interface FabricDetailsPayload {
   pickupDate?: string;
 }
 
-/** Step 3, "source-fabric" branch — SYS EMPIRE buys the fabric. */
+/** Step 3, "source-fabric" branch: SYS EMPIRE buys the fabric. */
 export interface FabricPreferencesPayload {
   /** Hex or named colours as picked in the step. */
   colors?: string[];
@@ -93,7 +93,7 @@ export interface FabricPreferencesPayload {
 }
 
 /**
- * Step 4 — outfit-specific answers, keyed by field name from StepCustomization.
+ * Step 4: outfit-specific answers, keyed by field name from StepCustomization.
  * The key set depends on outfitType; `fit` is the only key present for every type.
  * Values are the exact option labels ("Slim", "Double-Breasted", "Premium").
  */
@@ -184,7 +184,7 @@ export interface CreateCustomOrderPayload {
   /** Amount actually charged now: full total, or 70% when paymentPlan is "deposit". */
   totalAmount: number;
   shippingMethod?: ShippingMethod;
-  /** Gateway, not the client's full/deposit choice — that is `paymentPlan`. */
+  /** Gateway, not the client's full/deposit choice. That is `paymentPlan`. */
   paymentMethod: PaymentGateway;
 
   // ── Contact (required for guests; prefilled from the session when signed in) ──
@@ -201,7 +201,7 @@ export interface CreateCustomOrderPayload {
   // ── Step 2: Inspiration ──
   /** null when the client never answered; false = "no inspiration to share". */
   hasInspiration?: boolean | null;
-  /** Hosted URLs from uploadMedia — present only when hasInspiration is true. */
+  /** Hosted URLs from uploadMedia: present only when hasInspiration is true. */
   inspirationImages?: string[];
   inspirationDescription?: string;
 
@@ -243,7 +243,7 @@ export interface CreateCustomOrderPayload {
   paymentPlan: PaymentPlan;
   /** Full quoted price, independent of what is charged now. */
   estimatedTotal: number;
-  /** Amount outstanding after this charge — 0 when paymentPlan is "full". */
+  /** Amount outstanding after this charge: 0 when paymentPlan is "full". */
   balanceDue: number;
   /** Line-by-line derivation of estimatedTotal, for server-side verification. */
   priceBreakdown?: PriceBreakdownPayload;

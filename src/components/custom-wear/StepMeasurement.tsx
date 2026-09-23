@@ -4,10 +4,19 @@ import { toast } from "sonner";
 import { uploadMedia } from "../../services";
 import { getApiErrorMessage } from "../../lib/axios";
 import BodyScanCapture from "../measurement/BodyScanCapture";
+import CroquisGuide from "../measurement/CroquisGuide";
+import {
+  FEMALE_GUIDES,
+  HOW_TO_MEASURE,
+  MALE_GUIDES,
+  guideNumber,
+} from "../../lib/measurementGuides";
 import type { Measurement } from "../../lib/bodyMeasurement";
 
 interface StepMeasurementProps {
   onBack: () => void;
+  /** Preselects the profile from the wearer chosen in Step 4, skipping screen 0. */
+  defaultProfile?: "female" | "male";
   onNext: (
     measurements: Measurement[],
     method: "camera" | "upload" | "manual",
@@ -29,7 +38,7 @@ interface MeasurementField {
 
 const FEMALE_FIELDS: MeasurementField[] = [
   { name: "Height",         required: true,  description: "Total standing height",                        group: "general" },
-  { name: "Bust",           required: true,  description: "Fullest part of chest — at nipple line",       group: "top" },
+  { name: "Bust",           required: true,  description: "Fullest part of chest: at nipple line",       group: "top" },
   { name: "Under Bust",     required: true,  description: "Directly below the bust",                      group: "top" },
   { name: "Shoulder Width", required: true,  description: "Shoulder point to shoulder point",             group: "top" },
   { name: "Arm Length",     required: true,  description: "Shoulder point to wrist bone",                 group: "top" },
@@ -43,7 +52,7 @@ const FEMALE_FIELDS: MeasurementField[] = [
 
 const MALE_FIELDS: MeasurementField[] = [
   { name: "Height",              required: true,  description: "Total standing height",                         group: "general" },
-  { name: "Chest",               required: true,  description: "Fullest part of chest — across shoulder blades", group: "top" },
+  { name: "Chest",               required: true,  description: "Fullest part of chest: across shoulder blades", group: "top" },
   { name: "Shoulder Width",      required: true,  description: "Shoulder point to shoulder point",              group: "top" },
   { name: "Sleeve Length",       required: true,  description: "Shoulder point to wrist (arm slightly bent)",   group: "top" },
   { name: "Neck",                required: false, description: "Around base of neck + 1 ease",                  group: "top" },
@@ -52,7 +61,7 @@ const MALE_FIELDS: MeasurementField[] = [
   { name: "Waist",               required: true,  description: "Narrowest part of natural waist",               group: "bottom" },
   { name: "Hips",                required: true,  description: "Fullest part of the seat",                      group: "bottom" },
   { name: "Thigh",               required: false, description: "Fullest part of upper thigh",                   group: "bottom" },
-  { name: "Inseam",              required: false, description: "Crotch to ankle — inner leg (trouser length)",  group: "bottom" },
+  { name: "Inseam",              required: false, description: "Crotch to ankle: inner leg (trouser length)",  group: "bottom" },
 ];
 
 // Estimated defaults in cm (used for photo upload fallback)
@@ -71,8 +80,15 @@ const cmToIn = (cm: number) => parseFloat((cm / 2.54).toFixed(1));
 const inToCm = (inch: number) => parseFloat((inch * 2.54).toFixed(1));
 
 // ─────────────────────────────────────────────────────────────────────────────
-const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
-  const [localGender, setLocalGender] = useState<"male" | "female" | null>(null);
+const StepMeasurement = ({
+  onBack,
+  onNext,
+  defaultProfile,
+}: StepMeasurementProps) => {
+  const [localGender, setLocalGender] = useState<"male" | "female" | null>(
+    defaultProfile ?? null,
+  );
+  const [activeField, setActiveField] = useState<string | null>(null);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
   const [showPhotoUploadForm, setShowPhotoUploadForm] = useState(false);
@@ -146,7 +162,7 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
       );
 
       toast.success(
-        "Photos received! We've applied estimated measurements as a starting point — our team will review your photos and email you if anything needs verifying before we cut fabric.",
+        "Photos received! We've applied estimated measurements as a starting point. Our team will review your photos and email you if anything needs verifying before we cut fabric.",
       );
       const measurements = fields.map((f) => ({
         name: f.name,
@@ -220,20 +236,21 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
 
   // ── SCREEN 2: Manual Form ──────────────────────────────────────────────────
   if (showManualForm) {
+    const guides = localGender === "male" ? MALE_GUIDES : FEMALE_GUIDES;
     const groups: { key: "general" | "top" | "bottom"; label: string }[] = [
       { key: "general", label: "General" },
       {
         key: "top",
-        label: localGender === "male" ? "Top — Buba / Shirt / Agbada" : "Top",
+        label: localGender === "male" ? "Top (Buba / Shirt / Agbada)" : "Top",
       },
       {
         key: "bottom",
-        label: localGender === "male" ? "Bottom — Trouser / Sokoto" : "Bottom",
+        label: localGender === "male" ? "Bottom (Trouser / Sokoto)" : "Bottom",
       },
     ];
 
     return (
-      <section className="py-20 px-6 max-w-3xl mx-auto">
+      <section className="py-20 px-6 max-w-6xl mx-auto">
         <button
           onClick={() => setShowManualForm(false)}
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
@@ -285,6 +302,28 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
           </div>
         </div>
 
+        <div className="grid gap-10 lg:grid-cols-[440px_minmax(0,1fr)] lg:items-start">
+          {/* Croquis: the line for the focused field is highlighted. */}
+          <div className="lg:sticky lg:top-28">
+            <CroquisGuide
+              profile={localGender === "male" ? "male" : "female"}
+              active={activeField}
+            />
+            {activeField && HOW_TO_MEASURE[activeField] && (
+              <div
+                aria-live="polite"
+                className="mt-6 border border-line bg-white p-5"
+              >
+                <p className="text-[11px] tracking-[0.22em] text-accent">
+                  HOW TO MEASURE · {activeField.toUpperCase()}
+                </p>
+                <p className="mt-2 font-display text-xl leading-snug text-ink">
+                  {HOW_TO_MEASURE[activeField]}
+                </p>
+              </div>
+            )}
+          </div>
+
         <form onSubmit={handleManualSubmit} className="space-y-10">
           {groups.map(({ key, label }) => {
             const groupFields = fields.filter((f) => f.group === key);
@@ -298,13 +337,22 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
                   <div className="flex-1 h-px bg-black/10" />
                 </div>
                 <div className="grid md:grid-cols-2 gap-5">
-                  {groupFields.map((field) => (
+                  {groupFields.map((field) => {
+                    const number = guideNumber(guides, field.name);
+                    return (
                     <div key={field.name}>
-                      <label className="block text-xs uppercase tracking-wider text-gray-400 mb-1">
-                        {field.name}{" "}
-                        {field.required && (
-                          <span className="text-black/60">*</span>
+                      <label className="flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400 mb-1">
+                        {number && (
+                          <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border border-accent text-[10px] text-accent">
+                            {number}
+                          </span>
                         )}
+                        <span>
+                          {field.name}{" "}
+                          {field.required && (
+                            <span className="text-black/60">*</span>
+                          )}
+                        </span>
                       </label>
                       <p className="text-[10px] text-gray-300 mb-2">
                         {field.description}
@@ -312,10 +360,12 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
+                          inputMode="decimal"
                           step="0.1"
                           min="1"
                           name={field.name}
                           required={field.required}
+                          onFocus={() => setActiveField(field.name)}
                           value={manualValues[field.name] ?? ""}
                           onChange={(e) =>
                             setManualValues((prev) => ({
@@ -331,7 +381,8 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
                         </span>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -359,6 +410,7 @@ const StepMeasurement = ({ onBack, onNext }: StepMeasurementProps) => {
             </button>
           </div>
         </form>
+        </div>
       </section>
     );
   }

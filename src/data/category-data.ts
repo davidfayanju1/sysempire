@@ -811,7 +811,7 @@ export const categoryData: CategoryData = {
     story: {
       title: "The Art of Bespoke Tailoring",
       description:
-        "In a world of fast fashion, our tailoring collection stands as a testament to craftsmanship and precision. Each suit is constructed using time-honored techniques, with hand-finished details that distinguish the exceptional from the ordinary. This is more than clothing—it's a legacy of excellence.",
+        "In a world of fast fashion, our tailoring collection stands as a testament to craftsmanship and precision. Each suit is constructed using time-honored techniques, with hand-finished details that distinguish the exceptional from the ordinary. This is more than clothing; it's a legacy of excellence.",
       quote: "A well-tailored suit is to women what lingerie is to men.",
     },
     featured: [

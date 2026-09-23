@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// No backend endpoint for saved addresses yet — stored client-side as part of
+// No backend endpoint for saved addresses yet: stored client-side as part of
 // the persisted user object (see `partialize` below) until one exists.
 export interface Address {
   id: string;

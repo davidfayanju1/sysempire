@@ -1,656 +1,138 @@
 import { useState } from "react";
-import { ArrowRight, ChevronLeft } from "lucide-react";
-import TailoringIcon from "./TailoringIcons";
-
-interface CustomizationField {
-  name: string;
-  label: string;
-  hint?: string;
-  options: string[];
-  optionDescriptions?: Record<string, string>;
-  optionIcons?: Record<string, string>;
-  required?: boolean;
-}
+import {
+  applySelection,
+  clearField,
+  deriveWearer,
+  getFields,
+  isComplete,
+  pickVisible,
+  type Customizations,
+  type FieldDef,
+  type OutfitType,
+  type Wearer,
+} from "../../lib/customizationFields";
+import { getPreviewSketch } from "../../lib/sketchRegistry";
+import GarmentSummary from "./GarmentSummary";
+import MobileSummary from "./MobileSummary";
+import GarmentSketchPreview from "./GarmentSketchPreview";
+import OptionSection from "./OptionSection";
 
 interface StepCustomizationProps {
+  outfitType: OutfitType;
+  initialValues?: Customizations;
+  estimate: (values: Customizations) => number;
+  onNext: (values: Customizations, wearer: Wearer | undefined) => void;
   onBack: () => void;
-  onNext: (customizations: Record<string, string>) => void;
-  outfitType: string | null;
 }
 
 const StepCustomization = ({
-  onBack,
-  onNext,
   outfitType,
+  initialValues,
+  estimate,
+  onNext,
+  onBack,
 }: StepCustomizationProps) => {
-  const [customizations, setCustomizations] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Customizations>(initialValues ?? {});
 
-  const getCustomizationFields = (): CustomizationField[] => {
-    const commonFields: CustomizationField[] = [
-      {
-        name: "fit",
-        label: "Fit Preference",
-        hint: "How the garment sits on your body relative to your measurements.",
-        options: ["Regular", "Slim", "Relaxed", "Tailored"],
-        optionDescriptions: {
-          Regular: "Standard fit — comfortable with room to move, suits most body types.",
-          Slim: "Closer to the body with minimal excess fabric — clean, modern look.",
-          Relaxed: "Loose and airy with extra room — easy, flowing feel.",
-          Tailored: "Precisely shaped to your measurements — structured and sharp.",
-        },
-        optionIcons: {
-          Regular: "fit-regular",
-          Slim: "fit-slim",
-          Relaxed: "fit-relaxed",
-          Tailored: "fit-tailored",
-        },
-      },
-    ];
+  // All derived during render: no effects, nothing to keep in sync.
+  const fields = getFields(outfitType, values);
+  const wearer = deriveWearer(outfitType, values);
+  const complete = isComplete(fields, values);
+  const preview = getPreviewSketch(outfitType, wearer, values);
 
-    const fieldsByType: Record<string, CustomizationField[]> = {
-      "native-wear": [
-        {
-          name: "neckStyle",
-          label: "Neck Style",
-          hint: "The shape of the opening at the collar of your garment.",
-          options: ["Round", "V-Neck", "Mandarin", "Traditional"],
-          optionDescriptions: {
-            Round: "A simple circular neckline — classic and versatile.",
-            "V-Neck": "A V-shaped opening at the front — elongates the neck.",
-            Mandarin: "A short, raised collar with no fold — clean and refined.",
-            Traditional: "Classic Nigerian collar with embroidered trim at the edge.",
-          },
-          optionIcons: {
-            Round: "neck-round",
-            "V-Neck": "neck-vneck",
-            Mandarin: "neck-mandarin",
-            Traditional: "neck-traditional",
-          },
-        },
-        {
-          name: "sleeveType",
-          label: "Sleeve Type",
-          hint: "The length and style of the sleeves on your top or buba.",
-          options: ["Short", "Long", "3/4", "Sleeveless"],
-          optionDescriptions: {
-            Short: "Ends at the upper arm — cool and casual.",
-            Long: "Full-length sleeve to the wrist — formal and traditional.",
-            "3/4": "Falls between the elbow and wrist — a versatile middle ground.",
-            Sleeveless: "No sleeves — open at the shoulder.",
-          },
-          optionIcons: {
-            Short: "sleeve-short",
-            Long: "sleeve-long",
-            "3/4": "sleeve-3-4",
-            Sleeveless: "sleeveless",
-          },
-        },
-        {
-          name: "embroidery",
-          label: "Embroidery",
-          hint: "Decorative thread work stitched into the fabric, often around the collar, cuffs, or chest.",
-          options: ["None", "Minimal", "Traditional", "Premium"],
-          optionDescriptions: {
-            None: "No embroidery — clean, minimalist finish.",
-            Minimal: "Subtle stitching around the neckline or cuffs only.",
-            Traditional: "Classic Nigerian motifs — Aso-oke or Ankara-style patterns.",
-            Premium: "Heavy, intricate gold or silver thread embroidery — full coverage.",
-          },
-          optionIcons: {
-            None: "embroidery-none",
-            Minimal: "embroidery-minimal",
-            Traditional: "embroidery-traditional",
-            Premium: "embroidery-premium",
-          },
-        },
-        {
-          name: "trouserStyle",
-          label: "Trouser Style",
-          hint: "The cut and silhouette of your sokoto or trouser.",
-          options: ["Straight", "Tapered", "Flared", "Drawstring"],
-          optionDescriptions: {
-            Straight: "Same width from hip to ankle — timeless and versatile.",
-            Tapered: "Gradually narrows toward the ankle — modern and clean.",
-            Flared: "Widens below the knee — bold and traditional.",
-            Drawstring: "Elastic or tied waist — relaxed and comfortable.",
-          },
-          optionIcons: {
-            Straight: "trouser-straight",
-            Tapered: "trouser-tapered",
-            Flared: "trouser-flared",
-            Drawstring: "trouser-drawstring",
-          },
-        },
-        {
-          name: "capStyle",
-          label: "Cap / Headwear",
-          hint: "Optional traditional cap to complete the native wear look. Each style carries its own cultural significance.",
-          options: ["None", "Fila", "Okpu Agu", "Songhai", "Kofia", "Other"],
-          optionDescriptions: {
-            None: "No cap — outfit only.",
-            Fila: "Yoruba round cap — soft, often embroidered. Can be worn tilted or straight.",
-            "Okpu Agu": "Igbo eagle feather cap — a symbol of honour, status and bravery.",
-            Songhai: "Northern Nigerian flat cap, also called Kube — simple and dignified.",
-            Kofia: "Round white cap common in West African Muslim culture — modest and clean.",
-            Other: "Have something specific in mind? Describe it in your notes at checkout.",
-          },
-          optionIcons: {
-            None: "cap-none",
-            Fila: "cap-fila",
-            "Okpu Agu": "cap-okpu-agu",
-            Songhai: "cap-songhai",
-            Kofia: "cap-kofia",
-            Other: "cap-other",
-          },
-          required: false,
-        },
-      ],
-      dresses: [
-        {
-          name: "neckline",
-          label: "Neckline",
-          hint: "The shape of the fabric edge around your neck and upper chest.",
-          options: ["Sweetheart", "V-Neck", "High Neck", "Off-Shoulder", "Halter"],
-          optionDescriptions: {
-            Sweetheart: "Curved, heart-shaped dip at the center — romantic and feminine.",
-            "V-Neck": "A pointed V-shape — elongates the neck and flatters most body types.",
-            "High Neck": "Covers the base of the neck — elegant, modest, and sophisticated.",
-            "Off-Shoulder": "Sits below both shoulders exposing the collarbone — flirty and stylish.",
-            Halter: "Strap ties around the neck with an open or low back — bold and summery.",
-          },
-          optionIcons: {
-            Sweetheart: "neckline-sweetheart",
-            "V-Neck": "neck-vneck",
-            "High Neck": "neckline-highneck",
-            "Off-Shoulder": "neckline-offshoulder",
-            Halter: "neckline-halter",
-          },
-        },
-        {
-          name: "sleeveType",
-          label: "Sleeve Type",
-          hint: "The style and length of the sleeves.",
-          options: ["Sleeveless", "Short", "Long", "Puff", "Bell"],
-          optionDescriptions: {
-            Sleeveless: "No sleeves — clean and modern.",
-            Short: "Ends at the upper arm — light and casual.",
-            Long: "Full length to the wrist — elegant and modest.",
-            Puff: "Gathered and inflated at the shoulder — dramatic and fashion-forward.",
-            Bell: "Fitted at the top, flaring wide at the elbow or wrist — bohemian and graceful.",
-          },
-          optionIcons: {
-            Sleeveless: "sleeveless",
-            Short: "sleeve-short",
-            Long: "sleeve-long",
-            Puff: "sleeve-puff",
-            Bell: "sleeve-bell",
-          },
-        },
-        {
-          name: "length",
-          label: "Dress Length",
-          hint: "Where the hem of the dress falls on your body.",
-          options: ["Mini", "Knee", "Midi", "Maxi"],
-          optionDescriptions: {
-            Mini: "Falls mid-thigh — bold and youthful.",
-            Knee: "Ends at or just below the knee — classic and versatile.",
-            Midi: "Falls between the knee and ankle — elegant and modest.",
-            Maxi: "Floor-length — dramatic, flowing, and formal.",
-          },
-          optionIcons: {
-            Mini: "length-mini",
-            Knee: "length-knee",
-            Midi: "length-midi",
-            Maxi: "length-maxi",
-          },
-        },
-        {
-          name: "silhouette",
-          label: "Silhouette",
-          hint: "The overall shape of the dress — how it fits and flows from shoulder to hem.",
-          options: ["A-Line", "Sheath", "Mermaid", "Ball Gown", "Empire"],
-          optionDescriptions: {
-            "A-Line": "Fitted at the hips and flaring outward like an A — universally flattering.",
-            Sheath: "Straight and slim from shoulder to hem — sleek, modern, and professional.",
-            Mermaid: "Fitted through the body and flaring dramatically at the knee — bold and sexy.",
-            "Ball Gown": "Fitted bodice with a full, voluminous skirt from the waist — princess silhouette.",
-            Empire: "High waistline just below the bust with a flowing skirt — romantic and relaxed.",
-          },
-          optionIcons: {
-            "A-Line": "dress-silhouette-aline",
-            Sheath: "dress-silhouette-sheath",
-            Mermaid: "dress-silhouette-mermaid",
-            "Ball Gown": "dress-silhouette-ballgown",
-            Empire: "dress-silhouette-empire",
-          },
-        },
-      ],
-      corporate: [
-        {
-          name: "jacketStyle",
-          label: "Jacket Style",
-          hint: "How the front of the jacket closes.",
-          options: ["Single-Breasted", "Double-Breasted"],
-          optionDescriptions: {
-            "Single-Breasted": "One row of buttons — clean, versatile, and the most common choice.",
-            "Double-Breasted": "Two overlapping rows of buttons — structured, authoritative, and fashion-forward.",
-          },
-        },
-        {
-          name: "skirtOrTrousers",
-          label: "Bottom Style",
-          hint: "Your preference for the bottom half of the corporate set.",
-          options: ["Skirt", "Trousers", "Both"],
-          optionDescriptions: {
-            Skirt: "A tailored skirt — classic and professional.",
-            Trousers: "Tailored pants — modern, powerful, and comfortable.",
-            Both: "We'll make both so you can mix and match.",
-          },
-        },
-        {
-          name: "color",
-          label: "Color Preference",
-          hint: "The base color of your corporate outfit.",
-          options: ["Black", "Navy", "Charcoal", "Beige", "Burgundy"],
-          optionDescriptions: {
-            Black: "Timeless and versatile — works for any corporate setting.",
-            Navy: "Professional and approachable — slightly softer than black.",
-            Charcoal: "Dark gray tone — sophisticated and serious.",
-            Beige: "Warm neutral — great for daytime and lighter seasons.",
-            Burgundy: "Deep wine red — bold yet professional.",
-          },
-        },
-      ],
-      wedding: [
-        {
-          name: "role",
-          label: "Your Role",
-          hint: "Helps us style the outfit appropriately for your part in the ceremony.",
-          options: ["Bride", "Groom", "Bridesmaid", "Groomsman", "Mother", "Guest"],
-          optionDescriptions: {
-            Bride: "The focus of the event — we'll give this the full bridal treatment.",
-            Groom: "Sharp, classic, and complementary to the bridal theme.",
-            Bridesmaid: "Coordinated with the bridal party — elegant and harmonious.",
-            Groomsman: "Coordinated with the groom — polished and uniform.",
-            Mother: "Dignified and celebratory — befitting the occasion.",
-            Guest: "Elegant and respectful of the event's dress code.",
-          },
-        },
-        {
-          name: "formality",
-          label: "Formality Level",
-          hint: "The overall tone and dress code of the wedding.",
-          options: ["Formal", "Semi-Formal", "Casual"],
-          optionDescriptions: {
-            Formal: "Black tie or white tie — gowns, tuxedos, full traditional regalia.",
-            "Semi-Formal": "Cocktail or smart-casual — suits, midi dresses, aso-ebi styles.",
-            Casual: "Relaxed and comfortable — still elegant but without strict rules.",
-          },
-        },
-        {
-          name: "colorScheme",
-          label: "Color Scheme",
-          hint: "The palette to align with the wedding's theme or aso-ebi colour.",
-          options: ["White/Ivory", "Pastel", "Bold", "Traditional"],
-          optionDescriptions: {
-            "White/Ivory": "Classic bridal palette — pure white or warm ivory tones.",
-            Pastel: "Soft blush, mint, lavender — light and romantic.",
-            Bold: "Rich, saturated colours — navy, burgundy, emerald, gold.",
-            Traditional: "Aso-ebi fabric and colours as directed by the family.",
-          },
-        },
-      ],
-    };
+  // Until the drawn artwork lands, the panel shows a live croquis built from
+  // the answers so far.
+  const liveSketch = (compact: boolean) => (
+    <GarmentSketchPreview
+      outfitType={outfitType}
+      wearer={wearer}
+      values={values}
+      compact={compact}
+      className="h-full w-full"
+    />
+  );
+  const total = estimate(values);
+  const summary = fields
+    .map((field) => values[field.name])
+    .filter(Boolean)
+    .join(" · ");
 
-    // Suits fork by who they're for — menswear and womenswear tailoring
-    // aren't the same garment with different labels, so once we know which
-    // one we're building, we swap in a genuinely different set of options.
-    if (outfitType === "suits") {
-      const suitForField: CustomizationField = {
-        name: "suitFor",
-        label: "Who's This For?",
-        hint: "Menswear and womenswear tailoring are built differently enough that we ask this first, so the rest of the choices actually fit.",
-        options: ["Men's Tailoring", "Women's Tailoring"],
-        optionDescriptions: {
-          "Men's Tailoring":
-            "Classic two or three-piece construction — jacket, trouser, optional waistcoat.",
-          "Women's Tailoring":
-            "Pantsuits, skirt suits, and fitted blazers — cut and finished for a women's silhouette.",
-        },
-        optionIcons: {
-          "Men's Tailoring": "suitfor-men",
-          "Women's Tailoring": "suitfor-women",
-        },
-      };
+  const select = (field: FieldDef, option: string) =>
+    setValues((current) =>
+      field.required === false && current[field.name] === option
+        ? clearField(current, field.name)
+        : applySelection(current, field.name, option),
+    );
 
-      const mensFields: CustomizationField[] = [
-        {
-          name: "composition",
-          label: "Suit Composition",
-          hint: "Not every suit is the same number of pieces — tell us what to make.",
-          options: ["Blazer Only", "Two-Piece", "Three-Piece", "Tuxedo"],
-          optionDescriptions: {
-            "Blazer Only": "Just the jacket — pair it with trousers you already own.",
-            "Two-Piece": "Jacket and trouser cut from the same cloth — the standard suit.",
-            "Three-Piece": "Jacket, trouser, and a matching waistcoat — extra formality and warmth.",
-            Tuxedo: "Satin-faced lapels and trim, built for black-tie occasions.",
-          },
-          optionIcons: {
-            "Blazer Only": "composition-blazer",
-            "Two-Piece": "composition-two-piece",
-            "Three-Piece": "composition-three-piece",
-            Tuxedo: "composition-tuxedo",
-          },
-        },
-        {
-          name: "lapelStyle",
-          label: "Lapel Style",
-          hint: "The lapel is the folded flap of fabric on the front of a jacket, just below the collar — it frames your chest and sets the tone of the suit.",
-          options: ["Notch", "Peak", "Shawl"],
-          optionDescriptions: {
-            Notch: "A triangular cut at the collar junction — the most common and versatile style, suits any occasion.",
-            Peak: "Points upward toward the shoulder — sharp and formal, often seen on tuxedos and power suits.",
-            Shawl: "A smooth, uninterrupted curve with no notch — elegant and traditional, popular for dinner jackets.",
-          },
-          optionIcons: {
-            Notch: "lapel-notch",
-            Peak: "lapel-peak",
-            Shawl: "lapel-shawl",
-          },
-        },
-        {
-          name: "buttons",
-          label: "Button Style",
-          hint: "Refers to the number and arrangement of buttons on the jacket front.",
-          options: ["Two-Button", "Three-Button", "Double-Breasted"],
-          optionDescriptions: {
-            "Two-Button": "One or both buttons fasten — the most popular choice, versatile for all body types.",
-            "Three-Button": "Higher button stance — more conservative and formal.",
-            "Double-Breasted": "Two parallel rows of buttons — bold, fashion-forward, and very structured.",
-          },
-          optionIcons: {
-            "Two-Button": "buttons-two",
-            "Three-Button": "buttons-three",
-            "Double-Breasted": "buttons-double-breasted",
-          },
-        },
-        {
-          name: "vents",
-          label: "Vent Style",
-          hint: "Vents are the vertical slits at the back hem of a jacket that allow ease of movement.",
-          options: ["Single Vent", "Double Vent", "No Vent"],
-          optionDescriptions: {
-            "Single Vent": "One center slit — classic American style, casual and easy.",
-            "Double Vent": "Two side slits — allows more movement and drapes cleanly when seated.",
-            "No Vent": "A clean, uninterrupted back — very formal and structured.",
-          },
-          optionIcons: {
-            "Single Vent": "vent-single",
-            "Double Vent": "vent-double",
-            "No Vent": "vent-none",
-          },
-        },
-        {
-          name: "pockets",
-          label: "Pocket Style",
-          hint: "The design of the hip pockets on the lower front of the jacket.",
-          options: ["Flap", "Jetted", "Patch", "Ticket"],
-          optionDescriptions: {
-            Flap: "A fabric flap covers the pocket opening — practical, classic, and the most common.",
-            Jetted: "Thin horizontal slit with no flap — sleek, minimalist, and very formal.",
-            Patch: "A pocket sewn on top of the fabric — casual and relaxed, great for sport coats.",
-            Ticket: "A small extra pocket on the right hip — traditionally used for train tickets.",
-          },
-          optionIcons: {
-            Flap: "pocket-flap",
-            Jetted: "pocket-jetted",
-            Patch: "pocket-patch",
-            Ticket: "pocket-ticket",
-          },
-        },
-      ];
-
-      const womensFields: CustomizationField[] = [
-        {
-          name: "composition",
-          label: "Suit Composition",
-          hint: "Not every suit is the same number of pieces — tell us what to make.",
-          options: ["Blazer Only", "Pantsuit", "Skirt Suit", "Three-Piece"],
-          optionDescriptions: {
-            "Blazer Only": "Just the jacket — style it with what you already own.",
-            Pantsuit: "Jacket and tailored trouser, cut from the same cloth.",
-            "Skirt Suit": "Jacket and a matching tailored skirt.",
-            "Three-Piece": "Jacket, a bottom of your choice, and a fitted waistcoat.",
-          },
-          optionIcons: {
-            "Blazer Only": "composition-blazer",
-            Pantsuit: "composition-pantsuit",
-            "Skirt Suit": "composition-skirt-suit",
-            "Three-Piece": "composition-three-piece-women",
-          },
-        },
-        {
-          name: "silhouette",
-          label: "Jacket Silhouette",
-          hint: "The overall shape of the jacket through the body — how closely it follows your waist.",
-          options: ["Fitted Waist", "Boxy", "Peplum", "Cropped"],
-          optionDescriptions: {
-            "Fitted Waist": "Nipped in at the waist for a defined, tailored shape.",
-            Boxy: "Straight through the body with no waist shaping — relaxed and modern.",
-            Peplum: "Fitted through the bust and waist, then flares out just below — feminine and structured.",
-            Cropped: "Ends above the hip, worn high-waisted — shows a little more of what's underneath.",
-          },
-          optionIcons: {
-            "Fitted Waist": "silhouette-fitted",
-            Boxy: "silhouette-boxy",
-            Peplum: "silhouette-peplum",
-            Cropped: "silhouette-cropped",
-          },
-        },
-        {
-          name: "lapelStyle",
-          label: "Lapel Style",
-          hint: "The lapel is the folded flap of fabric on the front of a jacket, just below the collar — it frames your chest and sets the tone of the look.",
-          options: ["Notch", "Peak", "Shawl", "Collarless"],
-          optionDescriptions: {
-            Notch: "A triangular cut at the collar junction — versatile, works for any occasion.",
-            Peak: "Points upward toward the shoulder — sharp, formal, and fashion-forward.",
-            Shawl: "A smooth, uninterrupted curve with no notch — elegant and soft.",
-            Collarless: "No lapel at all — a clean, modern neckline with nothing to fold.",
-          },
-          optionIcons: {
-            Notch: "lapel-notch",
-            Peak: "lapel-peak",
-            Shawl: "lapel-shawl",
-            Collarless: "lapel-collarless",
-          },
-        },
-        {
-          name: "buttons",
-          label: "Closure Style",
-          hint: "How the front of the jacket fastens.",
-          options: ["Single-Breasted", "Double-Breasted", "Open Front"],
-          optionDescriptions: {
-            "Single-Breasted": "One column of buttons — clean and versatile.",
-            "Double-Breasted": "Two parallel rows of buttons — bold and structured.",
-            "Open Front": "No buttons at all — worn open over what's underneath.",
-          },
-          optionIcons: {
-            "Single-Breasted": "buttons-single-breasted",
-            "Double-Breasted": "buttons-double-breasted",
-            "Open Front": "buttons-open-front",
-          },
-        },
-        {
-          name: "pockets",
-          label: "Pocket Style",
-          hint: "The design of the hip pockets on the lower front of the jacket.",
-          options: ["Flap", "Jetted", "Patch", "No Pockets"],
-          optionDescriptions: {
-            Flap: "A fabric flap covers the pocket opening — practical and classic.",
-            Jetted: "Thin horizontal slit with no flap — sleek and minimalist.",
-            Patch: "A pocket sewn on top of the fabric — casual and relaxed.",
-            "No Pockets": "A clean, uninterrupted front with no pocket detailing.",
-          },
-          optionIcons: {
-            Flap: "pocket-flap",
-            Jetted: "pocket-jetted",
-            Patch: "pocket-patch",
-            "No Pockets": "pocket-none",
-          },
-        },
-      ];
-
-      const detailFields =
-        customizations.suitFor === "Women's Tailoring"
-          ? womensFields
-          : customizations.suitFor === "Men's Tailoring"
-            ? mensFields
-            : [];
-
-      return [suitForField, ...commonFields, ...detailFields];
-    }
-
-    if (outfitType && fieldsByType[outfitType]) {
-      return [...commonFields, ...fieldsByType[outfitType]];
-    }
-    return commonFields;
+  const handleContinue = () => {
+    if (complete) onNext(pickVisible(fields, values), wearer);
   };
-
-  const fields = getCustomizationFields();
-
-  // Suit detail fields (composition/lapel/buttons/pockets/etc.) are reused
-  // between the men's and women's option sets, but their option values
-  // differ — switching who the suit is for invalidates whatever was picked
-  // downstream, so clear it rather than leave a stale, now-invalid value.
-  const SUIT_DETAIL_KEYS = [
-    "composition",
-    "lapelStyle",
-    "buttons",
-    "vents",
-    "pockets",
-    "silhouette",
-  ];
-
-  const handleSelect = (name: string, value: string) => {
-    setCustomizations((prev) => {
-      if (name === "suitFor" && prev.suitFor !== value) {
-        const next: Record<string, string> = { ...prev, suitFor: value };
-        SUIT_DETAIL_KEYS.forEach((key) => delete next[key]);
-        return next;
-      }
-      return { ...prev, [name]: value };
-    });
-  };
-
-  const isComplete = fields
-    .filter((f) => f.required !== false)
-    .every((field) => customizations[field.name]);
 
   return (
-    <section className="py-20 px-6 max-w-2xl mx-auto">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-black transition mb-8"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Back
-      </button>
-
-      <div className="text-center mb-12">
-        <span className="text-sm tracking-[0.3em] text-amber-600 uppercase font-serif">
-          Step 04
-        </span>
-        <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6">
-          Customize Your Outfit
-        </h2>
-        <p className="text-gray-500 max-w-lg mx-auto">
-          Select your preferences and we'll bring your vision to life.
+    <div className="mx-auto max-w-6xl px-5 pb-28 md:px-8 lg:pb-0">
+      <header className="flex flex-col items-center gap-3.5 pb-10 pt-4 text-center md:pb-16">
+        <p className="text-[11px] tracking-[0.32em] text-accent">
+          STEP 04 · DETAILS
         </p>
-      </div>
+        <h1 className="font-display text-4xl font-normal leading-none text-ink md:text-6xl">
+          Shape your garment
+        </h1>
+        <p className="max-w-md text-sm leading-relaxed text-muted md:text-base">
+          Each option is drawn the way your tailor will cut it.
+        </p>
+      </header>
 
-      <div className="space-y-10">
-        {fields.map((field) => (
-          <div key={field.name}>
-            <label className="block text-xs uppercase tracking-wider text-gray-400 mb-1">
-              {field.label}
-              {field.required === false && (
-                <span className="ml-2 normal-case text-[10px] text-gray-300">
-                  (optional)
-                </span>
-              )}
-            </label>
+      <div className="grid gap-16 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+        <div className="flex flex-col gap-10 md:gap-16">
+          <MobileSummary
+            className="lg:hidden"
+            image={preview}
+            fallback={liveSketch(true)}
+            summary={summary}
+            estimate={total}
+          />
 
-            {field.hint && (
-              <p className="text-[11px] text-gray-400 mb-3 leading-relaxed">
-                {field.hint}
-              </p>
-            )}
+          {fields.map((field) => (
+            <OptionSection
+              key={field.name}
+              field={field}
+              outfitType={outfitType}
+              wearer={wearer}
+              value={values[field.name]}
+              onSelect={(option) => select(field, option)}
+            />
+          ))}
 
-            <div className="flex flex-wrap gap-3">
-              {field.options.map((option: string) => {
-                const icon = field.optionIcons?.[option];
-                const isSelected = customizations[field.name] === option;
-
-                if (icon) {
-                  return (
-                    <button
-                      key={option}
-                      onClick={() => handleSelect(field.name, option)}
-                      className={`flex flex-col items-center gap-2 w-24 px-3 py-3 border transition text-xs text-center ${
-                        isSelected
-                          ? "border-black bg-black text-white"
-                          : "border-black/10 text-gray-600 hover:border-black/30"
-                      }`}
-                    >
-                      <TailoringIcon variant={icon} className="w-9 h-9 shrink-0" />
-                      <span>{option}</span>
-                    </button>
-                  );
-                }
-
-                return (
-                  <button
-                    key={option}
-                    onClick={() => handleSelect(field.name, option)}
-                    className={`px-5 py-2 border transition text-sm ${
-                      isSelected
-                        ? "border-black bg-black text-white"
-                        : "border-black/10 text-gray-600 hover:border-black/30"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                );
-              })}
-            </div>
-
-            {customizations[field.name] &&
-              field.optionDescriptions?.[customizations[field.name]] && (
-                <p className="text-[11px] text-gray-500 mt-3 leading-relaxed pl-1 border-l-2 border-amber-200">
-                  {field.optionDescriptions[customizations[field.name]]}
-                </p>
-              )}
+          {/* One Continue button: a fixed bar on mobile, inline on desktop. */}
+          <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-line bg-white px-5 py-4 lg:static lg:justify-between lg:bg-transparent lg:px-0 lg:pt-8">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex h-13 min-w-13 cursor-pointer items-center justify-center border border-line px-4 text-[13px] tracking-[0.08em] text-muted lg:border-0 lg:px-0"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={!complete}
+              className="h-13 flex-1 cursor-pointer bg-ink px-12 text-xs uppercase tracking-[0.24em] text-white disabled:cursor-not-allowed disabled:bg-line disabled:text-muted lg:h-14 lg:flex-none"
+            >
+              Continue
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="flex gap-4 mt-12">
-        <button
-          onClick={onBack}
-          className="flex-1 py-3 border border-black/20 text-black/60 text-sm uppercase tracking-wider hover:border-black/40 transition"
-        >
-          Back
-        </button>
-        <button
-          onClick={() => onNext(customizations)}
-          disabled={!isComplete}
-          className="flex-1 py-3 bg-black text-white text-sm uppercase tracking-wider hover:bg-black/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Continue <ArrowRight className="w-4 h-4 inline ml-2" />
-        </button>
+        <GarmentSummary
+          className="hidden lg:sticky lg:top-28 lg:flex"
+          image={preview}
+          fallback={liveSketch(false)}
+          fields={fields}
+          values={values}
+          estimate={total}
+        />
       </div>
-    </section>
+    </div>
   );
 };
 

@@ -102,9 +102,9 @@ const ProfileInfoTab = () => {
         </div>
         <div>
           <h3 className="text-xl font-normal text-black tracking-wide">
-            {(user?.fullName ?? `${firstName} ${lastName}`.trim()) || "—"}
+            {(user?.fullName ?? `${firstName} ${lastName}`.trim()) || "Not provided"}
           </h3>
-          <p className="text-black/50 text-sm mt-1">{user?.email ?? "—"}</p>
+          <p className="text-black/50 text-sm mt-1">{user?.email ?? "Not provided"}</p>
           {memberSince && (
             <p className="text-xs text-black/30 mt-2">Member since {memberSince}</p>
           )}

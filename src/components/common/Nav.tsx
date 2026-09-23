@@ -55,7 +55,7 @@ const Nav = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close everything on route change — adjusted during render (not in an
+  // Close everything on route change: adjusted during render (not in an
   // effect) per https://react.dev/learn/you-might-not-need-an-effect
   const [lastLocationKey, setLastLocationKey] = useState(location.key);
   if (location.key !== lastLocationKey) {

@@ -8,7 +8,7 @@ const WAYS = [
     tag: "RTW",
     title: "Ready to Wear",
     subtitle:
-      "Curated pieces crafted for the discerning modern woman — available now.",
+      "Curated pieces crafted for the discerning modern woman, available now.",
     image: "/images/female-clothing/orange.png",
     to: "/wears/new-arrivals",
     cta: "Shop Collection",

@@ -23,7 +23,7 @@ import WeAreBack from "./pages/we-are-back";
 import OrderConfirmation from "./pages/order-confirmation";
 import PrivacyPolicy from "./pages/privacy-policy";
 import TermsOfUse from "./pages/terms-of-use";
-import { Toaster } from "sonner";
+import GlassToaster from "./components/common/GlassToaster";
 import Checkout from "./pages/checkout";
 import NotFound from "./pages/not-found";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -34,37 +34,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
-      <Toaster
-        theme="dark"
-        position="bottom-right"
-        richColors
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "black",
-            color: "white",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "0px",
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: "300",
-            letterSpacing: "0.1em",
-            fontSize: "11px",
-          },
-          classNames: {
-            toast:
-              "!bg-black !text-white !border-white/10 !rounded-none ![font-weight:300] !tracking-[0.1em] !text-[11px] ![font-family:'Inter',sans-serif]",
-            description: "!text-white/60 ![font-weight:300]",
-            actionButton:
-              "!bg-white !text-black !rounded-none ![font-weight:300]",
-            cancelButton:
-              "!bg-black !text-white !rounded-none !border-white/20 ![font-weight:300]",
-            success: "!bg-green-900 !border-green-700 !text-white",
-            error: "!bg-red-900 !border-red-700 !text-white",
-            warning: "!bg-amber-900 !border-amber-700 !text-white",
-            info: "!bg-blue-900 !border-blue-700 !text-white",
-          },
-        }}
-      />
+      <GlassToaster />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<ContactUs />} />
@@ -97,7 +67,6 @@ function App() {
         <Route path="/we-are-back" element={<WeAreBack />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
-        <Route path="/payment/success" element={<OrderConfirmation />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfUse />} />
       </Routes>

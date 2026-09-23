@@ -2,11 +2,11 @@
 //
 // Two families live here:
 //  - Close-up glyphs (default 48x48 viewBox): a zoomed-in look at one
-//    construction detail — a lapel notch, a hem vent, a pocket — used for
+//    construction detail (a lapel notch, a hem vent, a pocket) used for
 //    suit-specific fields where the detail itself is the whole story.
 //  - On-body glyphs (40x88 viewBox, BODY_VIEWBOX): the option drawn on a
 //    faint croquis figure, so the customer sees roughly where on an actual
-//    body the choice sits and what silhouette it produces — used for fields
+//    body the choice sits and what silhouette it produces, used for fields
 //    like neckline, sleeve length, or dress silhouette where "where on the
 //    body" and "how much of it" are the point.
 //
@@ -31,7 +31,7 @@ const BODY_VIEWBOX = "0 0 40 88";
 
 // Shared faint croquis (front view, arms at sides) that every on-body icon
 // draws its highlighted detail on top of. Kept low-opacity/thin so the
-// full-strength overlay — the actual thing being chosen — reads first.
+// full-strength overlay (the actual thing being chosen) reads first.
 const bodyBase = (
   <g opacity={0.4} strokeWidth={1.1}>
     <circle cx="20" cy="9" r="4" />
@@ -272,7 +272,7 @@ const icons: Record<string, IconEntry> = {
   },
 
   // ═══════════════════════════════════════════════════════════════════════
-  // On-body glyphs — the option drawn on the shared croquis (BODY_VIEWBOX).
+  // On-body glyphs: the option drawn on the shared croquis (BODY_VIEWBOX).
   // ═══════════════════════════════════════════════════════════════════════
 
   // ── Neck style (native wear) ────────────────────────────────────────────

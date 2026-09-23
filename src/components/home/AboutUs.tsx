@@ -63,7 +63,7 @@ const AboutUs = () => {
               Wholly devoted to you."
             </p>
             <p className="text-[10px] text-black/30 mt-6 tracking-[0.2em] uppercase">
-              — SYS EMPIRE TEAM
+, SYS EMPIRE TEAM
             </p>
           </div>
 
@@ -101,7 +101,7 @@ const AboutUs = () => {
           {/* Closing statement */}
           <div className="mt-12">
             <blockquote className="text-xs text-black/40 italic max-w-md mx-auto leading-relaxed font-['Times_New_Roman',serif]">
-              "What started as a personal dream has become a shared journey —
+              "What started as a personal dream has become a shared journey,
               one that continues to unfold with every collection, every stitch,
               and every story we tell."
             </blockquote>

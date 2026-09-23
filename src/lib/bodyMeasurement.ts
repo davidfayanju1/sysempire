@@ -39,7 +39,7 @@ export const LANDMARKS = {
 } as const;
 
 export const DISCLAIMER =
-  "These measurements are camera-based estimates from a guided front-and-side scan of your body proportions. Expected accuracy is ±2–5 cm depending on camera angle, distance, clothing, body position, and lighting conditions. They're intended as a tailoring guide only — not a substitute for measurements taken by a professional tailor. For precision garments (bridal, ceremonial, or formal wear), we strongly recommend having your measurements verified by an experienced tailor before fabric is cut. SYS EMPIRE accepts no liability for fit discrepancies arising solely from camera-estimated measurements.";
+  "These measurements are camera-based estimates from a guided front-and-side scan of your body proportions. Expected accuracy is ±2–5 cm depending on camera angle, distance, clothing, body position, and lighting conditions. They're intended as a tailoring guide only: not a substitute for measurements taken by a professional tailor. For precision garments (bridal, ceremonial, or formal wear), we strongly recommend having your measurements verified by an experienced tailor before fabric is cut. SYS EMPIRE accepts no liability for fit discrepancies arising solely from camera-estimated measurements.";
 
 export const detectRaisedHand = (landmarks: PoseLandmark[]): GestureState => {
   const lw = landmarks[LANDMARKS.LEFT_WRIST];
@@ -326,7 +326,7 @@ export const buildMeasurements = (
         name: "Bust",
         value: Math.round(bustCirc),
         unit: "cm",
-        description: "Fullest part of chest — at nipple line",
+        description: "Fullest part of chest, at nipple line",
       },
       {
         name: "Under Bust",
@@ -408,7 +408,7 @@ export const buildMeasurements = (
       name: "Chest",
       value: Math.round(bustCirc),
       unit: "cm",
-      description: "Fullest part of chest — across shoulder blades",
+      description: "Fullest part of chest, across shoulder blades",
     },
     {
       name: "Waist",

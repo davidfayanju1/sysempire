@@ -127,7 +127,7 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
           </div>
         </div>
 
-        {/* Studio Address — only when pickup is selected */}
+        {/* Studio Address: only when pickup is selected */}
         {deliveryPreference === "pickup" && (
           <div className="bg-black/5 p-4 flex items-start gap-3">
             <MapPin className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
@@ -141,7 +141,7 @@ const StepDelivery = ({ onBack, onNext }: StepDeliveryProps) => {
           </div>
         )}
 
-        {/* Shipping Address — only when delivery is selected */}
+        {/* Shipping Address: only when delivery is selected */}
         {deliveryPreference === "delivery" && (
           <div className="space-y-4">
             <label className="block text-xs uppercase tracking-wider text-gray-400">

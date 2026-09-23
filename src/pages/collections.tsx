@@ -119,7 +119,7 @@ const Collections = () => {
             </h2>
             <div className="w-12 h-px bg-white/20 mx-auto mt-8" />
             <p className="text-white/30 text-[9px] tracking-[0.2em] uppercase mt-6">
-              — Creative Director
+, Creative Director
             </p>
           </div>
         </div>

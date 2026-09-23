@@ -3,7 +3,6 @@ import {
   ArrowRight,
   ChevronLeft,
   Upload,
-  Image,
   PenTool,
   X,
   Check,
@@ -55,7 +54,9 @@ const StepInspiration = ({
     }
     const accepted = files.slice(0, room);
     if (files.length > accepted.length) {
-      toast.error(`Only ${MAX_INSPIRATION_IMAGES} images allowed — added the first ${accepted.length}`);
+      toast.error(
+        `Only ${MAX_INSPIRATION_IMAGES} images allowed: added the first ${accepted.length}`,
+      );
     }
 
     accepted.forEach((file) => {
@@ -84,14 +85,19 @@ const StepInspiration = ({
         );
         const cdnUrls: string[] = results.map(
           (res) =>
-            res.data?.url ?? res.data?.file?.url ?? res.data?.secure_url ?? res.data,
+            res.data?.url ??
+            res.data?.file?.url ??
+            res.data?.secure_url ??
+            res.data,
         );
         onNext(true, cdnUrls);
         toast.success(
           cdnUrls.length > 1 ? "Images uploaded!" : "Upload successful!",
         );
       } catch (err) {
-        toast.error(getApiErrorMessage(err, "Image upload failed. Please try again."));
+        toast.error(
+          getApiErrorMessage(err, "Image upload failed. Please try again."),
+        );
       } finally {
         setIsUploading(false);
       }
@@ -149,7 +155,7 @@ const StepInspiration = ({
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <button
             onClick={() => setSelectedMethod("upload")}
             className="p-8 bg-white border border-black/5 hover:border-black/20 transition-all text-center"
@@ -174,7 +180,7 @@ const StepInspiration = ({
             <p className="text-xs text-gray-400">Tell us in your own words</p>
           </button>
 
-          <button
+          {/* <button
             onClick={() => setSelectedMethod("browse")}
             className="p-8 bg-white border border-black/5 hover:border-black/20 transition-all text-center"
           >
@@ -185,7 +191,7 @@ const StepInspiration = ({
             <p className="text-xs text-gray-400">
               Explore {getOutfitTypeName()} styles
             </p>
-          </button>
+          </button> */}
         </div>
       </section>
     );
@@ -238,7 +244,7 @@ const StepInspiration = ({
                 Click to upload one or more images
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                PNG, JPG up to 10MB each — up to {MAX_INSPIRATION_IMAGES} images
+                PNG or JPG, 10MB max, up to {MAX_INSPIRATION_IMAGES} images
               </p>
             </label>
           ) : (

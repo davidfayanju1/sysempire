@@ -48,6 +48,11 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
                 <p className="font-medium capitalize">
                   {orderData.outfitType?.replace("-", " ") || "Not selected"}
                 </p>
+                {orderData.wearer && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {orderData.wearer === "women" ? "Womenswear" : "Menswear"}
+                  </p>
+                )}
               </div>
             </div>
             <button
@@ -146,8 +151,8 @@ const StepReview = ({ orderData, onBack, onNext }: StepReviewProps) => {
           {orderData.fabricDetails?.pickupPreference === "pickup" &&
             orderData.fabricDetails.pickupDate && (
               <p className="text-sm text-gray-500 mt-2">
-                Preferred pickup day: {orderData.fabricDetails.pickupDate} —
-                quote and pickup details confirmed via email
+                Preferred pickup day: {orderData.fabricDetails.pickupDate}.
+                Quote and pickup details confirmed via email
               </p>
             )}
           {orderData.fabricPreferences?.colors &&

@@ -21,6 +21,7 @@ import { useAuthStore } from "../store/authStore";
 import { initiateFlutterwavePayment } from "../services";
 import type { CheckoutPayload } from "../types/api-cart";
 import { getApiErrorMessage } from "../lib/axios";
+import { rememberPaymentOrigin } from "../lib/paymentOrigin";
 
 const SHIPPING_FEES: Record<string, number> = {
   standard: 2000,
@@ -133,7 +134,9 @@ const Checkout = () => {
         guestEmail: formData.guestEmail,
         guestPhone: formData.guestPhone,
         notes: formData.notes || undefined,
-        clearCart: true,
+        // The cart is emptied once the payment is confirmed, not now: a
+        // customer who cancels at the gateway must keep their basket.
+        clearCart: false,
       };
 
       const order = await checkout(payload);
@@ -149,6 +152,7 @@ const Checkout = () => {
         throw new Error("Could not retrieve payment link. Please try again.");
       }
 
+      rememberPaymentOrigin("/cart");
       window.location.href = paymentLink;
     } catch (error) {
       toast.error(

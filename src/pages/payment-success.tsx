@@ -1,148 +1,212 @@
 // pages/PaymentSuccess.tsx
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+//
+// Every customer comes back through this one URL, whatever happened: paid,
+// cancelled or failed. What the query string looks like depends on who did the
+// redirecting, so classifyPaymentReturn sorts that out and this page only
+// decides what to show and where to send people next.
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import api from "../lib/axios";
+import { clearStoredProgress } from "../lib/customWearProgress";
+import { forgetPaymentOrigin, takePaymentOrigin } from "../lib/paymentOrigin";
+import { classifyPaymentReturn } from "../lib/paymentReturn";
 import { useAuthStore } from "../store/authStore";
+import { useCart } from "../util/useCart";
+
+const ORDERS_PATH = "/profile?tab=orders";
+
+type Phase = "verifying" | "verified" | "failed" | "unreadable";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [verificationError, setVerificationError] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const { clearCart } = useCart();
+  const startedRef = useRef(false);
 
-  const transactionId = searchParams.get("transaction_id");
-  const txRef = searchParams.get("tx_ref");
-  const status = searchParams.get("status");
+  const result = classifyPaymentReturn(searchParams);
+
+  // Derived up front rather than set inside the effect, which would cascade an
+  // extra render. Cancelled and failed navigate away, so they never paint.
+  const [phase, setPhase] = useState<Phase>(() =>
+    result.kind === "paid"
+      ? "verified"
+      : result.kind === "unreadable"
+        ? "unreadable"
+        : "verifying",
+  );
+
+  const reference =
+    result.kind === "verify" || result.kind === "unreadable"
+      ? null
+      : result.reference;
+  const orderNumber = result.kind === "paid" ? result.orderNumber : null;
 
   useEffect(() => {
-    const verifyPayment = async () => {
-      if (!transactionId || !txRef) {
-        toast.error("Invalid payment response");
-        navigate("/");
-        return;
-      }
+    // StrictMode mounts twice in development; this would otherwise double both
+    // the verification request and the toast.
+    if (startedRef.current) return;
+    startedRef.current = true;
 
-      try {
-        console.log("Verifying payment:", { transactionId, txRef, status });
-
-        const response = await api.get("/payments/flutterwave/verify", {
-          params: {
-            transaction_id: transactionId,
-            tx_ref: txRef,
-            status: status || "successful",
-          },
-        });
-
-        console.log("Verification response:", response.data);
-        setIsVerifying(false);
-        toast.success("Payment verified successfully!");
-
-        // Redirect after 3 seconds
-        setTimeout(() => {
-          // Check if user is logged in (has user object)
-          if (user) {
-            navigate("/orders");
-          } else {
-            navigate("/login?returnTo=/orders");
-          }
-        }, 3000);
-      } catch (error) {
-        console.error("Verification error:", error);
-        setIsVerifying(false);
-        setVerificationError(true);
-        toast.error("Could not verify payment. Please contact support.");
-
-        setTimeout(() => {
-          navigate("/");
-        }, 5000);
-      }
+    // Only now that the money is confirmed is it safe to throw away the
+    // basket and the saved bespoke answers.
+    const finishOrder = () => {
+      forgetPaymentOrigin();
+      clearStoredProgress();
+      clearCart();
     };
 
-    verifyPayment();
-  }, [transactionId, txRef, status, navigate, user]);
+    const goToOrders = () =>
+      setTimeout(() => {
+        navigate(
+          user
+            ? ORDERS_PATH
+            : `/login?returnTo=${encodeURIComponent(ORDERS_PATH)}`,
+        );
+      }, 3000);
+
+    switch (result.kind) {
+      case "cancelled":
+        // Nothing was charged. The cart and any bespoke answers are still
+        // intact, so send people back to exactly where they started.
+        toast("Payment cancelled. Nothing was charged.");
+        navigate(takePaymentOrigin(), { replace: true });
+        return;
+
+      case "failed":
+        navigate(`/payment/failed?${searchParams.toString()}`, {
+          replace: true,
+        });
+        return;
+
+      case "paid":
+        toast.success("Payment confirmed.");
+        finishOrder();
+        goToOrders();
+        return;
+
+      case "unreadable":
+        return;
+
+      case "verify":
+        // Flutterwave redirected straight here, so confirm the charge before
+        // telling anyone it worked.
+        api
+          .get("/payments/flutterwave/verify", {
+            params: {
+              ...(result.transactionId
+                ? { transaction_id: result.transactionId }
+                : {}),
+              ...(result.txRef ? { tx_ref: result.txRef } : {}),
+              status: result.status,
+            },
+          })
+          .then(() => {
+            setPhase("verified");
+            toast.success("Payment confirmed.");
+            finishOrder();
+            goToOrders();
+          })
+          .catch((error) => {
+            console.error("Verification error:", error);
+            setPhase("failed");
+            toast.error("We could not confirm this payment yet.");
+          });
+    }
+  }, [clearCart, navigate, result, searchParams, user]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center max-w-md mx-auto p-8 bg-white shadow-lg rounded-lg">
-        {isVerifying ? (
+    <div className="min-h-screen flex items-center justify-center bg-[#fefaf5] px-6">
+      <div className="text-center max-w-md mx-auto p-10 bg-white border border-black/10">
+        {phase === "verifying" && (
           <>
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-black border-t-transparent mx-auto mb-6" />
-            <h2 className="text-2xl font-light mb-3">Verifying Your Payment</h2>
-            <p className="text-gray-500">
-              Please wait while we confirm your transaction...
+            <div className="animate-spin rounded-full h-14 w-14 border-2 border-black border-t-transparent mx-auto mb-6" />
+            <h2 className="text-2xl font-light mb-3">Confirming your payment</h2>
+            <p className="text-gray-500 text-sm">
+              One moment while we check this with Flutterwave.
             </p>
-            {transactionId && (
-              <p className="text-xs text-gray-400 mt-4">
-                Transaction ID: {transactionId}
-              </p>
-            )}
           </>
-        ) : verificationError ? (
+        )}
+
+        {phase === "verified" && (
           <>
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-14 h-14 border border-black/15 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
-                className="w-8 h-8 text-red-600"
+                className="w-6 h-6 text-black"
                 fill="none"
                 stroke="currentColor"
+                strokeWidth={1.4}
                 viewBox="0 0 24 24"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-light mb-3">Verification Failed</h2>
-            <p className="text-gray-500 mb-4">
-              Could not verify your payment. Please contact support.
-            </p>
-            <p className="text-sm text-gray-400">Redirecting you to home...</p>
-          </>
-        ) : (
-          <>
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
                   d="M5 13l4 4L19 7"
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-light mb-3">Payment Successful! 🎉</h2>
-            <p className="text-gray-500 mb-4">
-              Your order has been confirmed and is being processed.
+            <h2 className="text-2xl font-light mb-3">Payment confirmed</h2>
+            <p className="text-gray-500 text-sm mb-6">
+              Your order is confirmed and now in production.
             </p>
+            {orderNumber ? (
+              <p className="text-xs text-gray-400 mb-6">Order {orderNumber}</p>
+            ) : (
+              reference && (
+                <p className="text-xs text-gray-400 mb-6">
+                  Reference: {reference}
+                </p>
+              )
+            )}
+            <p className="text-xs text-gray-400">Taking you to your orders...</p>
+          </>
+        )}
 
-            <div className="bg-gray-50 p-4 rounded-md mb-6 text-left">
-              {transactionId && (
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Transaction ID:</span>{" "}
-                  {transactionId}
-                </p>
-              )}
-              {txRef && (
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Reference:</span> {txRef}
-                </p>
-              )}
+        {(phase === "failed" || phase === "unreadable") && (
+          <>
+            <div className="w-14 h-14 border border-amber-300 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg
+                className="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.4}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+                />
+              </svg>
             </div>
-
-            <p className="text-sm text-gray-400">
-              {user
-                ? "Redirecting to your orders..."
-                : "Redirecting to login..."}
+            <h2 className="text-2xl font-light mb-3">
+              We could not confirm this yet
+            </h2>
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+              {phase === "unreadable"
+                ? "Your bank may still have completed the payment. Check your orders before paying again."
+                : "If your account was debited, do not pay again. Send us the reference below and we will sort it out."}
             </p>
+            {reference && (
+              <p className="text-xs text-gray-400 mb-6">
+                Reference: {reference}
+              </p>
+            )}
+            <div className="flex flex-col gap-3">
+              <Link
+                to={user ? ORDERS_PATH : "/login"}
+                className="w-full py-3 bg-black text-white text-xs uppercase tracking-[0.18em] hover:bg-black/80 transition"
+              >
+                View my orders
+              </Link>
+              <a
+                href={`mailto:sysempire@gmail.com?subject=Payment%20${encodeURIComponent(reference ?? "enquiry")}`}
+                className="w-full py-3 border border-black/20 text-black/60 text-xs uppercase tracking-[0.18em] hover:border-black/40 hover:text-black transition"
+              >
+                Contact support
+              </a>
+            </div>
           </>
         )}
       </div>

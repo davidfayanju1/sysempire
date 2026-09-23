@@ -58,7 +58,7 @@ const LookBookPage = () => {
             </div>
 
             <p className="text-black/40 text-xs italic font-['Times_New_Roman',serif]">
-              — SYS EMPIRE Team
+, SYS EMPIRE Team
             </p>
           </div>
 

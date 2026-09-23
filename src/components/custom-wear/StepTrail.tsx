@@ -16,7 +16,7 @@ const StepTrail = ({ currentStep, totalSteps = 8 }: StepTrailProps) => {
   const setStepTrailStuck = useScrollUIStore((s) => s.setStepTrailStuck);
 
   // Detect when this bar has locked to the top of the viewport (sticky
-  // engaged) via a sentinel placed immediately before it — a standard
+  // engaged) via a sentinel placed immediately before it, a standard
   // IntersectionObserver trick, since CSS alone can't expose sticky state.
   useEffect(() => {
     const sentinel = sentinelRef.current;

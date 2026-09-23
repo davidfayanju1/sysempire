@@ -72,7 +72,7 @@ const NotFound = () => {
           transition={{ delay: 0.6 }}
           className="mt-12 text-xs text-[#8C8C86] tracking-wide"
         >
-          <p>Error 404 — Page not found</p>
+          <p>Error 404, Page not found</p>
         </motion.div>
       </div>
     </div>
